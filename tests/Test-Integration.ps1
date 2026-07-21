@@ -456,8 +456,8 @@ try {
         schemaVersion = 1
         client = [ordered]@{
             commit = $clientCommit
-            releaseTag = "Fetcher-Simulator-Test"
-            assetName = "fetcher-simulator-test.zip"
+            releaseTag = "Fetcher-Simulator"
+            assetName = "fetcher-simulator.zip"
             assetDigest = "sha256:$clientDigest"
         }
         patches = [ordered]@{}
@@ -465,12 +465,12 @@ try {
     $clientRelease = [ordered]@{
         target_commitish = $clientCommit
         assets = @([ordered]@{
-            name = "fetcher-simulator-test.zip"
+            name = "fetcher-simulator.zip"
             digest = "sha256:$clientDigest"
             size = 1
         })
     }
-    $routes["/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator-Test"] = @{
+    $routes["/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator"] = @{
         contentType = "application/json"
         body = ($clientRelease | ConvertTo-Json -Depth 5 -Compress)
     }
@@ -480,7 +480,7 @@ try {
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
         -SkipTesterToolsUpdate -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     $clientRequests = Get-Content -LiteralPath $logPath -Raw
-    Assert-True -Condition ($clientRequests.Contains("/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator-Test")) `
+    Assert-True -Condition ($clientRequests.Contains("/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator")) `
         -Message "Client release did not resolve against Skooma-Breath/Fetcher-Simulator."
     Assert-True -Condition ($clientOutput.Contains("Client is current at commit $clientCommit.")) `
         -Message "Current client fixture unexpectedly attempted a client install."

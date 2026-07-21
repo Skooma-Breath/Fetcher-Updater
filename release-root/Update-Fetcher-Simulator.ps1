@@ -6,8 +6,8 @@ param(
     [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
     [string] $GitHubApiBaseUrl = "https://api.github.com",
     [string] $GitHubDownloadBaseUrl = "https://github.com",
-    [string] $ClientReleaseTag = "Fetcher-Simulator-Test",
-    [string] $ClientAssetName = "fetcher-simulator-test.zip",
+    [string] $ClientReleaseTag = "Fetcher-Simulator",
+    [string] $ClientAssetName = "fetcher-simulator.zip",
     [string] $TesterToolsReleaseTag = "fetcher-tester-tools",
     [string] $TesterToolsAssetName = "fetcher-tester-tools.zip",
     [string] $TesterToolsArchivePath = "",
@@ -875,7 +875,8 @@ try {
         $localChannel = Get-InstalledClientChannel -Root $root
         $knownAssetDigest = if ($clientState.Contains("assetDigest")) { [string]$clientState["assetDigest"] } else { "" }
         $knownReleaseTag = if ($clientState.Contains("releaseTag")) { [string]$clientState["releaseTag"] } else { "" }
-        if ($localChannel -ne "test" -or $localCommit -ne $remoteCommit -or $knownReleaseTag -ne $ClientReleaseTag -or
+        if (@("clean", "test") -notcontains $localChannel -or
+            $localCommit -ne $remoteCommit -or $knownReleaseTag -ne $ClientReleaseTag -or
             (-not [string]::IsNullOrWhiteSpace($knownAssetDigest) -and $knownAssetDigest -ne $clientAsset.Digest)) {
             Install-ClientArchive -Root $root -Asset $clientAsset -RemoteCommit $remoteCommit -RunWorkRoot $runWorkRoot
         }

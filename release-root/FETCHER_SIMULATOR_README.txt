@@ -13,8 +13,8 @@ Download and double-click the single Join-Fetcher-Test-Channel.bat asset from:
    https://github.com/Skooma-Breath/Fetcher-Updater/releases/tag/fetcher-tester-tools
 
 The bootstrap asks for the folder containing openmw.exe, verifies and installs
-the tester tools ZIP, switches the client to the Fetcher-Simulator-Test release
-channel, and starts the updater. Do not manually copy the individual BAT/PS1
+the tester tools ZIP, keeps the client on the unified clean Fetcher-Simulator
+release, and starts the updater. Do not manually copy the individual BAT/PS1
 files. After this one-time bootstrap, use Update-Fetcher-Simulator.bat for every
 client, tool, mod, and Bardcraft patch update.
 
@@ -44,7 +44,7 @@ Close OpenMW and double-click:
 
    Update-Fetcher-Simulator.bat
 
-The updater checks the Fetcher-Simulator-Test Git commit and GitHub release digest.
+The updater checks the unified Fetcher-Simulator Git commit and GitHub release digest.
 Client archives remain owned by Skooma-Breath/Fetcher-Simulator. Updater and
 tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
 Starwind compatibility patches remain owned by their respective repositories.

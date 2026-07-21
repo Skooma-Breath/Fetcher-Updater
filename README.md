@@ -35,11 +35,13 @@ Publishing is intentionally performed only by the GitHub Actions workflow or by 
 
 The installed updater keeps each release source independent:
 
-- `ClientRepository` defaults to `Skooma-Breath/Fetcher-Simulator`.
+- `ClientRepository` defaults to `Skooma-Breath/Fetcher-Simulator`, using the unified clean `Fetcher-Simulator` release and `fetcher-simulator.zip` asset.
 - `TesterToolsRepository` defaults to `Skooma-Breath/Fetcher-Updater`.
 - Bardcraft and Starwind repositories are required in `fetcher-client-patches.json`.
 
 Legacy updater calls that pass `-Repository` still work: it is an alias for `ClientRepository` only and cannot redirect tester-tools or compatibility-patch downloads.
+
+The client channel marker accepts both legacy `test` installations and the unified `clean` base during migration. Tester tools, mods, and compatibility patches are overlays managed here; OpenMW no longer needs a second tester-specific client archive.
 
 Every GitHub download requires the SHA-256 digest supplied by the release API. The installer also rejects unsafe or duplicate archive paths, unsupported manifests, unmanifested payloads, and file hash or size mismatches. The updater preserves mutex locking, receipt/marker verification, and atomic state replacement.
 
