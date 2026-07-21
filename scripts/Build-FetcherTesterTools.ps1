@@ -6,9 +6,16 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+$repositoryRoot = Split-Path -Parent $PSScriptRoot
 
 if ([string]::IsNullOrWhiteSpace($SourceDir)) {
-    $SourceDir = Join-Path (Split-Path -Parent $PSScriptRoot) "release-root"
+    $SourceDir = Join-Path $repositoryRoot "release-root"
+}
+if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
+    $SourceCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not resolve the tester-tools source commit."
+    }
 }
 
 $files = @(
@@ -31,8 +38,8 @@ $files = @(
 if (-not (Test-Path -LiteralPath $SourceDir -PathType Container)) {
     throw "Tester tools source directory was not found: $SourceDir"
 }
-if ($SourceCommit -and $SourceCommit -notmatch "^[0-9a-fA-F]{40}$") {
-    throw "SourceCommit must be empty or a full 40-character Git commit hash."
+if ($SourceCommit -notmatch "^[0-9a-fA-F]{40}$") {
+    throw "SourceCommit must be a full 40-character Git commit hash."
 }
 
 $outputPath = [IO.Path]::GetFullPath($OutputDir)

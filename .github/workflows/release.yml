@@ -24,6 +24,14 @@ jobs:
             -OutputDir "${{ github.workspace }}\release-assets" `
             -SourceCommit "${{ github.sha }}"
 
+      - name: Validate tester tools package and installer
+        shell: pwsh
+        run: |
+          .\tests\Test-Package.ps1 `
+            -ArchivePath "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
+          .\tests\Test-Integration.ps1 `
+            -ArchivePath "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
+
       - name: Replace stable tester tools prerelease
         shell: pwsh
         env:

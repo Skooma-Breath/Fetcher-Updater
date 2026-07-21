@@ -50,7 +50,9 @@ try {
     Expand-Archive -LiteralPath $resolvedArchive -DestinationPath $workRoot
     $manifestPath = Join-Path $workRoot "fetcher-tester-tools.json"
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ([int]$manifest.schemaVersion -ne 1 -or [string]$manifest.channel -ne "fetcher-simulator-test") {
+    if ([int]$manifest.schemaVersion -ne 1 -or
+        [string]$manifest.channel -ne "fetcher-simulator-test" -or
+        [string]$manifest.sourceCommit -notmatch "^[0-9a-fA-F]{40}$") {
         throw "Package has an unsupported manifest."
     }
 

@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
     [string] $InstallRoot = "",
-    [string] $Repository = "Skooma-Breath/Fetcher-Simulator",
+    [Alias("Repository")]
+    [string] $ClientRepository = "Skooma-Breath/Fetcher-Simulator",
+    [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
     [string] $GitHubApiBaseUrl = "https://api.github.com",
     [string] $GitHubDownloadBaseUrl = "https://github.com",
     [string] $ClientReleaseTag = "Fetcher-Simulator-Test",
@@ -141,7 +143,7 @@ function Assert-SafeArchivePaths {
 function Get-GitHubRelease {
     param(
         [Parameter(Mandatory = $true)][string] $Tag,
-        [string] $ReleaseRepository = $Repository
+        [string] $ReleaseRepository = $ClientRepository
     )
 
     $encodedTag = [Uri]::EscapeDataString($Tag)
@@ -160,7 +162,7 @@ function Get-ReleaseAsset {
         [Parameter(Mandatory = $true)] $Release,
         [Parameter(Mandatory = $true)][string] $AssetName,
         [Parameter(Mandatory = $true)][string] $ReleaseTag,
-        [string] $ReleaseRepository = $Repository
+        [string] $ReleaseRepository = $ClientRepository
     )
 
     $assetMatches = @($Release.assets | Where-Object { [string]$_.name -eq $AssetName })
@@ -185,7 +187,8 @@ function Get-ReleaseAsset {
 function Resolve-ReleaseCommit {
     param(
         [Parameter(Mandatory = $true)] $Release,
-        [Parameter(Mandatory = $true)][string] $Tag
+        [Parameter(Mandatory = $true)][string] $Tag,
+        [string] $ReleaseRepository = $ClientRepository
     )
 
     $target = [string]$Release.target_commitish
@@ -194,7 +197,7 @@ function Resolve-ReleaseCommit {
     }
 
     $encodedTag = [Uri]::EscapeDataString($Tag)
-    $referenceUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$Repository/git/ref/tags/$encodedTag"
+    $referenceUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$ReleaseRepository/git/ref/tags/$encodedTag"
     $reference = Invoke-WithRetry -Description "Resolving GitHub tag $Tag" -Action {
         Invoke-RestMethod -UseBasicParsing -Uri $referenceUrl -Headers $headers
     }
@@ -202,7 +205,7 @@ function Resolve-ReleaseCommit {
         return ([string]$reference.object.sha).ToLowerInvariant()
     }
     if ([string]$reference.object.type -eq "tag") {
-        $tagUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$Repository/git/tags/$($reference.object.sha)"
+        $tagUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$ReleaseRepository/git/tags/$($reference.object.sha)"
         $tagObject = Invoke-WithRetry -Description "Resolving annotated GitHub tag $Tag" -Action {
             Invoke-RestMethod -UseBasicParsing -Uri $tagUrl -Headers $headers
         }
@@ -525,6 +528,37 @@ function Get-OptionalStringProperty {
     return [string]$property.Value
 }
 
+function Assert-ClientModPatchDefinition {
+    param([Parameter(Mandatory = $true)] $Patch)
+
+    foreach ($name in @(
+        "id", "name", "repository", "releaseTag", "assetName", "targetPlugin",
+        "requiredSubdirectory", "applierPattern", "targetParameter"
+    )) {
+        if ([string]::IsNullOrWhiteSpace((Get-OptionalStringProperty -Object $Patch -Name $name))) {
+            throw "Client patch definition is missing required property: $name"
+        }
+    }
+    $repository = Get-OptionalStringProperty -Object $Patch -Name "repository"
+    if ($repository -notmatch "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$") {
+        throw "Client patch definition contains an invalid repository: $repository"
+    }
+    foreach ($name in @("assetName", "targetPlugin", "applierPattern")) {
+        $value = Get-OptionalStringProperty -Object $Patch -Name $name
+        if ($value -ne [IO.Path]::GetFileName($value) -or $value.Contains("..")) {
+            throw "Client patch definition contains an invalid $($name): $value"
+        }
+    }
+    $markerPath = Get-OptionalStringProperty -Object $Patch -Name "markerPath"
+    $markerFile = Get-OptionalStringProperty -Object $Patch -Name "markerFile"
+    if ([string]::IsNullOrWhiteSpace($markerPath) -and [string]::IsNullOrWhiteSpace($markerFile)) {
+        throw "Client patch definition must declare markerPath or markerFile: $($Patch.id)"
+    }
+    foreach ($path in @($markerPath, $markerFile) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) {
+        [void](ConvertTo-NormalizedRelativePath -RelativePath $path)
+    }
+}
+
 function Resolve-ClientModPatchMarkerPath {
     param(
         [Parameter(Mandatory = $true)][string] $Root,
@@ -627,10 +661,9 @@ function Install-ClientModPatch {
         return
     }
 
-    $patchRepository = $Repository
-    if ($Patch.PSObject.Properties.Name -contains "repository" -and
-        -not [string]::IsNullOrWhiteSpace([string]$Patch.repository)) {
-        $patchRepository = [string]$Patch.repository
+    $patchRepository = Get-OptionalStringProperty -Object $Patch -Name "repository"
+    if ([string]::IsNullOrWhiteSpace($patchRepository)) {
+        throw "Patch $($Patch.id) does not declare its release repository."
     }
 
     $release = Get-GitHubRelease -Tag ([string]$Patch.releaseTag) -ReleaseRepository $patchRepository
@@ -714,6 +747,9 @@ function Install-UmoModList {
     Write-Host "Checking required Fetcher mods and dependencies through UMO..."
     & $installer `
         -UmoBasePath (Join-Path $Root "Data Files") `
+        -TesterToolsRepository $TesterToolsRepository `
+        -TesterToolsReleaseTag $TesterToolsReleaseTag `
+        -GitHubDownloadBaseUrl $GitHubDownloadBaseUrl `
         -ApplyBardcraftMultiplayerPatch $false `
         -ApplyPublicTestConfig $true
     if (-not $?) {
@@ -732,7 +768,7 @@ function Install-TesterTools {
     Write-Host "Refreshing Fetcher tester tools..."
     $parameters = @{
         InstallRoot = $Root
-        Repository = $Repository
+        TesterToolsRepository = $TesterToolsRepository
         ReleaseTag = $TesterToolsReleaseTag
         AssetName = $TesterToolsAssetName
         GitHubApiBaseUrl = $GitHubApiBaseUrl
@@ -830,9 +866,11 @@ if (Test-Path -LiteralPath $statePath -PathType Leaf) {
 try {
     if (-not $SkipClientUpdate) {
         Write-Host "Checking Fetcher Simulator client release..."
-        $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag
-        $clientAsset = Get-ReleaseAsset -Release $clientRelease -AssetName $ClientAssetName -ReleaseTag $ClientReleaseTag
-        $remoteCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag
+        $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag -ReleaseRepository $ClientRepository
+        $clientAsset = Get-ReleaseAsset -Release $clientRelease -AssetName $ClientAssetName `
+            -ReleaseTag $ClientReleaseTag -ReleaseRepository $ClientRepository
+        $remoteCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag `
+            -ReleaseRepository $ClientRepository
         $localCommit = Get-InstalledClientCommit -Root $root
         $localChannel = Get-InstalledClientChannel -Root $root
         $knownAssetDigest = if ($clientState.Contains("assetDigest")) { [string]$clientState["assetDigest"] } else { "" }
@@ -875,10 +913,17 @@ try {
         }
         if (Test-Path -LiteralPath $PatchCatalogPath -PathType Leaf) {
             $catalog = Get-Content -LiteralPath $PatchCatalogPath -Raw | ConvertFrom-Json
-            if ([int]$catalog.schemaVersion -ne 1) {
+            if ([int]$catalog.schemaVersion -ne 1 -or
+                $null -eq $catalog.PSObject.Properties["patches"] -or
+                @($catalog.patches).Count -eq 0) {
                 throw "Unsupported Fetcher client patch catalog schema: $($catalog.schemaVersion)"
             }
+            $patchIds = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
             foreach ($patch in @($catalog.patches)) {
+                Assert-ClientModPatchDefinition -Patch $patch
+                if (-not $patchIds.Add([string]$patch.id)) {
+                    throw "Client patch catalog contains a duplicate id: $($patch.id)"
+                }
                 Install-ClientModPatch -Root $root -Patch $patch -UpdateRoot $updateRoot `
                     -RunWorkRoot $runWorkRoot -PatchStates $patchStates
             }
@@ -913,4 +958,3 @@ finally {
     }
     $updateMutex.Dispose()
 }
-

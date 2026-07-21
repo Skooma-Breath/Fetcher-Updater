@@ -3,7 +3,10 @@ param(
     [string] $ModListName = "fetcher-bardcraft",
     [string] $ModListFile = "",
     [string] $ModListAssetName = "fetcher-bardcraft-umo.json",
-    [string] $ModListUrl = "https://github.com/Skooma-Breath/Fetcher-Simulator/releases/download/fetcher-tester-tools/fetcher-bardcraft-umo.json",
+    [string] $ModListUrl = "",
+    [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
+    [string] $TesterToolsReleaseTag = "fetcher-tester-tools",
+    [string] $GitHubDownloadBaseUrl = "https://github.com",
     [string] $UmoBasePath = "",
     [bool] $DownloadUmoIfMissing = $true,
     [string] $Tes3cmdPath = "",
@@ -23,6 +26,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ([string]::IsNullOrWhiteSpace($ModListUrl)) {
+    $ModListUrl = "$($GitHubDownloadBaseUrl.TrimEnd('/'))/$TesterToolsRepository/releases/download/$([Uri]::EscapeDataString($TesterToolsReleaseTag))/$([Uri]::EscapeDataString($ModListAssetName))"
+}
 if ([string]::IsNullOrWhiteSpace($UmoBasePath)) {
     $UmoBasePath = Join-Path $root "Data Files"
 }
@@ -723,4 +729,3 @@ if ($ApplyPublicTestConfig) {
 
 Write-Host ""
 Write-Host "Done. If OpenMW still reports missing content, rerun Apply-Fetcher-Public-Test-Config.bat after UMO finishes extracting all mods."
-

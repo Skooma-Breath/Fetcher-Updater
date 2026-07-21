@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string] $InstallRoot = "",
-    [string] $Repository = "Skooma-Breath/Fetcher-Simulator",
+    [Alias("Repository")]
+    [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
     [string] $ReleaseTag = "fetcher-tester-tools",
     [string] $AssetName = "fetcher-tester-tools.zip",
     [string] $GitHubApiBaseUrl = "https://api.github.com",
@@ -68,14 +69,14 @@ try {
     }
     else {
         $encodedTag = [Uri]::EscapeDataString($ReleaseTag)
-        $releaseUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$Repository/releases/tags/$encodedTag"
+        $releaseUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$TesterToolsRepository/releases/tags/$encodedTag"
         $release = Invoke-RestMethod -UseBasicParsing -Uri $releaseUrl -Headers $headers
         $asset = @($release.assets | Where-Object { [string]$_.name -eq $AssetName })
         if ($asset.Count -ne 1 -or [string]$asset[0].digest -notmatch "^sha256:([0-9a-fA-F]{64})$") {
             throw "The $ReleaseTag release does not contain one digest-backed $AssetName asset."
         }
         $expectedHash = $Matches[1].ToLowerInvariant()
-        $downloadUrl = "$($GitHubDownloadBaseUrl.TrimEnd('/'))/$Repository/releases/download/$encodedTag/$([Uri]::EscapeDataString($AssetName))"
+        $downloadUrl = "$($GitHubDownloadBaseUrl.TrimEnd('/'))/$TesterToolsRepository/releases/download/$encodedTag/$([Uri]::EscapeDataString($AssetName))"
         Invoke-WebRequest -UseBasicParsing -Uri $downloadUrl -Headers $headers -OutFile $archivePath
         $actualHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actualHash -ne $expectedHash) {
@@ -86,9 +87,17 @@ try {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [IO.Compression.ZipFile]::OpenRead($archivePath)
     try {
+        $archivePaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
         foreach ($entry in $zip.Entries) {
             if (-not [string]::IsNullOrWhiteSpace($entry.FullName)) {
-                [void](ConvertTo-SafeRelativePath -Path $entry.FullName.TrimEnd("/", "\"))
+                $trimmedPath = $entry.FullName.TrimEnd("/", "\")
+                if ([string]::IsNullOrWhiteSpace($trimmedPath)) {
+                    continue
+                }
+                $relativePath = ConvertTo-SafeRelativePath -Path $trimmedPath
+                if (-not $archivePaths.Add($relativePath)) {
+                    throw "Tester tools archive contains a duplicate path: $relativePath"
+                }
             }
         }
     }
@@ -98,19 +107,51 @@ try {
     Expand-Archive -LiteralPath $archivePath -DestinationPath $extractRoot
 
     $manifestPath = Join-Path $extractRoot "fetcher-tester-tools.json"
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Tester tools archive does not contain fetcher-tester-tools.json."
+    }
     $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
-    if ([int]$manifest.schemaVersion -ne 1 -or [string]$manifest.channel -ne "fetcher-simulator-test") {
+    if ([int]$manifest.schemaVersion -ne 1 -or
+        [string]$manifest.channel -ne "fetcher-simulator-test" -or
+        [string]$manifest.sourceCommit -notmatch "^[0-9a-fA-F]{40}$" -or
+        $null -eq $manifest.PSObject.Properties["files"] -or
+        @($manifest.files).Count -eq 0) {
         throw "Unsupported Fetcher tester tools manifest."
+    }
+    $manifestPaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
+        $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
+        if ($relativePath.Equals("fetcher-tester-tools.json", [StringComparison]::OrdinalIgnoreCase) -or
+            -not $manifestPaths.Add($relativePath)) {
+            throw "Tester tools manifest contains a duplicate or reserved path: $relativePath"
+        }
+        $expectedHash = [string]$record.sha256
+        if ([int64]$record.size -lt 0 -or $expectedHash -notmatch "^[0-9a-fA-F]{64}$") {
+            throw "Tester tools manifest contains an invalid record: $relativePath"
+        }
+        $source = Join-Path $extractRoot $relativePath.Replace("/", "\")
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
+            (Get-Item -LiteralPath $source).Length -ne [int64]$record.size -or
+            (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expectedHash.ToLowerInvariant()) {
+            throw "Tester tool failed manifest validation: $relativePath"
+        }
+    }
+    $payloadPaths = @(Get-ChildItem -LiteralPath $extractRoot -File -Recurse | ForEach-Object {
+        $_.FullName.Substring($extractRoot.Length).TrimStart("\", "/").Replace("\", "/")
+    } | Where-Object { -not $_.Equals("fetcher-tester-tools.json", [StringComparison]::OrdinalIgnoreCase) })
+    if ($payloadPaths.Count -ne $manifestPaths.Count) {
+        throw "Tester tools manifest does not cover the complete archive payload."
+    }
+    foreach ($payloadPath in $payloadPaths) {
+        if (-not $manifestPaths.Contains($payloadPath)) {
+            throw "Tester tools archive contains an unmanifested payload: $payloadPath"
+        }
     }
     foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
         $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
         $source = Join-Path $extractRoot $relativePath.Replace("/", "\")
-        if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
-            (Get-Item -LiteralPath $source).Length -ne [int64]$record.size -or
-            (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne ([string]$record.sha256).ToLowerInvariant()) {
-            throw "Tester tool failed manifest validation: $relativePath"
-        }
         $destination = Join-Path $root $relativePath.Replace("/", "\")
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath $source -Destination $destination -Force
     }
     Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $root "fetcher-tester-tools.json") -Force
@@ -132,4 +173,3 @@ if (Test-Path -LiteralPath $modCompatibilityScript -PathType Leaf) {
 if (-not $SkipUpdater) {
     & (Join-Path $root "Update-Fetcher-Simulator.ps1") -InstallRoot $root
 }
-

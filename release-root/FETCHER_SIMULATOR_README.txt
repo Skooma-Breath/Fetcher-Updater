@@ -10,7 +10,7 @@ Existing clean install
 
 Download and double-click the single Join-Fetcher-Test-Channel.bat asset from:
 
-   https://github.com/Skooma-Breath/Fetcher-Simulator/releases/tag/fetcher-tester-tools
+   https://github.com/Skooma-Breath/Fetcher-Updater/releases/tag/fetcher-tester-tools
 
 The bootstrap asks for the folder containing openmw.exe, verifies and installs
 the tester tools ZIP, switches the client to the Fetcher-Simulator-Test release
@@ -45,6 +45,9 @@ Close OpenMW and double-click:
    Update-Fetcher-Simulator.bat
 
 The updater checks the Fetcher-Simulator-Test Git commit and GitHub release digest.
+Client archives remain owned by Skooma-Breath/Fetcher-Simulator. Updater and
+tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
+Starwind compatibility patches remain owned by their respective repositories.
 It downloads the full client only when the packaged client changed. It checks
 the tester tools and Bardcraft multiplayer patch separately, so script-only
 fixes do not require another full client download.
@@ -224,4 +227,3 @@ If animations do not play:
 
    - Use Additional Animation Sources is not enabled, or
    - Bardcraft.omwscripts is not loaded.
-
