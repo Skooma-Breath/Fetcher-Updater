@@ -45,7 +45,7 @@ Close OpenMW and double-click:
    Update-Fetcher-Simulator.bat
 
 The updater checks the unified Fetcher-Simulator Git commit and GitHub release digest.
-Client archives remain owned by Skooma-Breath/Fetcher-Simulator. Updater and
+Client archives remain owned by Fetcher-Simulator/Fetcher-Simulator. Updater and
 tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
 Starwind compatibility patches remain owned by their respective repositories.
 It downloads the full client only when the packaged client changed. It checks

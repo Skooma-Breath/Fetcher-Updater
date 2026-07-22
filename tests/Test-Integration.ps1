@@ -377,7 +377,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $releaseRoot "Install-Fetcher-Tester-Tools.ps1") -Destination $migrationRoot
     $migrationUpdater = Join-Path $releaseRoot "Update-Fetcher-Simulator.ps1"
     $migrationOutput = & $migrationUpdater -InstallRoot $migrationRoot `
-        -Repository "Skooma-Breath/Fetcher-Simulator" `
+        -Repository "Fetcher-Simulator/Fetcher-Simulator" `
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
         -SkipClientUpdate -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $migrationRoot "migration-probe.txt") -Raw).Trim() -eq "bridge-v1") `
@@ -385,14 +385,14 @@ try {
     $requests = Get-Content -LiteralPath $logPath -Raw
     Assert-True -Condition ($requests.Contains("/repos/Skooma-Breath/Fetcher-Updater/releases/tags/fetcher-tester-tools")) `
         -Message "Migration bridge did not query Skooma-Breath/Fetcher-Updater."
-    Assert-True -Condition (-not $requests.Contains("/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/fetcher-tester-tools")) `
+    Assert-True -Condition (-not $requests.Contains("/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/fetcher-tester-tools")) `
         -Message "Migration bridge queried tester tools in the old repository."
 
     Add-ReleaseRoute -Routes $routes -Repository "Skooma-Breath/Fetcher-Updater" `
         -Tag "fetcher-tester-tools" -AssetName "fetcher-tester-tools.zip" -AssetPath $toolsV2
     Set-TestRoutes -Path $routesPath -Routes $routes
     $changedToolsOutput = & $migrationUpdater -InstallRoot $migrationRoot `
-        -Repository "Skooma-Breath/Fetcher-Simulator" `
+        -Repository "Fetcher-Simulator/Fetcher-Simulator" `
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
         -SkipClientUpdate -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $migrationRoot "migration-probe.txt") -Raw).Trim() -eq "bridge-v2") `
@@ -510,7 +510,7 @@ try {
             size = 1
         })
     }
-    $routes["/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator"] = @{
+    $routes["/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator"] = @{
         contentType = "application/json"
         body = ($clientRelease | ConvertTo-Json -Depth 5 -Compress)
     }
@@ -520,8 +520,8 @@ try {
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
         -SkipTesterToolsUpdate -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     $clientRequests = Get-Content -LiteralPath $logPath -Raw
-    Assert-True -Condition ($clientRequests.Contains("/repos/Skooma-Breath/Fetcher-Simulator/releases/tags/Fetcher-Simulator")) `
-        -Message "Client release did not resolve against Skooma-Breath/Fetcher-Simulator."
+    Assert-True -Condition ($clientRequests.Contains("/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator")) `
+        -Message "Client release did not resolve against Fetcher-Simulator/Fetcher-Simulator."
     Assert-True -Condition ($clientOutput.Contains("Client is current at commit $clientCommit.")) `
         -Message "Current client fixture unexpectedly attempted a client install."
 }

@@ -35,7 +35,7 @@ Publishing is intentionally performed only by the GitHub Actions workflow or by 
 
 The installed updater keeps each release source independent:
 
-- `ClientRepository` defaults to `Skooma-Breath/Fetcher-Simulator`, using the unified clean `Fetcher-Simulator` release and `fetcher-simulator.zip` asset.
+- `ClientRepository` defaults to `Fetcher-Simulator/Fetcher-Simulator`, using the unified clean `Fetcher-Simulator` release and `fetcher-simulator.zip` asset.
 - The Fetcher map/client-mod bundle is independently published here as the `openmw-client-mods-mp-clients` prerelease and installed by the tester-tools bootstrap.
 - `TesterToolsRepository` defaults to `Skooma-Breath/Fetcher-Updater`.
 - Bardcraft and Starwind repositories are required in `fetcher-client-patches.json`.
@@ -48,7 +48,7 @@ Every GitHub download requires the SHA-256 digest supplied by the release API. T
 
 ## Migration
 
-The last `fetcher-tester-tools` release produced from `Skooma-Breath/Fetcher-Simulator` must be built from the routing-bridge commit in OpenMW. That bridge keeps the installed `Update-Fetcher-Simulator.bat` filename but directs its next tester-tools lookup here. Migration order is:
+The last `fetcher-tester-tools` release produced from `Fetcher-Simulator/Fetcher-Simulator` must be built from the routing-bridge commit in OpenMW. That bridge keeps the installed `Update-Fetcher-Simulator.bat` filename but directs its next tester-tools lookup here. Migration order is:
 
 1. Publish and validate this repository's `fetcher-tester-tools` prerelease with the same asset names.
 2. Publish and validate the old-repository bridge release; its next lookup can now resolve immediately here.

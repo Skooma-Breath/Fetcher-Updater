@@ -2,7 +2,7 @@
 param(
     [string] $InstallRoot = "",
     [Alias("Repository")]
-    [string] $ClientRepository = "Skooma-Breath/Fetcher-Simulator",
+    [string] $ClientRepository = "Fetcher-Simulator/Fetcher-Simulator",
     [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
     [string] $GitHubApiBaseUrl = "https://api.github.com",
     [string] $GitHubDownloadBaseUrl = "https://github.com",
