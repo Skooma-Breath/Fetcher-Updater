@@ -73,59 +73,43 @@ function ConvertTo-NormalizedRelativePath {
     return ($segments -join "/")
 }
 
+function Read-ClientProtectionPolicy {
+    param([Parameter(Mandatory = $true)][string] $Path)
+
+    $policy = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    if ([int]$policy.schemaVersion -ne 1 -or
+        $null -eq $policy.PSObject.Properties["exactPaths"] -or
+        $null -eq $policy.PSObject.Properties["prefixes"] -or
+        $null -eq $policy.PSObject.Properties["suffixes"]) {
+        throw "Unsupported Fetcher client protection policy: $Path"
+    }
+    return $policy
+}
+
+$clientProtectionPolicyPath = Join-Path $PSScriptRoot "fetcher-client-protection-policy.json"
+if (-not (Test-Path -LiteralPath $clientProtectionPolicyPath -PathType Leaf)) {
+    throw "Fetcher client protection policy was not found: $clientProtectionPolicyPath"
+}
+$clientProtectionPolicy = Read-ClientProtectionPolicy -Path $clientProtectionPolicyPath
+
 function Test-FetcherMutablePath {
     param([Parameter(Mandatory = $true)][string] $RelativePath)
 
     $path = $RelativePath.Replace("\", "/").TrimStart("/").ToLowerInvariant()
-    if (@(
-        "fetcher-update-state.json",
-        "openmw.cfg",
-        "settings.cfg",
-        "server.cfg",
-        "launcher.cfg",
-        "openmw-launcher.cfg",
-        "playerdata.db",
-        "server-lua-storage.bin",
-        "umo.exe",
-        "tes3cmd.exe",
-        "apply-fetcher-public-test-config.bat",
-        "apply-fetcher-public-test-config.ps1",
-        "apply-fetcher-zhi-compatibility.ps1",
-        "fetcher-bardcraft-umo.json",
-        "fetcher-client-patches.json",
-        "fetcher-tester-tools.json",
-        "fetcher_simulator_readme.txt",
-        "install-fetcher-bardcraft-with-umo.bat",
-        "install-fetcher-bardcraft-with-umo.ps1",
-        "install-fetcher-client-mod-bundle.ps1",
-        "install-fetcher-tester-tools.ps1",
-        "join-fetcher-test-channel.bat",
-        "setup-fetcher-updater.bat",
-        "launch-fetcher-character.bat",
-        "launch-fetcher-character.ps1",
-        "update-fetcher-simulator.bat",
-        "update-fetcher-simulator.ps1"
-    ) -contains $path) {
+    if (@($clientProtectionPolicy.exactPaths) -contains $path) {
         return $true
     }
-
-    foreach ($prefix in @(
-        "_fetcher_umo/",
-        "_fetcher_update/",
-        "bardcraft/",
-        "logs/",
-        "mp-keys/",
-        "profiles/",
-        "saves/",
-        "screenshots/",
-        "userdata/"
-    )) {
-        if ($path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+    foreach ($prefix in @($clientProtectionPolicy.prefixes)) {
+        if ($path.StartsWith(([string]$prefix).ToLowerInvariant(), [StringComparison]::OrdinalIgnoreCase)) {
             return $true
         }
     }
-
-    return $path.EndsWith(".dmp", [StringComparison]::OrdinalIgnoreCase)
+    foreach ($suffix in @($clientProtectionPolicy.suffixes)) {
+        if ($path.EndsWith(([string]$suffix).ToLowerInvariant(), [StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+    return $false
 }
 
 function Assert-SafeArchivePaths {
@@ -238,22 +222,6 @@ function Get-InstalledClientCommit {
     return $null
 }
 
-function Get-InstalledClientChannel {
-    param([Parameter(Mandatory = $true)][string] $Root)
-
-    $path = Join-Path $Root "fetcher-client-channel.json"
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-        return ""
-    }
-    try {
-        $channel = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
-        return ([string]$channel.channel).ToLowerInvariant()
-    }
-    catch {
-        return ""
-    }
-}
-
 function Assert-OpenMwStopped {
     param([Parameter(Mandatory = $true)][string] $Root)
 
@@ -281,10 +249,41 @@ function Read-ClientInventory {
     param([Parameter(Mandatory = $true)][string] $Path)
 
     $inventory = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
-    if ([int]$inventory.schemaVersion -ne 1) {
+    if ([int]$inventory.schemaVersion -ne 1 -or
+        [int]$inventory.protectionPolicyVersion -ne [int]$clientProtectionPolicy.schemaVersion -or
+        [string]$inventory.clientCommit -notmatch "^[0-9a-fA-F]{40}$" -or
+        $null -eq $inventory.PSObject.Properties["files"] -or
+        @($inventory.files).Count -eq 0) {
         throw "Unsupported Fetcher client inventory schema: $($inventory.schemaVersion)"
     }
     return $inventory
+}
+
+function Get-InstalledClientInventoryCommit {
+    param([Parameter(Mandatory = $true)][string] $Root)
+
+    $path = Join-Path $Root "fetcher-client-files.json"
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        return ""
+    }
+    try {
+        $inventory = Read-ClientInventory -Path $path
+        $paths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+        foreach ($record in @($inventory.files)) {
+            $relativePath = ConvertTo-NormalizedRelativePath -RelativePath ([string]$record.path)
+            if ((Test-FetcherMutablePath -RelativePath $relativePath) -or
+                (-not $paths.Add($relativePath)) -or
+                [int64]$record.size -lt 0 -or
+                [string]$record.sha256 -notmatch "^[0-9a-fA-F]{64}$") {
+                return ""
+            }
+        }
+        return ([string]$inventory.clientCommit).ToLowerInvariant()
+    }
+    catch {
+        Write-Warning "Installed client inventory is invalid: $($_.Exception.Message)"
+        return ""
+    }
 }
 
 function Install-ClientArchive {
@@ -885,11 +884,11 @@ try {
         $remoteCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag `
             -ReleaseRepository $ClientRepository
         $localCommit = Get-InstalledClientCommit -Root $root
-        $localChannel = Get-InstalledClientChannel -Root $root
+        $installedInventoryCommit = Get-InstalledClientInventoryCommit -Root $root
         $knownAssetDigest = if ($clientState.Contains("assetDigest")) { [string]$clientState["assetDigest"] } else { "" }
         $knownReleaseTag = if ($clientState.Contains("releaseTag")) { [string]$clientState["releaseTag"] } else { "" }
-        if (@("clean", "test") -notcontains $localChannel -or
-            $localCommit -ne $remoteCommit -or $knownReleaseTag -ne $ClientReleaseTag -or
+        if ($installedInventoryCommit -ne $remoteCommit -or $localCommit -ne $remoteCommit -or
+            $knownReleaseTag -ne $ClientReleaseTag -or
             (-not [string]::IsNullOrWhiteSpace($knownAssetDigest) -and $knownAssetDigest -ne $clientAsset.Digest)) {
             Install-ClientArchive -Root $root -Asset $clientAsset -RemoteCommit $remoteCommit -RunWorkRoot $runWorkRoot
         }

@@ -29,6 +29,7 @@ jobs:
         run: |
           .\tests\Test-Package.ps1 `
             -ArchivePath "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
+          .\tests\Test-ClientInventory.ps1
           .\tests\Test-Integration.ps1 `
             -ArchivePath "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
 

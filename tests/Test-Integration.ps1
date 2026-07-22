@@ -93,6 +93,52 @@ function New-ClientModBundle {
     }
 }
 
+function Write-ClientInventory {
+    param(
+        [Parameter(Mandatory)][string] $Root,
+        [Parameter(Mandatory)][string] $Commit
+    )
+
+    $resolvedRoot = (Resolve-Path -LiteralPath $Root).Path.TrimEnd("\", "/")
+    $records = @(Get-ChildItem -LiteralPath $resolvedRoot -File -Recurse | Where-Object {
+        $_.Name -ne "fetcher-client-files.json"
+    } | ForEach-Object {
+        [ordered]@{
+            path = $_.FullName.Substring($resolvedRoot.Length).TrimStart("\", "/").Replace("\", "/")
+            size = [int64]$_.Length
+            sha256 = Get-Sha256 -Path $_.FullName
+        }
+    })
+    [ordered]@{
+        schemaVersion = 1
+        protectionPolicyVersion = 1
+        clientCommit = $Commit
+        generatedAtUtc = [DateTime]::UtcNow.ToString("o")
+        files = $records
+    } | ConvertTo-Json -Depth 5 |
+        Set-Content -LiteralPath (Join-Path $resolvedRoot "fetcher-client-files.json") -Encoding UTF8
+}
+
+function New-ClientPackage {
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [Parameter(Mandatory)][string] $Commit
+    )
+
+    $stage = "$Path.stage"
+    New-Item -ItemType Directory -Force -Path $stage | Out-Null
+    try {
+        Set-Content -LiteralPath (Join-Path $stage "openmw.exe") -Value "packaged-client" -Encoding ASCII
+        Set-Content -LiteralPath (Join-Path $stage "CI-ID.txt") -Value "Commit $Commit" -Encoding ASCII
+        Set-Content -LiteralPath (Join-Path $stage "client-probe.txt") -Value "refreshed" -Encoding ASCII
+        Write-ClientInventory -Root $stage -Commit $Commit
+        Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $Path -CompressionLevel Optimal
+    }
+    finally {
+        Remove-Item -LiteralPath $stage -Recurse -Force
+    }
+}
+
 function New-PatchArchive {
     param(
         [Parameter(Mandatory)][ValidateSet("Bardcraft", "Starwind")][string] $Kind,
@@ -484,36 +530,32 @@ try {
     Assert-True -Condition ($receiptOutput.Contains("Applying Fetcher Starwind")) `
         -Message "Missing Starwind marker did not trigger reapplication."
 
-    # Client release lookup remains isolated to Fetcher-Simulator.
+    # Client release lookup remains isolated to Fetcher-Simulator. The managed
+    # inventory, rather than the retired channel marker, identifies a valid install.
     $clientRoot = Join-Path $workRoot "client-routing"
     New-ClientRoot -Path $clientRoot
-    $clientCommit = "b" * 40
-    Set-Content -LiteralPath (Join-Path $clientRoot "CI-ID.txt") -Value "Commit $clientCommit" -Encoding ASCII
+    $oldClientCommit = "b" * 40
+    $clientCommit = "d" * 40
+    Set-Content -LiteralPath (Join-Path $clientRoot "CI-ID.txt") -Value "Commit $oldClientCommit" -Encoding ASCII
     [ordered]@{ schemaVersion = 1; channel = "test" } | ConvertTo-Json |
         Set-Content -LiteralPath (Join-Path $clientRoot "fetcher-client-channel.json") -Encoding UTF8
-    $clientDigest = "c" * 64
+    Write-ClientInventory -Root $clientRoot -Commit $oldClientCommit
+    $clientArchive = Join-Path $workRoot "fetcher-simulator.zip"
+    New-ClientPackage -Path $clientArchive -Commit $clientCommit
+    $clientDigest = Get-Sha256 -Path $clientArchive
     [ordered]@{
         schemaVersion = 1
         client = [ordered]@{
-            commit = $clientCommit
+            commit = $oldClientCommit
             releaseTag = "Fetcher-Simulator"
             assetName = "fetcher-simulator.zip"
             assetDigest = "sha256:$clientDigest"
         }
         patches = [ordered]@{}
     } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $clientRoot "fetcher-update-state.json") -Encoding UTF8
-    $clientRelease = [ordered]@{
-        target_commitish = $clientCommit
-        assets = @([ordered]@{
-            name = "fetcher-simulator.zip"
-            digest = "sha256:$clientDigest"
-            size = 1
-        })
-    }
-    $routes["/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator"] = @{
-        contentType = "application/json"
-        body = ($clientRelease | ConvertTo-Json -Depth 5 -Compress)
-    }
+    Add-ReleaseRoute -Routes $routes -Repository "Fetcher-Simulator/Fetcher-Simulator" `
+        -Tag "Fetcher-Simulator" -AssetName "fetcher-simulator.zip" -AssetPath $clientArchive `
+        -TargetCommit $clientCommit
     Set-TestRoutes -Path $routesPath -Routes $routes
     Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
     $clientOutput = & $migrationUpdater -InstallRoot $clientRoot `
@@ -522,8 +564,32 @@ try {
     $clientRequests = Get-Content -LiteralPath $logPath -Raw
     Assert-True -Condition ($clientRequests.Contains("/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator")) `
         -Message "Client release did not resolve against Fetcher-Simulator/Fetcher-Simulator."
-    Assert-True -Condition ($clientOutput.Contains("Client is current at commit $clientCommit.")) `
-        -Message "Current client fixture unexpectedly attempted a client install."
+    Assert-True -Condition (-not (Test-Path -LiteralPath (Join-Path $clientRoot "fetcher-client-channel.json"))) `
+        -Message "Client update did not remove the retired channel marker."
+    Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $clientRoot "client-probe.txt") -Raw).Trim() -eq "refreshed") `
+        -Message "Changed client inventory did not trigger a complete client refresh."
+
+    Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
+    $currentClientOutput = & $migrationUpdater -InstallRoot $clientRoot `
+        -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
+        -SkipTesterToolsUpdate -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+    $currentClientRequests = Get-Content -LiteralPath $logPath -Raw
+    Assert-True -Condition ($currentClientOutput.Contains("Client is current at commit $clientCommit.")) `
+        -Message "Valid installed inventory unexpectedly triggered a client refresh."
+    Assert-True -Condition (-not $currentClientRequests.Contains("/releases/download/Fetcher-Simulator/fetcher-simulator.zip")) `
+        -Message "Current client inventory redownloaded the client archive."
+
+    Remove-Item -LiteralPath (Join-Path $clientRoot "fetcher-client-files.json") -Force
+    Set-Content -LiteralPath (Join-Path $clientRoot "client-probe.txt") -Value "corrupt" -Encoding ASCII
+    Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
+    & $migrationUpdater -InstallRoot $clientRoot `
+        -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
+        -SkipTesterToolsUpdate -SkipUmoMods -SkipModPatches | Out-Null
+    $missingInventoryRequests = Get-Content -LiteralPath $logPath -Raw
+    Assert-True -Condition ($missingInventoryRequests.Contains("/releases/download/Fetcher-Simulator/fetcher-simulator.zip")) `
+        -Message "Missing installed inventory did not force a complete client refresh."
+    Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $clientRoot "client-probe.txt") -Raw).Trim() -eq "refreshed") `
+        -Message "Forced client refresh did not restore managed files."
 }
 finally {
     if ($null -ne $server) {

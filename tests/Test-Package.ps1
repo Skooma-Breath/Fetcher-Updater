@@ -92,6 +92,16 @@ try {
     if ($manifestPaths.Contains("Join-Fetcher-Test-Channel.bat")) {
         throw "Package still contains the obsolete Join-Fetcher-Test-Channel.bat."
     }
+    if (-not $manifestPaths.Contains("fetcher-client-protection-policy.json")) {
+        throw "Package is missing fetcher-client-protection-policy.json."
+    }
+    $protectionPolicy = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-client-protection-policy.json") -Raw |
+        ConvertFrom-Json
+    if ([int]$protectionPolicy.schemaVersion -ne 1 -or
+        @($protectionPolicy.exactPaths).Count -eq 0 -or
+        @($protectionPolicy.prefixes).Count -eq 0) {
+        throw "Package contains an unsupported client protection policy."
+    }
 }
 finally {
     if (Test-Path -LiteralPath $workRoot -PathType Container) {

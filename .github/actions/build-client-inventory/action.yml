@@ -1,0 +1,18 @@
+name: Build Fetcher client inventory
+description: Generate the updater-managed file inventory for a packaged Fetcher Simulator client
+inputs:
+  install-dir:
+    description: Absolute path to the completed portable client tree
+    required: true
+  client-commit:
+    description: Full Fetcher Simulator source commit
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Generate Fetcher client update inventory
+      shell: pwsh
+      run: |
+        & "${{ github.action_path }}\..\..\..\scripts\Build-FetcherClientInventory.ps1" `
+          -InstallDir "${{ inputs.install-dir }}" `
+          -ClientCommit "${{ inputs.client-commit }}"

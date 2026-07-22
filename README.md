@@ -5,7 +5,8 @@ This repository owns the independently released Fetcher Simulator updater and te
 ## Layout
 
 - `release-root/` contains the files installed beside `openmw.exe`.
-- `scripts/` contains package and stable-prerelease publishing scripts.
+- `scripts/` contains package, client-inventory, and stable-prerelease publishing scripts.
+- `.github/actions/build-client-inventory/` exposes the pinned inventory generator used by the client repository.
 - `tests/` contains package and installer validation.
 - `.github/workflows/release.yml` builds and replaces the stable prerelease.
 
@@ -19,6 +20,8 @@ From PowerShell 7 or Windows PowerShell 5.1:
 
 .\tests\Test-Package.ps1 `
   -ArchivePath .\release-assets\fetcher-tester-tools.zip
+
+.\tests\Test-ClientInventory.ps1
 ```
 
 The build preserves these public release artifacts:
@@ -42,21 +45,10 @@ The installed updater keeps each release source independent:
 
 Legacy updater calls that pass `-Repository` still work: it is an alias for `ClientRepository` only and cannot redirect tester-tools or compatibility-patch downloads.
 
-The client channel marker accepts both legacy `test` installations and the unified `clean` base during migration. Tester tools, mods, and compatibility patches are overlays managed here; OpenMW no longer needs a second tester-specific client archive.
+The updater validates `fetcher-client-files.json` to recognize a managed client installation. A missing or invalid inventory forces one complete client refresh. Tester tools, mods, and compatibility patches remain protected overlays managed here.
 
 Every GitHub download requires the SHA-256 digest supplied by the release API. The installer also rejects unsafe or duplicate archive paths, unsupported manifests, unmanifested payloads, and file hash or size mismatches. The updater preserves mutex locking, receipt/marker verification, and atomic state replacement.
 
-## Migration
-
-The last `fetcher-tester-tools` release produced from `Fetcher-Simulator/Fetcher-Simulator` must be built from the routing-bridge commit in OpenMW. That bridge keeps the installed `Update-Fetcher-Simulator.bat` filename but directs its next tester-tools lookup here. Migration order is:
-
-1. Publish and validate this repository's `fetcher-tester-tools` prerelease with the same asset names.
-2. Publish and validate the old-repository bridge release; its next lookup can now resolve immediately here.
-3. Pin this repository's archive digest in the OpenMW `FETCHER_TESTER_TOOLS_SHA256` repository variable.
-4. Enable the OpenMW cleanup commit that removes its updater source/workflow ownership.
-
-Do not publish the cleanup before the bridge release is available to existing installations.
-
 ## Rollback
 
-Release assets use a stable prerelease tag, so rollback means rebuilding a known-good commit here and replacing all four public assets together. Update the OpenMW digest pin to the rolled-back `fetcher-tester-tools.zip` digest before its next client package. If the split itself must be rolled back, restore the bridge commit's old-repository workflow and assets; installed users continue launching the same BAT file.
+Release assets use stable prerelease tags, so rollback means rebuilding a known-good commit and replacing the affected release assets together. Installed users continue launching the same updater BAT file.
