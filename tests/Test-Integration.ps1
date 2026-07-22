@@ -61,6 +61,38 @@ function New-ToolsPackage {
     }
 }
 
+function New-ClientModBundle {
+    param([Parameter(Mandatory)][string] $Path)
+
+    $stage = "$Path.stage"
+    $dataRoot = Join-Path $stage "Data Files"
+    New-Item -ItemType Directory -Force -Path $dataRoot | Out-Null
+    try {
+        $plugins = @(
+            "surf_mesa_mw.omwaddon",
+            "surf_utopia_mw.omwaddon",
+            "surf_kitsune.omwaddon",
+            "surf_kitsune.omwscripts",
+            "surf_kitsune2.omwaddon",
+            "mp_phase7_test.omwscripts"
+        )
+        foreach ($plugin in $plugins) {
+            Set-Content -LiteralPath (Join-Path $dataRoot $plugin) -Value "fixture:$plugin" -Encoding UTF8
+        }
+        [ordered]@{
+            fallbackArchives = @("Morrowind.bsa", "Tribunal.bsa", "Bloodmoon.bsa")
+            dataDirs = @("./Data Files")
+            content = @("Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm") + $plugins
+            userData = "./userdata"
+        } | ConvertTo-Json -Depth 4 |
+            Set-Content -LiteralPath (Join-Path $stage "openmw-client-package.json") -Encoding UTF8
+        Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $Path -CompressionLevel Optimal
+    }
+    finally {
+        Remove-Item -LiteralPath $stage -Recurse -Force
+    }
+}
+
 function New-PatchArchive {
     param(
         [Parameter(Mandatory)][ValidateSet("Bardcraft", "Starwind")][string] $Kind,
@@ -268,9 +300,12 @@ try {
 
     # Fresh install from the real package, including per-file manifest validation.
     $freshRoot = Join-Path $workRoot "fresh-client"
+    $clientModBundle = Join-Path $workRoot "openmw-client-mods.zip"
+    New-ClientModBundle -Path $clientModBundle
     New-ClientRoot -Path $freshRoot
     & (Join-Path $releaseRoot "Install-Fetcher-Tester-Tools.ps1") `
-        -InstallRoot $freshRoot -ToolsArchivePath $resolvedArchive -SkipUpdater
+        -InstallRoot $freshRoot -ToolsArchivePath $resolvedArchive `
+        -ClientModBundleArchivePath $clientModBundle -SkipUpdater
     $freshManifest = Get-Content -LiteralPath (Join-Path $freshRoot "fetcher-tester-tools.json") -Raw | ConvertFrom-Json
     foreach ($record in @($freshManifest.files)) {
         $installedPath = Join-Path $freshRoot ([string]$record.path).Replace("/", "\")
@@ -281,6 +316,11 @@ try {
         Assert-True -Condition ((Get-Sha256 -Path $installedPath) -eq ([string]$record.sha256).ToLowerInvariant()) `
             -Message "Fresh install hash mismatch for $($record.path)."
     }
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "Data Files\surf_mesa_mw.omwaddon") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install the Fetcher client mod bundle."
+    $clientModReceipt = Get-Content -LiteralPath (Join-Path $freshRoot "_fetcher_update\client-mod-bundle.json") -Raw | ConvertFrom-Json
+    Assert-True -Condition ([string]$clientModReceipt.assetDigest -eq "sha256:$(Get-Sha256 -Path $clientModBundle)") `
+        -Message "Client mod bundle receipt did not record the verified archive digest."
 
     $unsupportedArchive = Join-Path $workRoot "unsupported-tools.zip"
     New-ToolsPackage -Path $unsupportedArchive -Probe "unsupported"
@@ -339,7 +379,7 @@ try {
     $migrationOutput = & $migrationUpdater -InstallRoot $migrationRoot `
         -Repository "Skooma-Breath/Fetcher-Simulator" `
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
-        -SkipClientUpdate -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+        -SkipClientUpdate -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $migrationRoot "migration-probe.txt") -Raw).Trim() -eq "bridge-v1") `
         -Message "Migration bridge did not install the new-repository tester tools."
     $requests = Get-Content -LiteralPath $logPath -Raw
@@ -354,7 +394,7 @@ try {
     $changedToolsOutput = & $migrationUpdater -InstallRoot $migrationRoot `
         -Repository "Skooma-Breath/Fetcher-Simulator" `
         -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
-        -SkipClientUpdate -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+        -SkipClientUpdate -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $migrationRoot "migration-probe.txt") -Raw).Trim() -eq "bridge-v2") `
         -Message "Changed tester-tools digest was not downloaded and installed."
 

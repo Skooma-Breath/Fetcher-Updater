@@ -36,6 +36,7 @@ Publishing is intentionally performed only by the GitHub Actions workflow or by 
 The installed updater keeps each release source independent:
 
 - `ClientRepository` defaults to `Skooma-Breath/Fetcher-Simulator`, using the unified clean `Fetcher-Simulator` release and `fetcher-simulator.zip` asset.
+- The Fetcher map/client-mod bundle is independently published here as the `openmw-client-mods-mp-clients` prerelease and installed by the tester-tools bootstrap.
 - `TesterToolsRepository` defaults to `Skooma-Breath/Fetcher-Updater`.
 - Bardcraft and Starwind repositories are required in `fetcher-client-patches.json`.
 

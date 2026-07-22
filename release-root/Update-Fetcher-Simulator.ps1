@@ -11,10 +11,14 @@ param(
     [string] $TesterToolsReleaseTag = "fetcher-tester-tools",
     [string] $TesterToolsAssetName = "fetcher-tester-tools.zip",
     [string] $TesterToolsArchivePath = "",
+    [string] $ClientModBundleReleaseTag = "openmw-client-mods-mp-clients",
+    [string] $ClientModBundleAssetName = "openmw-client-mods.zip",
+    [string] $ClientModBundleArchivePath = "",
     [string] $PatchCatalogPath = "",
     [string] $UmoInstallerPath = "",
     [switch] $SkipClientUpdate,
     [switch] $SkipTesterToolsUpdate,
+    [switch] $SkipClientModBundle,
     [switch] $SkipUmoMods,
     [switch] $SkipModPatches
 )
@@ -93,6 +97,7 @@ function Test-FetcherMutablePath {
         "fetcher_simulator_readme.txt",
         "install-fetcher-bardcraft-with-umo.bat",
         "install-fetcher-bardcraft-with-umo.ps1",
+        "install-fetcher-client-mod-bundle.ps1",
         "install-fetcher-tester-tools.ps1",
         "join-fetcher-test-channel.bat",
         "launch-fetcher-character.bat",
@@ -773,10 +778,17 @@ function Install-TesterTools {
         AssetName = $TesterToolsAssetName
         GitHubApiBaseUrl = $GitHubApiBaseUrl
         GitHubDownloadBaseUrl = $GitHubDownloadBaseUrl
+        ClientModBundleRepository = $TesterToolsRepository
+        ClientModBundleReleaseTag = $ClientModBundleReleaseTag
+        ClientModBundleAssetName = $ClientModBundleAssetName
+        SkipClientModBundle = $SkipClientModBundle
         SkipUpdater = $true
     }
     if (-not [string]::IsNullOrWhiteSpace($TesterToolsArchivePath)) {
         $parameters.ToolsArchivePath = $TesterToolsArchivePath
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ClientModBundleArchivePath)) {
+        $parameters.ClientModBundleArchivePath = $ClientModBundleArchivePath
     }
     & $bootstrap @parameters
     if (-not $?) {

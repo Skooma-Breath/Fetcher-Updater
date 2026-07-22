@@ -27,6 +27,7 @@ $files = @(
     "FETCHER_SIMULATOR_README.txt",
     "Install-Fetcher-Bardcraft-With-UMO.bat",
     "Install-Fetcher-Bardcraft-With-UMO.ps1",
+    "Install-Fetcher-Client-Mod-Bundle.ps1",
     "Install-Fetcher-Tester-Tools.ps1",
     "Join-Fetcher-Test-Channel.bat",
     "Launch-Fetcher-Character.bat",

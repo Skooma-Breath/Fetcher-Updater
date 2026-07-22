@@ -8,6 +8,11 @@ param(
     [string] $GitHubApiBaseUrl = "https://api.github.com",
     [string] $GitHubDownloadBaseUrl = "https://github.com",
     [string] $ToolsArchivePath = "",
+    [string] $ClientModBundleRepository = "Skooma-Breath/Fetcher-Updater",
+    [string] $ClientModBundleReleaseTag = "openmw-client-mods-mp-clients",
+    [string] $ClientModBundleAssetName = "openmw-client-mods.zip",
+    [string] $ClientModBundleArchivePath = "",
+    [switch] $SkipClientModBundle,
     [switch] $SkipUpdater
 )
 
@@ -163,6 +168,27 @@ finally {
 }
 
 Write-Host "Fetcher tester tools installed to: $root"
+if (-not $SkipClientModBundle) {
+    $bundleInstaller = Join-Path $root "Install-Fetcher-Client-Mod-Bundle.ps1"
+    if (-not (Test-Path -LiteralPath $bundleInstaller -PathType Leaf)) {
+        throw "Fetcher client mod bundle installer was not found: $bundleInstaller"
+    }
+    $bundleParameters = @{
+        InstallRoot = $root
+        Repository = $ClientModBundleRepository
+        ReleaseTag = $ClientModBundleReleaseTag
+        AssetName = $ClientModBundleAssetName
+        GitHubApiBaseUrl = $GitHubApiBaseUrl
+        GitHubDownloadBaseUrl = $GitHubDownloadBaseUrl
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ClientModBundleArchivePath)) {
+        $bundleParameters.BundleArchivePath = $ClientModBundleArchivePath
+    }
+    & $bundleInstaller @bundleParameters
+    if (-not $?) {
+        throw "Fetcher client mod bundle installation failed."
+    }
+}
 $modCompatibilityScript = Join-Path $root "Apply-Fetcher-ZHI-Compatibility.ps1"
 if (Test-Path -LiteralPath $modCompatibilityScript -PathType Leaf) {
     & $modCompatibilityScript -InstallRoot $root
