@@ -29,7 +29,7 @@ $files = @(
     "Install-Fetcher-Bardcraft-With-UMO.ps1",
     "Install-Fetcher-Client-Mod-Bundle.ps1",
     "Install-Fetcher-Tester-Tools.ps1",
-    "Join-Fetcher-Test-Channel.bat",
+    "Setup-Fetcher-Updater.bat",
     "Launch-Fetcher-Character.bat",
     "Launch-Fetcher-Character.ps1",
     "Update-Fetcher-Simulator.bat",
@@ -45,6 +45,10 @@ if ($SourceCommit -notmatch "^[0-9a-fA-F]{40}$") {
 
 $outputPath = [IO.Path]::GetFullPath($OutputDir)
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+$obsoleteBootstrap = Join-Path $outputPath "Join-Fetcher-Test-Channel.bat"
+if (Test-Path -LiteralPath $obsoleteBootstrap -PathType Leaf) {
+    Remove-Item -LiteralPath $obsoleteBootstrap -Force
+}
 $stage = Join-Path ([IO.Path]::GetTempPath()) ("fetcher-tester-tools-" + [Guid]::NewGuid().ToString("N"))
 $archive = Join-Path $outputPath "fetcher-tester-tools.zip"
 
@@ -83,8 +87,8 @@ try {
     Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $archive -CompressionLevel Optimal
     Copy-Item -LiteralPath (Join-Path $SourceDir "Install-Fetcher-Tester-Tools.ps1") `
         -Destination (Join-Path $outputPath "Install-Fetcher-Tester-Tools.ps1") -Force
-    Copy-Item -LiteralPath (Join-Path $SourceDir "Join-Fetcher-Test-Channel.bat") `
-        -Destination (Join-Path $outputPath "Join-Fetcher-Test-Channel.bat") -Force
+    Copy-Item -LiteralPath (Join-Path $SourceDir "Setup-Fetcher-Updater.bat") `
+        -Destination (Join-Path $outputPath "Setup-Fetcher-Updater.bat") -Force
     Copy-Item -LiteralPath (Join-Path $SourceDir "fetcher-bardcraft-umo.json") `
         -Destination (Join-Path $outputPath "fetcher-bardcraft-umo.json") -Force
 }

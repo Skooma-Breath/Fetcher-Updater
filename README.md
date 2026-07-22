@@ -25,7 +25,7 @@ The build preserves these public release artifacts:
 
 - tag: `fetcher-tester-tools`
 - archive: `fetcher-tester-tools.zip`
-- bootstrap: `Join-Fetcher-Test-Channel.bat`
+- bootstrap: `Setup-Fetcher-Updater.bat`
 - installer: `Install-Fetcher-Tester-Tools.ps1`
 - UMO list: `fetcher-bardcraft-umo.json`
 

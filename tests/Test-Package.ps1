@@ -86,6 +86,12 @@ try {
             throw "Package contains an unmanifested payload: $payloadPath"
         }
     }
+    if (-not $manifestPaths.Contains("Setup-Fetcher-Updater.bat")) {
+        throw "Package is missing Setup-Fetcher-Updater.bat."
+    }
+    if ($manifestPaths.Contains("Join-Fetcher-Test-Channel.bat")) {
+        throw "Package still contains the obsolete Join-Fetcher-Test-Channel.bat."
+    }
 }
 finally {
     if (Test-Path -LiteralPath $workRoot -PathType Container) {

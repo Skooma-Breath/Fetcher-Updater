@@ -42,10 +42,10 @@ jobs:
             -Tag "fetcher-tester-tools" `
             -TargetCommit "${{ github.sha }}" `
             -Title "Fetcher Simulator Updater and Tester Tools" `
-            -Notes "Install or refresh the Fetcher test channel without copying individual files. Download and double-click Join-Fetcher-Test-Channel.bat once; subsequent updates are handled by Update-Fetcher-Simulator.bat." `
+            -Notes "Install or refresh the Fetcher updater without copying individual files. Download and double-click Setup-Fetcher-Updater.bat once; subsequent updates are handled by Update-Fetcher-Simulator.bat." `
             -Assets @(
               "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
               "${{ github.workspace }}\release-assets\Install-Fetcher-Tester-Tools.ps1"
-              "${{ github.workspace }}\release-assets\Join-Fetcher-Test-Channel.bat"
+              "${{ github.workspace }}\release-assets\Setup-Fetcher-Updater.bat"
               "${{ github.workspace }}\release-assets\fetcher-bardcraft-umo.json"
             )

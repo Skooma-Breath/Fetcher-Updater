@@ -33,6 +33,13 @@ $assetPaths = @($Assets | ForEach-Object {
     }
     $resolved.Path
 })
+$desiredAssetNames = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+foreach ($assetPath in $assetPaths) {
+    $assetName = Split-Path -Leaf $assetPath
+    if (-not $desiredAssetNames.Add($assetName)) {
+        throw "Duplicate release asset name: $assetName"
+    }
+}
 
 $publicHeaders = @{
     Accept = "application/vnd.github+json"
@@ -104,6 +111,33 @@ foreach ($assetPath in $assetPaths) {
 
     Write-Host "Published release asset: $assetName"
 }
+
+# Remove assets that are no longer part of the stable release contract only
+# after every desired replacement has uploaded successfully.
+foreach ($existingAsset in @($release.assets | Where-Object {
+    -not $desiredAssetNames.Contains([string]$_.name)
+})) {
+    Invoke-RestMethod `
+        -Method Delete `
+        -Uri "https://api.github.com/repos/$Repository/releases/assets/$($existingAsset.id)" `
+        -Headers $writeHeaders | Out-Null
+    Write-Host "Removed obsolete release asset: $($existingAsset.name)"
+}
+
+$updateBody = @{
+    tag_name = $Tag
+    target_commitish = $TargetCommit
+    name = $Title
+    body = $Notes
+    draft = $false
+    prerelease = $true
+} | ConvertTo-Json
+Invoke-RestMethod `
+    -Method Patch `
+    -Uri "https://api.github.com/repos/$Repository/releases/$($release.id)" `
+    -Headers $writeHeaders `
+    -ContentType "application/json" `
+    -Body $updateBody | Out-Null
 
 # Keep the stable tag aligned with the package source only after every release
 # asset has been replaced successfully.

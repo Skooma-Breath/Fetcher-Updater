@@ -6,8 +6,7 @@ set "RESULT=%ERRORLEVEL%"
 del /q "%BOOTSTRAP%" >nul 2>nul
 if not "%RESULT%"=="0" (
   echo.
-  echo Fetcher test-channel setup failed with exit code %RESULT%.
+  echo Fetcher updater setup failed with exit code %RESULT%.
   pause
 )
 exit /b %RESULT%
-

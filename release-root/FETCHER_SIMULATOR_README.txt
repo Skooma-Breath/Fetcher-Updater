@@ -8,7 +8,7 @@ distributed through the separate fetcher-tester-tools prerelease.
 Existing clean install
 ----------------------
 
-Download and double-click the single Join-Fetcher-Test-Channel.bat asset from:
+Download and double-click the single Setup-Fetcher-Updater.bat asset from:
 
    https://github.com/Skooma-Breath/Fetcher-Updater/releases/tag/fetcher-tester-tools
 
@@ -31,7 +31,7 @@ First-time setup
 
 1. Run openmw-wizard.exe from this folder.
 2. Point the wizard at your Morrowind installation and finish its setup.
-3. Run Join-Fetcher-Test-Channel.bat if this began as a clean client.
+3. Run Setup-Fetcher-Updater.bat if this began as a clean client.
 4. Follow the updater/UMO prompts for the required test-server mods.
 
 The Bardcraft installer stops before downloading mods if Morrowind.esm is not
