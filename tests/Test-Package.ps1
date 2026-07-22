@@ -102,6 +102,142 @@ try {
         @($protectionPolicy.prefixes).Count -eq 0) {
         throw "Package contains an unsupported client protection policy."
     }
+
+    $umoListPath = Join-Path $workRoot "fetcher-bardcraft-umo.json"
+    if (-not (Test-Path -LiteralPath $umoListPath -PathType Leaf)) {
+        throw "Package is missing fetcher-bardcraft-umo.json."
+    }
+    $parsedUmoMods = Get-Content -LiteralPath $umoListPath -Raw | ConvertFrom-Json
+    $umoMods = @($parsedUmoMods | ForEach-Object { $_ })
+    $seenUmoSlugs = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach ($mod in $umoMods) {
+        foreach ($propertyName in @("name", "url", "category", "dir", "slug")) {
+            $property = $mod.PSObject.Properties[$propertyName]
+            if ($null -eq $property -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+                throw "UMO mod entry is missing required property $propertyName."
+            }
+        }
+        if (-not $seenUmoSlugs.Add([string]$mod.slug)) {
+            throw "UMO modlist contains duplicate slug: $($mod.slug)"
+        }
+        if (@($mod.download_info).Count -eq 0 -or @($mod.data_paths).Count -eq 0 -or
+            -not (@($mod.on_lists) -contains "fetcher-bardcraft")) {
+            throw "UMO mod entry is incomplete: $($mod.name)"
+        }
+    }
+
+    $requiredUmoMods = @(
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/58053"
+            FileIds = @(1000067256)
+            Plugins = @("FollowerDetectionUtil.omwscripts")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/59384"
+            FileIds = @(1000067277)
+            Plugins = @("BestFriendsForever.omwscripts")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/57728"
+            FileIds = @(1000058125)
+            Plugins = @()
+        },
+        [pscustomobject]@{
+            Url = "https://www.moddb.com/games/morrowind/addons/the-legend-of-zelda-beta-mod"
+            FileIds = @()
+            Plugins = @("The Legend of Zelda.ESP")
+            Sha256 = "aaae1c95e8e70b831c00383dc933b80c69e0766bc60983b6e071ede643252f66"
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/55806"
+            FileIds = @(1000049568, 1000051133, 1000051134)
+            Plugins = @("fargoth.esp", "Link_(Fixed).esp")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/59612"
+            FileIds = @(1000067129)
+            Plugins = @()
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/46370"
+            FileIds = @(1000022367)
+            Plugins = @("skeleton.esp")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/45838"
+            FileIds = @(1000010954)
+            Plugins = @()
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/59576"
+            FileIds = @(1000066946)
+            Plugins = @("Held Light Boost.omwscripts")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/58527"
+            FileIds = @(1000064638)
+            Plugins = @(
+                "OMWFW_compilation.omwaddon",
+                "OMWFW_compilation.omwscripts",
+                "Fashionwind Horns and Antlers.omwaddon",
+                "Piercing&Earrings.omwaddon"
+            )
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/59276"
+            FileIds = @(1000065733)
+            Plugins = @(
+                "removeSpellFix(modified).omwaddon",
+                "StatsWindow(modified).ESP",
+                "ChooseControl.omwscripts",
+                "InventoryExtender  (modified).omwscripts",
+                "MagicWindowExtender(modified).omwscripts",
+                "StatsWindow(modified).omwscripts",
+                "Yet Another HUD (modified).omwscripts",
+                "TakeControl.omwscripts"
+            )
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/26309"
+            FileIds = @(46321)
+            Plugins = @("FF7 Tsurugi Resource.esp")
+        }
+    )
+
+    foreach ($expected in $requiredUmoMods) {
+        $matches = @($umoMods | Where-Object { [string]$_.url -eq [string]$expected.Url })
+        if ($matches.Count -ne 1) {
+            throw "Expected one UMO entry for $($expected.Url), found $($matches.Count)."
+        }
+        $mod = $matches[0]
+        $actualFileIds = @($mod.download_info | ForEach-Object {
+            if ($null -ne $_.nexus_file_id) { [int64]$_.nexus_file_id }
+        })
+        foreach ($fileId in @($expected.FileIds)) {
+            if ($actualFileIds -notcontains [int64]$fileId) {
+                throw "$($mod.name) does not pin expected Nexus file id $fileId."
+            }
+        }
+        foreach ($plugin in @($expected.Plugins)) {
+            if (@($mod.plugins) -notcontains [string]$plugin) {
+                throw "$($mod.name) is missing required plugin: $plugin"
+            }
+        }
+        if ($expected.PSObject.Properties.Name -contains "Sha256") {
+            $hashes = @($mod.download_info | ForEach-Object { [string]$_.sha256 })
+            if ($hashes -notcontains [string]$expected.Sha256) {
+                throw "$($mod.name) is missing its verified manual-download SHA-256."
+            }
+        }
+    }
+
+    $configScriptPath = Join-Path $workRoot "Apply-Fetcher-Public-Test-Config.ps1"
+    $configScript = Get-Content -LiteralPath $configScriptPath -Raw
+    $fduPosition = $configScript.IndexOf('"FollowerDetectionUtil.omwscripts"', [StringComparison]::Ordinal)
+    $bffPosition = $configScript.IndexOf('"BestFriendsForever.omwscripts"', [StringComparison]::Ordinal)
+    if ($fduPosition -lt 0 -or $bffPosition -lt 0 -or $fduPosition -ge $bffPosition) {
+        throw "Fetcher load order must place Follower Detection Util before Best Friends Forever."
+    }
 }
 finally {
     if (Test-Path -LiteralPath $workRoot -PathType Container) {

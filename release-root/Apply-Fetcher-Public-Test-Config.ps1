@@ -20,6 +20,8 @@ $fetcherMapContent = @(
     "mp_phase7_test.omwscripts"
 )
 $earlyContentOrder = @(
+    "FollowerDetectionUtil.omwscripts",
+    "BestFriendsForever.omwscripts",
     "StarwindRemasteredV1.15.esm",
     "StarwindRemasteredPatch.esm",
     "StarwindVanillaCompat.omwscripts",

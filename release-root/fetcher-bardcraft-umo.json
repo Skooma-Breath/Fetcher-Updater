@@ -1306,6 +1306,477 @@
       "TinyTransparentSkiesForVolumetricClouds/BlankSkiesForVolumetricClouds"
     ],
     "plugins": []
+  },
+  {
+    "name": "Follower Detection Util (OpenMW)",
+    "author": "Sosnoviy Bor",
+    "description": "Provides centralized follower tracking for OpenMW Lua mods.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58053",
+    "category": "ModdingResources",
+    "dl_url": "",
+    "usage_notes": "Required by Best Friends Forever. Load FollowerDetectionUtil.omwscripts before BestFriendsForever.omwscripts.",
+    "compat": 4,
+    "dir": "FollowerDetectionUtil",
+    "slug": "follower-detection-util-openmw",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Follower Detection Util",
+        "extract_to": "FollowerDetectionUtil",
+        "nexus_file_id": 1000067256,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua",
+      "framework"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "FollowerDetectionUtil"
+    ],
+    "plugins": [
+      "FollowerDetectionUtil.omwscripts"
+    ]
+  },
+  {
+    "name": "Best Friends Forever (OpenMW)",
+    "author": "Sosnoviy Bor",
+    "description": "Adds a follower HUD, catch-up teleportation, speed assistance, and configurable follower immortality.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59384",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Requires Follower Detection Util. Fetcher loads both scripts early, with Follower Detection Util first.",
+    "compat": 4,
+    "dir": "BestFriendsForever",
+    "slug": "best-friends-forever-openmw",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "BestFriendsForever",
+        "extract_to": "BestFriendsForever",
+        "nexus_file_id": 1000067277,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua",
+      "followers"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "BestFriendsForever"
+    ],
+    "plugins": [
+      "BestFriendsForever.omwscripts"
+    ]
+  },
+  {
+    "name": "Scribhammer for Gitshiver",
+    "author": "FishermanZeddy",
+    "description": "Adds the Scribhammer mesh, icon, and textures as a modder resource for Gitshiver.",
+    "url": "https://www.nexusmods.com/morrowind/mods/57728",
+    "category": "Weapons",
+    "dl_url": "",
+    "usage_notes": "Resource-only archive. It does not add the hammer to the world unless another plugin references the included assets.",
+    "compat": 4,
+    "dir": "Scribhammer",
+    "slug": "scribhammer-for-gitshiver",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Scribhammer (for Gitshiver)",
+        "extract_to": "Scribhammer",
+        "nexus_file_id": 1000058125,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "modders-resource",
+      "weapons"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "Scribhammer/Gitshiver Scrib Hammer"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "The Legend of Zelda Beta Mod",
+    "author": "ModDB uploader",
+    "description": "Adds Link-inspired playable race content and The Legend of Zelda.ESP.",
+    "url": "https://www.moddb.com/games/morrowind/addons/the-legend-of-zelda-beta-mod",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "Manual ModDB download. The installer opens the official page and detects The_Legend_of_Zelda_Beta_Mod.rar in the user's Downloads folder.",
+    "compat": 4,
+    "dir": "LegendOfZeldaBeta",
+    "slug": "the-legend-of-zelda-beta-mod",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "The_Legend_of_Zelda_Beta_Mod.rar",
+        "extract_to": "LegendOfZeldaBeta",
+        "nexus_file_id": null,
+        "pinned": true,
+        "actions": [],
+        "sha256": "aaae1c95e8e70b831c00383dc933b80c69e0766bc60983b6e071ede643252f66"
+      }
+    ],
+    "tags": [
+      "zelda",
+      "race"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "LegendOfZeldaBeta/Data Files"
+    ],
+    "plugins": [
+      "The Legend of Zelda.ESP"
+    ]
+  },
+  {
+    "name": "Secunda Termina and Link Collection",
+    "author": "blurpandra and original asset authors",
+    "description": "Installs the Secunda Termina moon replacer, Fargoth as Link, and the fixed Link resource plugin.",
+    "url": "https://www.nexusmods.com/morrowind/mods/55806",
+    "category": "Zelda",
+    "dl_url": "",
+    "usage_notes": "Fetcher installs both main files and the Link (Fixed) miscellaneous file from this Nexus page.",
+    "compat": 4,
+    "dir": "SecundaTerminaAndLink",
+    "slug": "secunda-termina-and-link-collection",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Secunda Termina",
+        "extract_to": "SecundaTermina",
+        "nexus_file_id": 1000049568,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "Fargoth as Link",
+        "extract_to": "FargothAsLink",
+        "nexus_file_id": 1000051133,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "Link (Fixed)",
+        "extract_to": "LinkFixed",
+        "nexus_file_id": 1000051134,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "zelda",
+      "textures",
+      "race"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "SecundaTermina",
+      "FargothAsLink/Link",
+      "LinkFixed"
+    ],
+    "plugins": [
+      "fargoth.esp",
+      "Link_(Fixed).esp"
+    ]
+  },
+  {
+    "name": "Face The Moon",
+    "author": "blurpandra",
+    "description": "Replaces Baar Dau with a moon-faced model without adding a plugin.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59612",
+    "category": "ModelsAndTextures",
+    "dl_url": "",
+    "usage_notes": "Pluginless replacer. The pinned archive extracts its OpenMW data root under FaceTheMoon/FaceTheMoon/Data.",
+    "compat": 4,
+    "dir": "FaceTheMoon",
+    "slug": "face-the-moon",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "FaceTheMoon",
+        "extract_to": "FaceTheMoon",
+        "nexus_file_id": 1000067129,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "replacer",
+      "models"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "FaceTheMoon/FaceTheMoon/Data"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "USkele - Morrowind Playable Skeleton Race Mod",
+    "author": "Nexus mod author",
+    "description": "Adds a playable skeleton race with meshes, sounds, and skeleton.esp.",
+    "url": "https://www.nexusmods.com/morrowind/mods/46370",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "The archive also contains an MWSE script, which OpenMW ignores; the playable race plugin and normal assets remain available.",
+    "compat": 4,
+    "dir": "USkele",
+    "slug": "uskele-playable-skeleton-race",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Morrowind_Best_Playable_Skeleton_Race_Mod",
+        "extract_to": "USkele",
+        "nexus_file_id": 1000022367,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "race",
+      "skeleton"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "USkele/Data Files"
+    ],
+    "plugins": [
+      "skeleton.esp"
+    ]
+  },
+  {
+    "name": "Daggerfall Skeleton Sounds",
+    "author": "Nexus mod author",
+    "description": "Replaces skeleton creature vocals with Daggerfall-inspired sounds.",
+    "url": "https://www.nexusmods.com/morrowind/mods/45838",
+    "category": "Audio",
+    "dl_url": "",
+    "usage_notes": "Uses the explicitly requested archived Nexus file 1000010954.",
+    "compat": 4,
+    "dir": "DaggerfallSkeletonSounds",
+    "slug": "daggerfall-skeleton-sounds",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Daggerfall Skeleton Sounds",
+        "extract_to": "DaggerfallSkeletonSounds",
+        "nexus_file_id": 1000010954,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "audio",
+      "skeleton"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "DaggerfallSkeletonSounds/Data Files"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "Held Light Boost",
+    "author": "THeJUlk",
+    "description": "Boosts the radius of player-held OpenMW lights while preserving the original light records' appearance and remaining burn time.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59576",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Requires OpenMW 0.51.0 or newer. The range multiplier is configurable under Options > Scripts > Held Light Boost.",
+    "compat": 4,
+    "dir": "HeldLightBoost",
+    "slug": "held-light-boost",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Held Light Boost 1.0.0",
+        "extract_to": "HeldLightBoost",
+        "nexus_file_id": 1000066946,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua",
+      "lighting"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "HeldLightBoost/Held Light Boost"
+    ],
+    "plugins": [
+      "Held Light Boost.omwscripts"
+    ]
+  },
+  {
+    "name": "(OpenMW) Fashionwind expanded",
+    "author": "Hrothgarr123",
+    "description": "Adds OpenMW-driven visible accessories, circlets, earrings, horns, antlers, and backpacks.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58527",
+    "category": "Items",
+    "dl_url": "",
+    "usage_notes": "OMWFW_compilation.omwaddon and OMWFW_compilation.omwscripts are mandatory. Fetcher also enables the included horns, antlers, piercing, and earrings addons.",
+    "compat": 4,
+    "dir": "FashionwindExpanded",
+    "slug": "openmw-fashionwind-expanded",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "(OpenMW) Fashionwind compilation",
+        "extract_to": "FashionwindExpanded",
+        "nexus_file_id": 1000064638,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua",
+      "items",
+      "accessories"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "FashionwindExpanded"
+    ],
+    "plugins": [
+      "OMWFW_compilation.omwaddon",
+      "OMWFW_compilation.omwscripts",
+      "Fashionwind Horns and Antlers.omwaddon",
+      "Piercing&Earrings.omwaddon"
+    ]
+  },
+  {
+    "name": "Take Control (OpenMW)",
+    "author": "MomokeCome",
+    "description": "Adds OpenMW Lua tools for taking control of actors and bundles the modified UI/script dependencies used by the mod.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59276",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Experimental modder resource. It bundles modified Inventory Extender, Magic Window Extender, Stats Window, and Yet Another HUD files; test carefully against Fetcher's existing Stats Window Extender.",
+    "compat": 4,
+    "dir": "TakeControl",
+    "slug": "take-control-openmw",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "TakeControl",
+        "extract_to": "TakeControl",
+        "nexus_file_id": 1000065733,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua",
+      "modders-resource",
+      "experimental"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "TakeControl/TakeControl/Data_Files"
+    ],
+    "plugins": [
+      "removeSpellFix(modified).omwaddon",
+      "StatsWindow(modified).ESP",
+      "ChooseControl.omwscripts",
+      "InventoryExtender  (modified).omwscripts",
+      "MagicWindowExtender(modified).omwscripts",
+      "StatsWindow(modified).omwscripts",
+      "Yet Another HUD (modified).omwscripts",
+      "TakeControl.omwscripts"
+    ]
+  },
+  {
+    "name": "Final Fantasy VII Cloud's Tsurugi Resource",
+    "author": "DoubleBrewski",
+    "description": "Adds Cloud's Tsurugi weapon resource meshes, icons, textures, and FF7 Tsurugi Resource.esp.",
+    "url": "https://www.nexusmods.com/morrowind/mods/26309",
+    "category": "Weapons",
+    "dl_url": "",
+    "usage_notes": "Old fixed Nexus archive pinned to file 46321.",
+    "compat": 4,
+    "dir": "TsurugiResource",
+    "slug": "final-fantasy-vii-tsurugi-resource",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Tsurugi Modders Resource",
+        "extract_to": "TsurugiResource",
+        "nexus_file_id": 46321,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "modders-resource",
+      "weapons",
+      "final-fantasy"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "TsurugiResource"
+    ],
+    "plugins": [
+      "FF7 Tsurugi Resource.esp"
+    ]
   }
 ]
-
