@@ -86,11 +86,6 @@ function Read-ClientProtectionPolicy {
     return $policy
 }
 
-$clientProtectionPolicyPath = Join-Path $PSScriptRoot "fetcher-client-protection-policy.json"
-if (-not (Test-Path -LiteralPath $clientProtectionPolicyPath -PathType Leaf)) {
-    throw "Fetcher client protection policy was not found: $clientProtectionPolicyPath"
-}
-$clientProtectionPolicy = Read-ClientProtectionPolicy -Path $clientProtectionPolicyPath
 
 function Test-FetcherMutablePath {
     param([Parameter(Mandatory = $true)][string] $RelativePath)
@@ -822,6 +817,18 @@ if ([string]::IsNullOrWhiteSpace($InstallRoot)) {
     $InstallRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 }
 $root = (Resolve-Path -LiteralPath $InstallRoot).Path.TrimEnd("\", "/")
+$clientProtectionPolicyCandidates = @(
+    (Join-Path $root "fetcher-client-protection-policy.json")
+    (Join-Path $PSScriptRoot "fetcher-client-protection-policy.json")
+) | Select-Object -Unique
+$clientProtectionPolicyPath = @($clientProtectionPolicyCandidates | Where-Object {
+    Test-Path -LiteralPath $_ -PathType Leaf
+} | Select-Object -First 1)
+if ($clientProtectionPolicyPath.Count -eq 0) {
+    throw "Fetcher client protection policy was not found. Checked: $($clientProtectionPolicyCandidates -join '; ')"
+}
+$clientProtectionPolicyPath = [string]$clientProtectionPolicyPath[0]
+$clientProtectionPolicy = Read-ClientProtectionPolicy -Path $clientProtectionPolicyPath
 $rootHashAlgorithm = [Security.Cryptography.SHA256]::Create()
 try {
     $rootHashBytes = $rootHashAlgorithm.ComputeHash([Text.Encoding]::UTF8.GetBytes($root.ToLowerInvariant()))

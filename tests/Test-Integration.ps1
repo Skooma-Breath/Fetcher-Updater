@@ -368,6 +368,28 @@ try {
     Assert-True -Condition ([string]$clientModReceipt.assetDigest -eq "sha256:$(Get-Sha256 -Path $clientModBundle)") `
         -Message "Client mod bundle receipt did not record the verified archive digest."
 
+    # The .bat launcher stages only the updater script in TEMP. The staged script must
+    # resolve companion policy files from the actual installation root.
+    $stagedUpdaterPath = Join-Path ([IO.Path]::GetTempPath()) `
+        ("Fetcher-Simulator-Updater-test-{0}.ps1" -f [Guid]::NewGuid().ToString("N"))
+    try {
+        Copy-Item -LiteralPath (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+            -Destination $stagedUpdaterPath -Force
+        $stagedUpdaterOutput = & $stagedUpdaterPath -InstallRoot $freshRoot `
+            -SkipClientUpdate -SkipTesterToolsUpdate -SkipClientModBundle `
+            -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+        if (-not $?) {
+            throw "TEMP-staged updater invocation failed:`n$stagedUpdaterOutput"
+        }
+        Assert-True -Condition ($stagedUpdaterOutput -match "Update check completed successfully") `
+            -Message "TEMP-staged updater did not complete successfully."
+    }
+    finally {
+        if (Test-Path -LiteralPath $stagedUpdaterPath -PathType Leaf) {
+            Remove-Item -LiteralPath $stagedUpdaterPath -Force
+        }
+    }
+
     $unsupportedArchive = Join-Path $workRoot "unsupported-tools.zip"
     New-ToolsPackage -Path $unsupportedArchive -Probe "unsupported"
     $unsupportedStage = Join-Path $workRoot "unsupported-stage"
