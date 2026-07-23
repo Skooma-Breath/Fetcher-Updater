@@ -1656,13 +1656,88 @@
     ]
   },
   {
+    "name": "Wares Ultimate",
+    "author": "Danae and Aurel",
+    "description": "Provides the Wares base leveled-list framework required by the current Adventurer's Backpacks release.",
+    "url": "https://www.nexusmods.com/morrowind/mods/52013",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Fetcher enables only the required 00 Core data path and Wares-base.esm. The optional trader, NPC, container, Hold It, province, and compatibility modules remain disabled.",
+    "compat": 4,
+    "dir": "WaresUltimate",
+    "slug": "wares-ultimate-core",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Wares Ultimate",
+        "extract_to": "WaresUltimate",
+        "nexus_file_id": null,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "wares",
+      "modding-resource"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "WaresUltimate/00 Core"
+    ],
+    "plugins": [
+      "Wares-base.esm"
+    ]
+  },
+  {
+    "name": "Adventurer's Backpacks",
+    "author": "Danae",
+    "description": "Adds wearable backpacks and the base aa_backpack item records used by Fashionwind Expanded's OpenMW cosmetic backpack system.",
+    "url": "https://www.nexusmods.com/morrowind/mods/43213",
+    "category": "Items",
+    "dl_url": "",
+    "usage_notes": "Download the current Backpack Wares main file. Requires Wares-base.esm. Load Adventurer's backback.ESP before the Fashionwind compilation; Fashionwind supplies the OpenMW no-equipment-slot behavior.",
+    "compat": 4,
+    "dir": "AdventurersBackpacks",
+    "slug": "adventurers-backpacks",
+    "date_added": "2026-07-22T00:00:00+00:00",
+    "date_updated": "2026-07-22T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Backpack Wares",
+        "extract_to": "AdventurersBackpacks",
+        "nexus_file_id": 1000049587,
+        "pinned": false,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "backpacks",
+      "items",
+      "wares"
+    ],
+    "on_lists": [
+      "fetcher-bardcraft"
+    ],
+    "data_paths": [
+      "AdventurersBackpacks"
+    ],
+    "plugins": [
+      "Adventurer's backback.ESP"
+    ]
+  },
+  {
     "name": "(OpenMW) Fashionwind expanded",
     "author": "Hrothgarr123",
     "description": "Adds OpenMW-driven visible accessories, circlets, earrings, horns, antlers, and backpacks.",
     "url": "https://www.nexusmods.com/morrowind/mods/58527",
     "category": "Items",
     "dl_url": "",
-    "usage_notes": "OMWFW_compilation.omwaddon and OMWFW_compilation.omwscripts are mandatory. Fetcher also enables the included horns, antlers, piercing, and earrings addons.",
+    "usage_notes": "OMWFW_compilation.omwaddon and OMWFW_compilation.omwscripts are mandatory. Adventurer's Backpacks supplies the base aa_backpack records and must load first. Fetcher also enables the included horns, antlers, piercing, and earrings addons.",
     "compat": 4,
     "dir": "FashionwindExpanded",
     "slug": "openmw-fashionwind-expanded",

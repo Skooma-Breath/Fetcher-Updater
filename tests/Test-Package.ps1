@@ -174,6 +174,18 @@ try {
             Plugins = @("Held Light Boost.omwscripts")
         },
         [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/52013"
+            FileIds = @()
+            DataPaths = @("WaresUltimate/00 Core")
+            Plugins = @("Wares-base.esm")
+        },
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/43213"
+            FileIds = @(1000049587)
+            DataPaths = @("AdventurersBackpacks")
+            Plugins = @("Adventurer's backback.ESP")
+        },
+        [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/58527"
             FileIds = @(1000064638)
             Plugins = @(
@@ -218,6 +230,13 @@ try {
                 throw "$($mod.name) does not pin expected Nexus file id $fileId."
             }
         }
+        if ($expected.PSObject.Properties.Name -contains "DataPaths") {
+            foreach ($dataPath in @($expected.DataPaths)) {
+                if (@($mod.data_paths) -notcontains [string]$dataPath) {
+                    throw "$($mod.name) is missing required data path: $dataPath"
+                }
+            }
+        }
         foreach ($plugin in @($expected.Plugins)) {
             if (@($mod.plugins) -notcontains [string]$plugin) {
                 throw "$($mod.name) is missing required plugin: $plugin"
@@ -237,6 +256,18 @@ try {
     $bffPosition = $configScript.IndexOf('"BestFriendsForever.omwscripts"', [StringComparison]::Ordinal)
     if ($fduPosition -lt 0 -or $bffPosition -lt 0 -or $fduPosition -ge $bffPosition) {
         throw "Fetcher load order must place Follower Detection Util before Best Friends Forever."
+    }
+
+    $waresPosition = $configScript.IndexOf('"Wares-base.esm"', [StringComparison]::Ordinal)
+    $backpackPosition = $configScript.IndexOf('"Adventurer''s backback.ESP"', [StringComparison]::Ordinal)
+    $fashionwindAddonPosition = $configScript.IndexOf('"OMWFW_compilation.omwaddon"', [StringComparison]::Ordinal)
+    $fashionwindScriptsPosition = $configScript.IndexOf('"OMWFW_compilation.omwscripts"', [StringComparison]::Ordinal)
+    if ($waresPosition -lt 0 -or $backpackPosition -lt 0 -or
+        $fashionwindAddonPosition -lt 0 -or $fashionwindScriptsPosition -lt 0 -or
+        $waresPosition -ge $backpackPosition -or
+        $backpackPosition -ge $fashionwindAddonPosition -or
+        $fashionwindAddonPosition -ge $fashionwindScriptsPosition) {
+        throw "Fetcher load order must place Wares before Adventurer's Backpacks and Fashionwind."
     }
 
     $compatibilityScriptPath = Join-Path $workRoot "Apply-Fetcher-ZHI-Compatibility.ps1"
