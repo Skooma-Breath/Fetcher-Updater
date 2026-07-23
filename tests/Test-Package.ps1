@@ -238,6 +238,124 @@ try {
     if ($fduPosition -lt 0 -or $bffPosition -lt 0 -or $fduPosition -ge $bffPosition) {
         throw "Fetcher load order must place Follower Detection Util before Best Friends Forever."
     }
+
+    $compatibilityScriptPath = Join-Path $workRoot "Apply-Fetcher-ZHI-Compatibility.ps1"
+    $fduFixtureRoot = Join-Path $workRoot "fdu-fixture"
+    $fduActorPath = Join-Path $fduFixtureRoot "scripts\FollowerDetectionUtil\actor.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $fduActorPath) | Out-Null
+    Set-Content -LiteralPath $fduActorPath -Encoding UTF8 -Value @'
+local settings = {}
+local updateTime = math.random() * settings.checkFollowersEvery
+local function onUpdate(dt)
+    local interval = settings.checkFollowersEvery
+    updateTime = updateTime + dt
+    if updateTime < interval then return end
+end
+'@
+
+    $bffFixtureRoot = Join-Path $workRoot "bff-fixture"
+    $bffSettingsPath = Join-Path $bffFixtureRoot "scripts\BestFriendsForever\settingsPlayer.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $bffSettingsPath) | Out-Null
+    Set-Content -LiteralPath $bffSettingsPath -Encoding UTF8 -Value @'
+local I = require('openmw.interfaces')
+local util = require("openmw.util")
+local ui = require("openmw.ui")
+
+I.Settings.registerPage {
+    key = 'BestFriendsForever',
+    l10n = 'BestFriendsForever',
+    name = 'page_name',
+    description = 'page_description',
+}
+
+I.Settings.registerGroup {
+    key = 'SettingsBestFriendsForever_call',
+    page = 'BestFriendsForever',
+    l10n = 'BestFriendsForever',
+    name = 'call_groupName',
+    permanentStorage = true,
+    settings = {},
+}
+'@
+
+    $takeControlFixtureRoot = Join-Path $workRoot "take-control-fixture"
+    $takeControlPlayerPath = Join-Path $takeControlFixtureRoot "Scripts\TakeControl\Player.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $takeControlPlayerPath) | Out-Null
+    Set-Content -LiteralPath $takeControlPlayerPath -Encoding UTF8 -Value @'
+local function onLoad(data)
+    if data then
+        CoopActor=data.CoopActorSaved
+    end
+    I.UI.setHudVisibility(false)
+    core.sendGlobalEvent("Activations",{state=false, player=self})
+end
+
+local function TakeControl(data)
+    CoopActor=data.actor
+    I.UI.setHudVisibility(false)
+    core.sendGlobalEvent("Activations",{state=false, player=self})
+end
+
+local function onUpdate(dt)
+    camera.setMode(camera.MODE.Static)
+    camera.setStaticPosition(ActorCamPosition)
+end
+'@
+
+    $compatibilityParameters = @{
+        InstallRoot = $workRoot
+        FollowerDetectionUtilDataRoot = $fduFixtureRoot
+        BestFriendsForeverDataRoot = $bffFixtureRoot
+        TakeControlDataRoot = $takeControlFixtureRoot
+    }
+    & $compatibilityScriptPath @compatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher multiplayer compatibility fixtures failed."
+    }
+    & $compatibilityScriptPath @compatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher multiplayer compatibility fixtures were not idempotent."
+    }
+
+    $fduActorSource = Get-Content -LiteralPath $fduActorPath -Raw
+    $expectedFduStartupFallback = "local updateTime = math.random() * (settings.checkFollowersEvery or 0.2) -- Fetcher multiplayer compatibility: storage defaults can be unavailable before the server mirror arrives."
+    $expectedFduUpdateFallback = "local interval = settings.checkFollowersEvery or 0.2 -- Fetcher multiplayer compatibility: storage defaults can be unavailable before the server mirror arrives."
+    foreach ($expectedFallback in @($expectedFduStartupFallback, $expectedFduUpdateFallback)) {
+        if (([regex]::Matches($fduActorSource, [regex]::Escape($expectedFallback))).Count -ne 1) {
+            throw "Follower Detection Util compatibility fix did not add exactly one required multiplayer interval fallback."
+        }
+    }
+
+    $bffSettingsSource = Get-Content -LiteralPath $bffSettingsPath -Raw
+    $bffMarker = "Fetcher multiplayer compatibility: wait for mirrored global settings groups before registering this page."
+    foreach ($expectedGroup in @(
+        "SettingsBestFriendsForever_toggles",
+        "SettingsBestFriendsForever_blacklist",
+        "SettingsBestFriendsForever_immortality",
+        "SettingsBestFriendsForever_catchUp"
+    )) {
+        if (-not $bffSettingsSource.Contains($expectedGroup)) {
+            throw "Best Friends Forever compatibility fix is missing required mirrored group $expectedGroup."
+        }
+    }
+    if (([regex]::Matches($bffSettingsSource, [regex]::Escape($bffMarker))).Count -ne 1 -or
+        -not $bffSettingsSource.Contains("tryRegisterBestFriendsForeverPage()") -or
+        -not $bffSettingsSource.Contains("storage.globalSection('OmwSettingGroups')")) {
+        throw "Best Friends Forever compatibility fix did not defer page registration until global groups are mirrored."
+    }
+
+    $takeControlPlayerSource = Get-Content -LiteralPath $takeControlPlayerPath -Raw
+    $takeControlMarker = "Fetcher multiplayer compatibility: normal player load must keep activation enabled."
+    $takeControlCameraMarker = "Fetcher multiplayer compatibility: setStaticPosition requires Static mode to be active."
+    $remainingControlModeDisable = 'core.sendGlobalEvent("Activations",{state=false, player=self})'
+    if (([regex]::Matches($takeControlPlayerSource, [regex]::Escape($takeControlMarker))).Count -ne 1 -or
+        ([regex]::Matches($takeControlPlayerSource, [regex]::Escape($takeControlCameraMarker))).Count -ne 1 -or
+        -not $takeControlPlayerSource.Contains("I.UI.setHudVisibility(not controllingOtherActor)") -or
+        -not $takeControlPlayerSource.Contains('core.sendGlobalEvent("Activations",{state=not controllingOtherActor, player=self})') -or
+        -not $takeControlPlayerSource.Contains("if camera.getMode() ~= camera.MODE.Static then return end") -or
+        ([regex]::Matches($takeControlPlayerSource, [regex]::Escape($remainingControlModeDisable))).Count -ne 1) {
+        throw "Take Control compatibility fix did not preserve normal-player activation, actual control mode, and Static camera sequencing."
+    }
 }
 finally {
     if (Test-Path -LiteralPath $workRoot -PathType Container) {
