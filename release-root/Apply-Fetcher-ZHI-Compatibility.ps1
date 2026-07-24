@@ -288,20 +288,172 @@ function Apply-TakeControlCompatibilityFixes {
     $updated = $source
     $newline = if ($source.Contains("`r`n")) { "`r`n" } else { "`n" }
 
-    $activationMarker = "Fetcher multiplayer compatibility: normal player load must keep activation enabled."
-    if (-not $updated.Contains($activationMarker)) {
-        $activationPattern = '(?ms)(?<prefix>local function onLoad\(data\).*?)(?<indent>^[ \t]*)I\.UI\.setHudVisibility\(false\)\r?\n\k<indent>core\.sendGlobalEvent\("Activations",\{state=false, player=self\}\)'
-        $activationRegex = [regex]::new($activationPattern, [Text.RegularExpressions.RegexOptions]::Multiline -bor [Text.RegularExpressions.RegexOptions]::Singleline)
-        $activationMatches = $activationRegex.Matches($updated)
-        if ($activationMatches.Count -ne 1) {
-            throw "Expected one Take Control onLoad activation-disable block, found $($activationMatches.Count). Refusing to modify an unexpected script."
+    function Replace-RequiredLuaBlock {
+        param(
+            [Parameter(Mandatory = $true)][string] $Text,
+            [Parameter(Mandatory = $true)][string] $Pattern,
+            [Parameter(Mandatory = $true)][string] $Replacement,
+            [Parameter(Mandatory = $true)][string] $Description
+        )
+
+        $regex = [regex]::new(
+            $Pattern,
+            [Text.RegularExpressions.RegexOptions]::Multiline -bor
+                [Text.RegularExpressions.RegexOptions]::Singleline)
+        $matches = $regex.Matches($Text)
+        if ($matches.Count -ne 1) {
+            throw "Expected one Take Control $Description block, found $($matches.Count). Refusing to modify an unexpected script."
+        }
+        return $regex.Replace($Text, $Replacement, 1)
+    }
+
+    $staleHandleMarker = "Fetcher multiplayer compatibility: object handles are session-local and must not survive reconnects."
+    $staleStructurePresent =
+        $updated.Contains("local function changeInterfaceActor(actor)") -and
+        $updated.Contains("local function resetControlToPlayer()") -and
+        $updated.Contains("local function isControllingOtherActor()") -and
+        $updated.Contains("return { CamDistanceSaved=CamDistance }") -and
+        -not $updated.Contains("CoopActorSaved")
+
+    if (-not $staleStructurePresent) {
+        foreach ($unexpectedHelper in @(
+            "local function changeInterfaceActor(actor)",
+            "local function resetControlToPlayer()",
+            "local function isControllingOtherActor()"
+        )) {
+            if ($updated.Contains($unexpectedHelper)) {
+                throw "Take Control contains a partial stale-object compatibility edit. Refusing to stack another patch."
+            }
         }
 
-        $activationReplacement = '${prefix}${indent}local controllingOtherActor = CoopActor and CoopActor.id ~= self.id -- ' + $activationMarker + $newline +
-            '${indent}I.UI.setHudVisibility(not controllingOtherActor)' + $newline +
-            '${indent}core.sendGlobalEvent("Activations",{state=not controllingOtherActor, player=self})'
-        $updated = $activationRegex.Replace($updated, $activationReplacement, 1)
+        $helperAnchorRegex = [regex]::new(
+            '(?m)^(?<indent>[ \t]*)local RayObject[ \t]*\r?$',
+            [Text.RegularExpressions.RegexOptions]::Multiline)
+        $helperAnchorMatches = $helperAnchorRegex.Matches($updated)
+        if ($helperAnchorMatches.Count -ne 1) {
+            throw "Expected one Take Control RayObject declaration, found $($helperAnchorMatches.Count). Refusing to modify an unexpected script."
+        }
+
+        $helperBlock = @'
+-- Fetcher multiplayer compatibility: object handles are session-local and must not survive reconnects.
+local function changeInterfaceActor(actor)
+	if I.InventoryExtender then I.InventoryExtender.ChangeActor(actor) end
+	if I.MagicWindow then I.MagicWindow.ChangeActor(actor) end
+	if I.StatsWindow then I.StatsWindow.ChangeActor(actor) end
+	if I.YetAnotherHUD then I.YetAnotherHUD.ChangeActor(actor) end
+end
+
+local function resetControlToPlayer()
+	CoopActor=self
+	I.Controls.overrideMovementControls(false)
+	I.Controls.overrideCombatControls(false)
+	I.UI.setHudVisibility(true)
+	core.sendGlobalEvent("Activations",{state=true, player=self})
+	changeInterfaceActor(self)
+end
+
+local function isControllingOtherActor()
+	if not CoopActor or not CoopActor:isValid()
+		or not types.Actor.objectIsInstance(CoopActor) then
+		camera.setMode(camera.MODE.ThirdPerson)
+		resetControlToPlayer()
+		return false
+	end
+	return CoopActor.id ~= self.id
+end
+'@.Replace("`r`n", "`n").Replace("`n", $newline)
+        $updated = $helperAnchorRegex.Replace(
+            $updated,
+            '${indent}local RayObject' + $newline + $newline + $helperBlock,
+            1)
+
+        $onSaveReplacement = @'
+local function onSave()
+	-- Object handles are session-local. Persisting a controlled actor can restore
+	-- a stale object after reconnect and make every dependent UI script fail.
+	return { CamDistanceSaved=CamDistance }
+end
+'@.Replace("`r`n", "`n").Replace("`n", $newline)
+        $updated = Replace-RequiredLuaBlock -Text $updated `
+            -Pattern '(?ms)^local function onSave\(\)\r?\n.*?^end\r?\n(?=(?:\r?\n)*local function onLoad\(data\))' `
+            -Replacement $onSaveReplacement -Description "onSave"
+
+        $onLoadReplacement = @'
+local function onLoad(data)
+	if data then
+		CamDistance=data.CamDistanceSaved or 0
+	end
+	-- Never resume control of a saved object handle across a load/reconnect.
+	resetControlToPlayer()
+end
+'@.Replace("`r`n", "`n").Replace("`n", $newline)
+        $updated = Replace-RequiredLuaBlock -Text $updated `
+            -Pattern '(?ms)^local function onLoad\(data\)\r?\n.*?^end\r?\n(?=(?:\r?\n)*local ItemDescription=)' `
+            -Replacement $onLoadReplacement -Description "onLoad"
+
+        $takeControlReplacement = @'
+local function TakeControl(data)
+	if not data or not data.actor or not data.actor:isValid()
+		or not types.Actor.objectIsInstance(data.actor) then
+		resetControlToPlayer()
+		return
+	end
+	if isControllingOtherActor() then
+		CoopActor:sendEvent("StopControl")
+	end
+	CoopActor=data.actor
+	ui.showMessage(CoopActor.type.records[CoopActor.recordId].name)
+	I.Controls.overrideMovementControls(true)
+	I.Controls.overrideCombatControls(true)
+	changeInterfaceActor(CoopActor)
+	I.UI.setHudVisibility(false)
+	core.sendGlobalEvent("Activations",{state=false, player=self})
+	CamDistance=CoopActor:getBoundingBox().halfSize.z*3
+	CamFixed=false
+end
+'@.Replace("`r`n", "`n").Replace("`n", $newline)
+        $updated = Replace-RequiredLuaBlock -Text $updated `
+            -Pattern '(?ms)^local function TakeControl\(data\)\r?\n.*?^end\r?\n(?=(?:\r?\n)*local function QuiteControl\(\))' `
+            -Replacement $takeControlReplacement -Description "TakeControl"
+
+        $quitControlReplacement = @'
+local function QuiteControl()
+	if isControllingOtherActor() then
+		CoopActor:sendEvent("StopControl")
+	end
+	camera.setMode(camera.MODE.ThirdPerson)
+	resetControlToPlayer()
+	ItemDescription.layout.props.visible=false
+	ItemDescription:update()
+end
+'@.Replace("`r`n", "`n").Replace("`n", $newline)
+        $updated = Replace-RequiredLuaBlock -Text $updated `
+            -Pattern '(?ms)^local function QuiteControl\(\)\r?\n.*?^end\r?\n(?=(?:\r?\n)*input\.registerTriggerHandler)' `
+            -Replacement $quitControlReplacement -Description "QuiteControl"
     }
+    elseif (-not $updated.Contains($staleHandleMarker)) {
+        $helperDeclaration = "local function changeInterfaceActor(actor)"
+        if (([regex]::Matches($updated, [regex]::Escape($helperDeclaration))).Count -ne 1) {
+            throw "Expected one Take Control interface helper while adding its compatibility marker."
+        }
+        $updated = $updated.Replace(
+            $helperDeclaration,
+            "-- $staleHandleMarker$newline$helperDeclaration")
+    }
+
+    $simpleControlCheck = [regex]::new(
+        '(?m)^(?<indent>[ \t]*)if[ \t]+CoopActor[ \t]*~=[ \t]*self[ \t]+then[ \t]*\r?$',
+        [Text.RegularExpressions.RegexOptions]::Multiline)
+    $updated = $simpleControlCheck.Replace(
+        $updated,
+        '${indent}if isControllingOtherActor() then')
+
+    $guardedControlCheck = [regex]::new(
+        '(?m)^(?<indent>[ \t]*)if[ \t]+CoopActor[ \t]+and[ \t]+CoopActor\.id[ \t]*~=[ \t]*self\.id[ \t]+then[ \t]*\r?$',
+        [Text.RegularExpressions.RegexOptions]::Multiline)
+    $updated = $guardedControlCheck.Replace(
+        $updated,
+        '${indent}if isControllingOtherActor() then')
 
     $cameraMarker = "Fetcher multiplayer compatibility: setStaticPosition requires Static mode to be active."
     if (-not $updated.Contains($cameraMarker)) {
@@ -316,13 +468,39 @@ function Apply-TakeControlCompatibilityFixes {
         $updated = $cameraRegex.Replace($updated, $cameraReplacement, 1)
     }
 
+    foreach ($requiredFragment in @(
+        $staleHandleMarker,
+        "local function changeInterfaceActor(actor)",
+        "local function resetControlToPlayer()",
+        "local function isControllingOtherActor()",
+        "return { CamDistanceSaved=CamDistance }",
+        "CamDistance=data.CamDistanceSaved or 0",
+        "if not data or not data.actor or not data.actor:isValid()",
+        "or not types.Actor.objectIsInstance(data.actor) then",
+        "changeInterfaceActor(CoopActor)",
+        "if camera.getMode() ~= camera.MODE.Static then return end"
+    )) {
+        if (-not $updated.Contains($requiredFragment)) {
+            throw "Take Control compatibility validation is missing: $requiredFragment"
+        }
+    }
+    if ($updated.Contains("CoopActorSaved") -or
+        $simpleControlCheck.IsMatch($updated) -or
+        $guardedControlCheck.IsMatch($updated)) {
+        throw "Take Control compatibility validation found a remaining persisted or unchecked controlled actor handle."
+    }
+    if (([regex]::Matches($updated, [regex]::Escape($staleHandleMarker))).Count -ne 1 -or
+        ([regex]::Matches($updated, [regex]::Escape($cameraMarker))).Count -ne 1) {
+        throw "Take Control compatibility markers must each appear exactly once."
+    }
+
     if ($updated -eq $source) {
         Write-Host "Take Control multiplayer behavior is already compatible."
         return
     }
 
     Write-TextFileAtomically -Path $playerScriptPath -Text $updated
-    Write-Host "Applied Take Control multiplayer activation and camera compatibility fixes:"
+    Write-Host "Applied Take Control stale-object, activation, and camera compatibility fixes:"
     Write-Host "  $playerScriptPath"
 }
 

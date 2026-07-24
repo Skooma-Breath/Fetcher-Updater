@@ -313,23 +313,73 @@ I.Settings.registerGroup {
     $takeControlPlayerPath = Join-Path $takeControlFixtureRoot "Scripts\TakeControl\Player.lua"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $takeControlPlayerPath) | Out-Null
     Set-Content -LiteralPath $takeControlPlayerPath -Encoding UTF8 -Value @'
+local CoopActor=self
+local CamDistance=0
+local CamFixed=true
+local RayObject
+
+local function onSave()
+    return{
+        CoopActorSaved=CoopActor,
+        CamDistanceSaved=CamDistance}
+end
+
 local function onLoad(data)
     if data then
         CoopActor=data.CoopActorSaved
+        CamDistance=data.CamDistanceSaved
     end
     I.UI.setHudVisibility(false)
     core.sendGlobalEvent("Activations",{state=false, player=self})
 end
 
+local ItemDescription={layout={props={}},update=function() end}
+
 local function TakeControl(data)
+    if CoopActor and CoopActor~=self then
+        CoopActor:sendEvent("StopControl")
+    end
     CoopActor=data.actor
+    ui.showMessage(CoopActor.type.records[CoopActor.recordId].name)
+    I.Controls.overrideMovementControls(true)
+    I.Controls.overrideCombatControls(true)
+    if I.InventoryExtender then I.InventoryExtender.ChangeActor(CoopActor) end
+    if I.MagicWindow then I.MagicWindow.ChangeActor(CoopActor) end
+    if I.StatsWindow then I.StatsWindow.ChangeActor(CoopActor) end
+    if I.YetAnotherHUD then I.YetAnotherHUD.ChangeActor(CoopActor) end
     I.UI.setHudVisibility(false)
     core.sendGlobalEvent("Activations",{state=false, player=self})
+    CamDistance=CoopActor:getBoundingBox().halfSize.z*3
+    CamFixed=false
 end
 
+local function QuiteControl()
+    I.Controls.overrideMovementControls(false)
+    I.Controls.overrideCombatControls(false)
+    I.UI.setHudVisibility(true)
+    core.sendGlobalEvent("Activations",{state=true, player=self})
+    camera.setMode(camera.MODE.ThirdPerson)
+    CoopActor:sendEvent("StopControl")
+    CoopActor=self
+    if I.InventoryExtender then I.InventoryExtender.ChangeActor(self) end
+    if I.MagicWindow then I.MagicWindow.ChangeActor(self) end
+    if I.StatsWindow then I.StatsWindow.ChangeActor(self) end
+    if I.YetAnotherHUD then I.YetAnotherHUD.ChangeActor(self) end
+    ItemDescription.layout.props.visible=false
+    ItemDescription:update()
+end
+
+input.registerTriggerHandler("Idle2", async:callback(function ()
+    if CoopActor~=self then
+        CoopActor:sendEvent("Idle",{Num=2})
+    end
+end))
+
 local function onUpdate(dt)
-    camera.setMode(camera.MODE.Static)
-    camera.setStaticPosition(ActorCamPosition)
+    if CoopActor and CoopActor.id~=self.id then
+        camera.setMode(camera.MODE.Static)
+        camera.setStaticPosition(ActorCamPosition)
+    end
 end
 '@
 
@@ -376,16 +426,26 @@ end
     }
 
     $takeControlPlayerSource = Get-Content -LiteralPath $takeControlPlayerPath -Raw
-    $takeControlMarker = "Fetcher multiplayer compatibility: normal player load must keep activation enabled."
+    $takeControlStaleMarker = "Fetcher multiplayer compatibility: object handles are session-local and must not survive reconnects."
     $takeControlCameraMarker = "Fetcher multiplayer compatibility: setStaticPosition requires Static mode to be active."
     $remainingControlModeDisable = 'core.sendGlobalEvent("Activations",{state=false, player=self})'
-    if (([regex]::Matches($takeControlPlayerSource, [regex]::Escape($takeControlMarker))).Count -ne 1 -or
+    if (([regex]::Matches($takeControlPlayerSource, [regex]::Escape($takeControlStaleMarker))).Count -ne 1 -or
         ([regex]::Matches($takeControlPlayerSource, [regex]::Escape($takeControlCameraMarker))).Count -ne 1 -or
-        -not $takeControlPlayerSource.Contains("I.UI.setHudVisibility(not controllingOtherActor)") -or
-        -not $takeControlPlayerSource.Contains('core.sendGlobalEvent("Activations",{state=not controllingOtherActor, player=self})') -or
+        -not $takeControlPlayerSource.Contains("local function changeInterfaceActor(actor)") -or
+        -not $takeControlPlayerSource.Contains("local function resetControlToPlayer()") -or
+        -not $takeControlPlayerSource.Contains("local function isControllingOtherActor()") -or
+        -not $takeControlPlayerSource.Contains("return { CamDistanceSaved=CamDistance }") -or
+        $takeControlPlayerSource.Contains("CoopActorSaved") -or
+        -not $takeControlPlayerSource.Contains("CamDistance=data.CamDistanceSaved or 0") -or
+        -not $takeControlPlayerSource.Contains("if not data or not data.actor or not data.actor:isValid()") -or
+        -not $takeControlPlayerSource.Contains("or not types.Actor.objectIsInstance(data.actor) then") -or
+        -not $takeControlPlayerSource.Contains("changeInterfaceActor(CoopActor)") -or
+        -not $takeControlPlayerSource.Contains("if isControllingOtherActor() then") -or
+        $takeControlPlayerSource.Contains("if CoopActor~=self then") -or
+        $takeControlPlayerSource.Contains("if CoopActor and CoopActor.id~=self.id then") -or
         -not $takeControlPlayerSource.Contains("if camera.getMode() ~= camera.MODE.Static then return end") -or
         ([regex]::Matches($takeControlPlayerSource, [regex]::Escape($remainingControlModeDisable))).Count -ne 1) {
-        throw "Take Control compatibility fix did not preserve normal-player activation, actual control mode, and Static camera sequencing."
+        throw "Take Control compatibility fix did not prevent stale actor restoration while preserving control-mode activation and Static camera sequencing."
     }
 }
 finally {
