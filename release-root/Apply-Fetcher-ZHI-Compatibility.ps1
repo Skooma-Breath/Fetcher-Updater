@@ -110,22 +110,42 @@ function Apply-ZhiCompatibilityFixes {
     $playerScriptPath = Join-Path $DataRoot "scripts\ZerkishHotkeysImproved\zhi_player.lua"
     $hotbarScriptPath = Join-Path $DataRoot "scripts\ZerkishHotkeysImproved\zhi_hotbarhud.lua"
 
-    $legacyMarker = "Fetcher multiplayer compatibility: suppress the first-time modal during character creation."
-    $legacyOriginal = "if not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then"
-    $legacyReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $legacyMarker"
+    $popupMarker = "Fetcher multiplayer compatibility: suppress the automatic first-time modal; onboarding still occurs when Quick Keys is opened."
+    $legacyPopupMarker = "Fetcher multiplayer compatibility: suppress the first-time modal during character creation."
+    $popupOriginal = "if not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then"
+    $popupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $popupMarker"
+    $legacyPopupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $legacyPopupMarker"
     $playerSource = [IO.File]::ReadAllText($playerScriptPath)
     $playerUpdated = $playerSource
-    if ($playerSource.Contains($legacyMarker)) {
-        $occurrences = ([regex]::Matches($playerSource, [regex]::Escape($legacyReplacement))).Count
+    $popupChangeMessage = "Suppressed the automatic ZHI first-time modal:"
+    if ($playerSource.Contains($popupMarker)) {
+        $occurrences = ([regex]::Matches($playerSource, [regex]::Escape($popupReplacement))).Count
         if ($occurrences -ne 1) {
-            throw "Expected one legacy Fetcher ZHI edit, found $occurrences. Refusing to modify an unexpected script."
+            throw "Expected one Fetcher ZHI first-time popup suppression, found $occurrences. Refusing to modify an unexpected script."
         }
-        $playerUpdated = $playerSource.Replace($legacyReplacement, $legacyOriginal)
+    }
+    elseif ($playerSource.Contains($legacyPopupMarker)) {
+        $occurrences = ([regex]::Matches($playerSource, [regex]::Escape($legacyPopupReplacement))).Count
+        if ($occurrences -ne 1) {
+            throw "Expected one legacy Fetcher ZHI first-time popup suppression, found $occurrences. Refusing to modify an unexpected script."
+        }
+        $playerUpdated = $playerSource.Replace($legacyPopupReplacement, $popupReplacement)
+        $popupChangeMessage = "Migrated the legacy ZHI first-time popup suppression:"
+    }
+    else {
+        $occurrences = ([regex]::Matches($playerSource, [regex]::Escape($popupOriginal))).Count
+        if ($occurrences -ne 1) {
+            throw "Expected one ZHI first-time popup condition, found $occurrences. Refusing to modify an unexpected script."
+        }
+        $playerUpdated = $playerSource.Replace($popupOriginal, $popupReplacement)
     }
     if ($playerUpdated -ne $playerSource) {
         Write-TextFileAtomically -Path $playerScriptPath -Text $playerUpdated
-        Write-Host "Removed the legacy Fetcher edit from Zerkish Hotkeys Improved:"
+        Write-Host $popupChangeMessage
         Write-Host "  $playerScriptPath"
+    }
+    else {
+        Write-Host "Zerkish Hotkeys Improved first-time popup is already compatible."
     }
 
     $hotbarSource = [IO.File]::ReadAllText($hotbarScriptPath)

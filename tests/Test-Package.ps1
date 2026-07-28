@@ -271,6 +271,48 @@ try {
     }
 
     $compatibilityScriptPath = Join-Path $workRoot "Apply-Fetcher-ZHI-Compatibility.ps1"
+
+    $zhiFixtureRoot = Join-Path $workRoot "zhi-fixture"
+    $zhiPlayerPath = Join-Path $zhiFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_player.lua"
+    $zhiHotbarPath = Join-Path $zhiFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_hotbarhud.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $zhiPlayerPath) | Out-Null
+    Set-Content -LiteralPath $zhiPlayerPath -Encoding UTF8 -Value @'
+local ZHISaveData = {}
+local sDisableFirstTimeNotification = false
+if not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then
+    openFirstTimePopup()
+end
+'@
+    Set-Content -LiteralPath $zhiHotbarPath -Encoding UTF8 -Value @'
+local icon = {
+    name = "icon",
+    props = {
+        autoSize = true,
+        inheritAlpha = false,
+    },
+}
+'@
+
+    $zhiLegacyFixtureRoot = Join-Path $workRoot "zhi-legacy-fixture"
+    $zhiLegacyPlayerPath = Join-Path $zhiLegacyFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_player.lua"
+    $zhiLegacyHotbarPath = Join-Path $zhiLegacyFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_hotbarhud.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $zhiLegacyPlayerPath) | Out-Null
+    Set-Content -LiteralPath $zhiLegacyPlayerPath -Encoding UTF8 -Value @'
+local ZHISaveData = {}
+local sDisableFirstTimeNotification = false
+if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- Fetcher multiplayer compatibility: suppress the first-time modal during character creation.
+    openFirstTimePopup()
+end
+'@
+    Set-Content -LiteralPath $zhiLegacyHotbarPath -Encoding UTF8 -Value @'
+local icon = {
+    name = "icon",
+    props = {
+        inheritAlpha = false,
+    },
+}
+'@
+
     $fduFixtureRoot = Join-Path $workRoot "fdu-fixture"
     $fduActorPath = Join-Path $fduFixtureRoot "scripts\FollowerDetectionUtil\actor.lua"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $fduActorPath) | Out-Null
@@ -385,6 +427,7 @@ end
 
     $compatibilityParameters = @{
         InstallRoot = $workRoot
+        ZhiDataRoot = $zhiFixtureRoot
         FollowerDetectionUtilDataRoot = $fduFixtureRoot
         BestFriendsForeverDataRoot = $bffFixtureRoot
         TakeControlDataRoot = $takeControlFixtureRoot
@@ -396,6 +439,37 @@ end
     & $compatibilityScriptPath @compatibilityParameters | Out-Null
     if (-not $?) {
         throw "Fetcher multiplayer compatibility fixtures were not idempotent."
+    }
+
+    $legacyCompatibilityParameters = $compatibilityParameters.Clone()
+    $legacyCompatibilityParameters["ZhiDataRoot"] = $zhiLegacyFixtureRoot
+    & $compatibilityScriptPath @legacyCompatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher legacy ZHI compatibility fixture migration failed."
+    }
+    & $compatibilityScriptPath @legacyCompatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher legacy ZHI compatibility fixture migration was not idempotent."
+    }
+
+    $zhiPlayerSource = Get-Content -LiteralPath $zhiPlayerPath -Raw
+    $zhiPopupMarker = "Fetcher multiplayer compatibility: suppress the automatic first-time modal; onboarding still occurs when Quick Keys is opened."
+    $zhiPopupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $zhiPopupMarker"
+    if (([regex]::Matches($zhiPlayerSource, [regex]::Escape($zhiPopupReplacement))).Count -ne 1) {
+        throw "Zerkish Hotkeys Improved compatibility fix did not suppress exactly one automatic first-time popup."
+    }
+    $zhiHotbarSource = Get-Content -LiteralPath $zhiHotbarPath -Raw
+    if ($zhiHotbarSource.Contains("autoSize = true")) {
+        throw "Zerkish Hotkeys Improved compatibility fix did not remove the invalid hotbar icon autoSize property."
+    }
+
+    $zhiLegacyPlayerSource = Get-Content -LiteralPath $zhiLegacyPlayerPath -Raw
+    $zhiLegacyPopupMarker = "Fetcher multiplayer compatibility: suppress the first-time modal during character creation."
+    if ($zhiLegacyPlayerSource.Contains($zhiLegacyPopupMarker)) {
+        throw "Zerkish Hotkeys Improved compatibility fix did not remove the legacy popup marker."
+    }
+    if (([regex]::Matches($zhiLegacyPlayerSource, [regex]::Escape($zhiPopupReplacement))).Count -ne 1) {
+        throw "Zerkish Hotkeys Improved compatibility fix did not migrate the legacy popup suppression exactly once."
     }
 
     $fduActorSource = Get-Content -LiteralPath $fduActorPath -Raw
