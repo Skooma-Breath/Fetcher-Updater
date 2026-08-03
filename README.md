@@ -5,7 +5,8 @@ This repository owns the independently released Fetcher Simulator updater and te
 ## Layout
 
 - `release-root/` contains the files installed beside `openmw.exe`.
-- `scripts/` contains package, client-inventory, and stable-prerelease publishing scripts.
+- `launcher/` contains the Windows C++/WebView launcher prototype.
+- `scripts/` contains package, client-inventory, launcher-build, and stable-prerelease publishing scripts.
 - `.github/actions/build-client-inventory/` exposes the pinned inventory generator used by the client repository.
 - `tests/` contains package and installer validation.
 - `.github/workflows/release.yml` builds and replaces the stable prerelease.
@@ -51,6 +52,25 @@ Legacy updater calls that pass `-Repository` still work: it is an alias for `Cli
 The updater validates `fetcher-client-files.json` to recognize a managed client installation. A missing or invalid inventory forces one complete client refresh. Tester tools, mods, and compatibility patches remain protected overlays managed here.
 
 Every GitHub download requires the SHA-256 digest supplied by the release API. The installer also rejects unsafe or duplicate archive paths, unsupported manifests, unmanifested payloads, and file hash or size mismatches. The updater preserves mutex locking, receipt/marker verification, and atomic state replacement.
+
+## Windows launcher prototype
+
+The initial launcher uses C++17 and `webview/webview` with the installed Microsoft Edge WebView2 Runtime. It deliberately keeps `Update-Fetcher-Simulator.ps1` as the update backend instead of reimplementing updater behavior.
+
+Build and validate it with:
+
+```powershell
+.\scripts\Build-FetcherLauncher.ps1 -Clean
+```
+
+The build performs a synthetic PowerShell backend smoke test, validates the packaged UI, and writes the prototype to `release-assets\fetcher-launcher`. Run it beside a Fetcher installation or supply an explicit development path:
+
+```powershell
+.\release-assets\fetcher-launcher\FetcherLauncher.exe `
+  --install-root "C:\Games\Fetcher-Simulator-Test"
+```
+
+The launcher is not included in `fetcher-tester-tools.zip` yet.
 
 ## Vehicle client-mod bundle
 

@@ -1,3 +1,4 @@
 /release-assets/
 /test-results/
+/launcher/build/
 *.tmp
