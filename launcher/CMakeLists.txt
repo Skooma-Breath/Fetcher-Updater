@@ -56,9 +56,14 @@ if(MSVC)
 endif()
 
 add_custom_command(TARGET FetcherLauncher POST_BUILD
-    COMMAND "${CMAKE_COMMAND}" -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui"
-        "$<TARGET_FILE_DIR:FetcherLauncher>/ui"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory
+        "$<TARGET_FILE_DIR:FetcherLauncher>/ui/assets"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/index.html"
+        "$<TARGET_FILE_DIR:FetcherLauncher>/ui/index.html"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/assets/fetcher-float.gif"
+        "$<TARGET_FILE_DIR:FetcherLauncher>/ui/assets/fetcher-float.gif"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.txt"
         "$<TARGET_FILE_DIR:FetcherLauncher>/FetcherLauncher-THIRD-PARTY-NOTICES.txt"

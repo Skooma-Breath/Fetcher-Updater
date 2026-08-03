@@ -57,11 +57,18 @@ if ($LASTEXITCODE -ne 0) {
 $launcherExe = Join-Path $BuildDir "bin\FetcherLauncher.exe"
 $launcherUi = Join-Path $BuildDir "bin\ui"
 $launcherNotices = Join-Path $BuildDir "bin\FetcherLauncher-THIRD-PARTY-NOTICES.txt"
+$launcherAnimation = Join-Path $launcherUi "assets\fetcher-float.gif"
 if (-not (Test-Path -LiteralPath $launcherExe -PathType Leaf)) {
     throw "Built launcher was not found at: $launcherExe"
 }
 if (-not (Test-Path -LiteralPath (Join-Path $launcherUi "index.html") -PathType Leaf)) {
     throw "Built launcher UI was not found at: $launcherUi"
+}
+if (-not (Test-Path -LiteralPath $launcherAnimation -PathType Leaf)) {
+    throw "Built launcher animation was not found at: $launcherAnimation"
+}
+if ((Get-Item -LiteralPath $launcherAnimation).Length -le 0) {
+    throw "Built launcher animation is empty: $launcherAnimation"
 }
 if (-not (Test-Path -LiteralPath $launcherNotices -PathType Leaf)) {
     throw "Built launcher third-party notices were not found at: $launcherNotices"
@@ -86,7 +93,16 @@ try {
     $backendTestMarker = Join-Path $backendTestRoot "backend-smoke-result.txt"
 
     @'
-param([string] $InstallRoot, [switch] $QuickCheck)
+param([string] $InstallRoot, [switch] $QuickCheck, [switch] $StatusOnly)
+if ($StatusOnly) {
+    [ordered]@{
+        schemaVersion = 1
+        status = "current"
+        upToDate = $true
+        message = "Synthetic status is current."
+    } | ConvertTo-Json -Compress
+    exit 0
+}
 Write-Host "Fetcher launcher backend smoke test"
 [ordered]@{
     installRoot = $InstallRoot
@@ -127,6 +143,23 @@ exit 0
     $quickBackendResult = Get-Content -LiteralPath $backendTestMarker -Raw | ConvertFrom-Json
     if ([string]$quickBackendResult.installRoot -ne $backendTestRoot -or -not [bool]$quickBackendResult.quickCheck) {
         throw "Fetcher Launcher did not pass -QuickCheck to PowerShell."
+    }
+
+    Remove-Item -LiteralPath $backendTestMarker, $backendTestLog -Force
+    $statusBackendTest = Start-Process -FilePath $launcherPath `
+        -ArgumentList @($baseArguments + "--status-only") -Wait -PassThru
+    if ($statusBackendTest.ExitCode -ne 0) {
+        throw "Fetcher Launcher status-only backend smoke test failed with exit code $($statusBackendTest.ExitCode)."
+    }
+    $statusJsonLine = Get-Content -LiteralPath $backendTestLog |
+        Where-Object { $_.TrimStart().StartsWith("{") -and $_.TrimEnd().EndsWith("}") } |
+        Select-Object -Last 1
+    if ([string]::IsNullOrWhiteSpace([string]$statusJsonLine)) {
+        throw "Fetcher Launcher status-only backend smoke test did not capture JSON output."
+    }
+    $statusBackendResult = $statusJsonLine | ConvertFrom-Json
+    if ([string]$statusBackendResult.status -ne "current" -or -not [bool]$statusBackendResult.upToDate) {
+        throw "Fetcher Launcher did not pass -StatusOnly to PowerShell or capture its JSON result."
     }
 }
 finally {

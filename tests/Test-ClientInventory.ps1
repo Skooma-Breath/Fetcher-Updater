@@ -25,6 +25,8 @@ try {
     Set-Content -LiteralPath (Join-Path $workRoot "FetcherLauncher.exe") -Value "protected launcher" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "FetcherLauncher-THIRD-PARTY-NOTICES.txt") -Value "protected launcher notices" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "ui\index.html") -Value "protected launcher ui" -Encoding ASCII
+    New-Item -ItemType Directory -Force -Path (Join-Path $workRoot "ui\assets") | Out-Null
+    Set-Content -LiteralPath (Join-Path $workRoot "ui\assets\fetcher-float.gif") -Value "protected launcher animation" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "embedded-protected.txt") -Value "protected by installed policy" -Encoding ASCII
     $installedPolicy = Get-Content -LiteralPath (Join-Path $repositoryRoot "release-root\fetcher-client-protection-policy.json") -Raw | ConvertFrom-Json
     $installedPolicy.exactPaths = @($installedPolicy.exactPaths) + "embedded-protected.txt"
@@ -47,6 +49,7 @@ try {
         "FetcherLauncher.exe",
         "FetcherLauncher-THIRD-PARTY-NOTICES.txt",
         "ui/index.html",
+        "ui/assets/fetcher-float.gif",
         "fetcher-client-protection-policy.json",
         "embedded-protected.txt"
     )) {

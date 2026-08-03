@@ -13,7 +13,11 @@ The launcher does not reimplement updater behavior. It stages the installed Powe
 
 ## Current functionality
 
+- Automatically performs a read-only startup release check for the client, launcher/tester tools, client-mod bundle, and installed multiplayer compatibility patches.
+- Shows **Up to date**, **Update required**, or **Unable to verify** before enabling Play.
+- Blocks normal Play while a known update is available and exposes **Play Anyway** only when release verification fails.
 - Displays the selected Fetcher release channel and installed client commit.
+- Uses a steampunk/dystopian HTML interface with periodically spawned transparent background animations derived from the supplied Fetcher Simulator recording.
 - Runs `Update-Fetcher-Simulator.ps1` without opening a console window.
 - Provides a fast **Check for Updates** action that reuses a successful UMO scan for up to 24 hours when the modlist is unchanged.
 - Provides **Full Mod Check / Repair** to force the complete UMO scan and reinstall/repair workflow.

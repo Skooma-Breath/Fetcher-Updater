@@ -46,7 +46,8 @@ $releaseRootFiles = @(
 $launcherFiles = @(
     "FetcherLauncher.exe",
     "FetcherLauncher-THIRD-PARTY-NOTICES.txt",
-    "ui\index.html"
+    "ui\index.html",
+    "ui\assets\fetcher-float.gif"
 )
 
 if (-not (Test-Path -LiteralPath $SourceDir -PathType Container)) {

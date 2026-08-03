@@ -1,4 +1,6 @@
 /release-assets/
 /test-results/
 /launcher/build/
+/launcher/ui/assets/Screen Recording *.mp4
+/launcher/ui/assets/fetcher simulator.gif
 *.tmp

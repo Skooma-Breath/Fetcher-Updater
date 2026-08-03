@@ -107,6 +107,12 @@ try {
     if (-not $manifestPaths.Contains("ui/index.html")) {
         throw "Package is missing the Fetcher Launcher HTML interface."
     }
+    if (-not $manifestPaths.Contains("ui/assets/fetcher-float.gif")) {
+        throw "Package is missing the Fetcher Launcher background animation."
+    }
+    if ((Get-Item -LiteralPath (Join-Path $workRoot "ui\assets\fetcher-float.gif")).Length -le 0) {
+        throw "Fetcher Launcher background animation is empty."
+    }
     if ((Get-Item -LiteralPath (Join-Path $workRoot "FetcherLauncher.exe")).Length -le 0) {
         throw "FetcherLauncher.exe is empty."
     }
@@ -131,7 +137,8 @@ try {
     foreach ($launcherPath in @(
         "fetcherlauncher.exe",
         "fetcherlauncher-third-party-notices.txt",
-        "ui/index.html"
+        "ui/index.html",
+        "ui/assets/fetcher-float.gif"
     )) {
         if (@($protectionPolicy.exactPaths) -notcontains $launcherPath) {
             throw "Client protection policy does not protect $launcherPath."

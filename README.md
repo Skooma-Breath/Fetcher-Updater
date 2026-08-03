@@ -57,6 +57,8 @@ Every GitHub download requires the SHA-256 digest supplied by the release API. T
 
 The initial launcher uses C++17 and `webview/webview` with the installed Microsoft Edge WebView2 Runtime. It deliberately keeps `Update-Fetcher-Simulator.ps1` as the update backend instead of reimplementing updater behavior.
 
+On startup, the launcher performs a read-only release check for the client, tester tools/launcher, client-mod bundle, and installed multiplayer compatibility patches. Normal Play is enabled only when those components are current; a known update blocks Play, while an unreachable release service exposes **Play Anyway**. The HTML interface uses a steampunk/dystopian treatment with periodically spawned transparent Fetcher animations.
+
 The normal **Check for Updates** action uses `-QuickCheck`: an unchanged successful UMO scan is reused for up to 24 hours, and an unchanged client-mod bundle is validated from its digest-backed receipt rather than reinstalled. **Full Mod Check / Repair** omits `-QuickCheck` and always runs the complete UMO workflow.
 
 Build and validate it with:

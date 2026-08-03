@@ -33,7 +33,8 @@
     "launch-fetcher-character.ps1",
     "update-fetcher-simulator.bat",
     "update-fetcher-simulator.ps1",
-    "ui/index.html"
+    "ui/index.html",
+    "ui/assets/fetcher-float.gif"
   ],
   "prefixes": [
     "_fetcher_umo/",

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cctype>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -198,6 +199,32 @@ namespace
         return std::regex_replace(value, ansiPattern, "");
     }
 
+    std::string ExtractLastJsonObject(const std::string& value)
+    {
+        std::size_t end = value.find_last_not_of(" \t\r\n");
+        while (end != std::string::npos)
+        {
+            const std::size_t lineStart = value.rfind('\n', end);
+            const std::size_t start = lineStart == std::string::npos ? 0 : lineStart + 1;
+            std::string line = value.substr(start, end - start + 1);
+            while (!line.empty() && (line.back() == '\r' || line.back() == ' ' || line.back() == '\t'))
+            {
+                line.pop_back();
+            }
+            const std::size_t first = line.find_first_not_of(" \t");
+            if (first != std::string::npos && line[first] == '{' && line.back() == '}')
+            {
+                return line.substr(first);
+            }
+            if (lineStart == std::string::npos)
+            {
+                break;
+            }
+            end = value.find_last_not_of(" \t\r\n", lineStart);
+        }
+        return {};
+    }
+
     std::string ExtractJsonString(const std::string& json, const std::string& key)
     {
         const std::regex pattern("\\\"" + key + "\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"");
@@ -317,6 +344,7 @@ namespace
     UpdaterProcessResult RunUpdaterProcess(
         const fs::path& installRoot,
         bool quickCheck,
+        bool statusOnly,
         const std::function<void(const std::string&)>& onOutput)
     {
         UpdaterProcessResult result;
@@ -367,13 +395,16 @@ namespace
             startup.hStdInput = nullInput ? nullInput.get() : GetStdHandle(STD_INPUT_HANDLE);
 
             PROCESS_INFORMATION processInfo{};
-            const std::wstring quickCheckArgument = quickCheck ? L" -QuickCheck" : L"";
+            const std::wstring updaterArgument = statusOnly
+                ? L" -StatusOnly"
+                : (quickCheck ? L" -QuickCheck" : L"");
             const std::wstring powerShellScript =
                 L"[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); "
                 L"$OutputEncoding = [Console]::OutputEncoding; "
+                L"$ProgressPreference = 'SilentlyContinue'; "
                 L"& '" + EscapePowerShellLiteral(stagedScript.wstring()) +
                 L"' -InstallRoot '" + EscapePowerShellLiteral(installRoot.wstring()) +
-                L"'" + quickCheckArgument + L"; exit $LASTEXITCODE";
+                L"'" + updaterArgument + L"; exit $LASTEXITCODE";
             const std::string encoded = EncodePowerShellCommand(powerShellScript);
             const fs::path powerShell = GetPowerShellPath();
             std::wstring commandLine = QuoteArgument(powerShell.wstring()) +
@@ -435,6 +466,7 @@ namespace
         bool selfTest = false;
         bool runUpdater = false;
         bool quickCheck = false;
+        bool statusOnly = false;
         bool staged = false;
         bool debug = false;
     };
@@ -473,6 +505,10 @@ namespace
             else if (argument == L"--quick-check")
             {
                 options.quickCheck = true;
+            }
+            else if (argument == L"--status-only")
+            {
+                options.statusOnly = true;
             }
             else if (argument == L"--staged")
             {
@@ -600,14 +636,15 @@ namespace
             (L"stage-" + std::to_wstring(GetCurrentProcessId()) +
                 L"-" + std::to_wstring(ticks));
         const fs::path stagedExecutable = stageRoot / L"FetcherLauncher.exe";
-        const fs::path sourceUi = options.installRoot / L"ui" / L"index.html";
-        const fs::path stagedUi = stageRoot / L"ui" / L"index.html";
+        const fs::path sourceUiRoot = options.installRoot / L"ui";
+        const fs::path stagedUiRoot = stageRoot / L"ui";
 
-        fs::create_directories(stagedUi.parent_path());
+        fs::create_directories(stageRoot);
         fs::copy_file(executablePath, stagedExecutable, fs::copy_options::overwrite_existing);
-        if (fs::exists(sourceUi))
+        if (fs::exists(sourceUiRoot))
         {
-            fs::copy_file(sourceUi, stagedUi, fs::copy_options::overwrite_existing);
+            fs::copy(sourceUiRoot, stagedUiRoot,
+                fs::copy_options::recursive | fs::copy_options::overwrite_existing);
         }
 
         std::wstring commandLine = QuoteArgument(stagedExecutable.wstring()) +
@@ -632,6 +669,31 @@ namespace
         CloseHandle(processInfo.hThread);
         CloseHandle(processInfo.hProcess);
         return true;
+    }
+
+    std::string PathToFileUrl(const fs::path& path)
+    {
+        std::string value = WideToUtf8(fs::absolute(path).wstring());
+        std::replace(value.begin(), value.end(), '\\', '/');
+
+        static constexpr char hex[] = "0123456789ABCDEF";
+        std::string result = "file:///";
+        result.reserve(value.size() + 16);
+        for (const unsigned char ch : value)
+        {
+            if (std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' ||
+                ch == '~' || ch == '/' || ch == ':')
+            {
+                result.push_back(static_cast<char>(ch));
+            }
+            else
+            {
+                result.push_back('%');
+                result.push_back(hex[(ch >> 4) & 0x0f]);
+                result.push_back(hex[ch & 0x0f]);
+            }
+        }
+        return result;
     }
 
     std::string FallbackHtml()
@@ -714,6 +776,26 @@ namespace
             return "{\"started\":true}";
         }
 
+        std::string StartStatusCheck()
+        {
+            if (!fs::exists(mInstallRoot / L"Update-Fetcher-Simulator.ps1"))
+            {
+                return "{\"started\":false,\"error\":\"Update-Fetcher-Simulator.ps1 was not found in the installation folder.\"}";
+            }
+            if (mBusy.exchange(true))
+            {
+                return "{\"started\":false,\"error\":\"The launcher is already checking or updating.\"}";
+            }
+
+            std::lock_guard<std::mutex> lock(mWorkerMutex);
+            if (mWorker.joinable())
+            {
+                mWorker.join();
+            }
+            mWorker = std::thread([this]() { RunStatusCheck(); });
+            return "{\"started\":true}";
+        }
+
         std::string LaunchOpenMw()
         {
             return LaunchExecutable(L"openmw.exe", "OpenMW was not found in the installation folder.");
@@ -776,6 +858,39 @@ namespace
             }
         }
 
+        void RunStatusCheck()
+        {
+            PostEvent("{\"type\":\"status-check-started\"}");
+
+            std::string output;
+            const UpdaterProcessResult result = RunUpdaterProcess(
+                mInstallRoot,
+                false,
+                true,
+                [&output](const std::string& chunk) { output += chunk; });
+
+            mBusy.store(false);
+            std::string statusJson = ExtractLastJsonObject(output);
+            const bool success = result.exitCode == 0 && !statusJson.empty();
+            if (statusJson.empty())
+            {
+                std::string message = result.errorMessage;
+                if (message.empty())
+                {
+                    message = "The update service did not return a valid status response.";
+                }
+                statusJson = "{\"schemaVersion\":1,\"status\":\"error\",\"upToDate\":false,\"message\":" +
+                    JsonString(message) + "}";
+            }
+
+            std::ostringstream event;
+            event << "{\"type\":\"status-check-complete\",\"success\":"
+                  << (success ? "true" : "false")
+                  << ",\"result\":" << statusJson
+                  << ",\"localStatus\":" << GetStatusJson() << "}";
+            PostEvent(event.str());
+        }
+
         void RunUpdate(bool quickCheck)
         {
             PostEvent("{\"type\":\"update-started\"}");
@@ -786,6 +901,7 @@ namespace
             const UpdaterProcessResult result = RunUpdaterProcess(
                 mInstallRoot,
                 quickCheck,
+                false,
                 [this](const std::string& output) { PostLog(output); });
 
             mBusy.store(false);
@@ -825,6 +941,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
         const UpdaterProcessResult result = RunUpdaterProcess(
             options.installRoot,
             options.quickCheck,
+            options.statusOnly,
             [&log](const std::string& output) {
                 if (log)
                 {
@@ -866,6 +983,9 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
         window.bind("fetcherStartFullUpdate", [&app](const std::string&) {
             return app.StartUpdate(false);
         });
+        window.bind("fetcherCheckUpdateStatus", [&app](const std::string&) {
+            return app.StartStatusCheck();
+        });
         window.bind("fetcherLaunchOpenMw", [&app](const std::string&) {
             return app.LaunchOpenMw();
         });
@@ -876,8 +996,14 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
             return app.OpenInstallFolder();
         });
 
-        const std::string html = uiPath.empty() ? FallbackHtml() : ReadTextFile(uiPath);
-        window.set_html(html.empty() ? FallbackHtml() : html);
+        if (uiPath.empty())
+        {
+            window.set_html(FallbackHtml());
+        }
+        else
+        {
+            window.navigate(PathToFileUrl(uiPath));
+        }
         window.run();
         app.Close();
     }

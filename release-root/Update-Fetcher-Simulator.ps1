@@ -23,6 +23,7 @@ param(
     [switch] $SkipUmoMods,
     [switch] $SkipModPatches,
     [switch] $QuickCheck,
+    [switch] $StatusOnly,
     [ValidateRange(1, 168)]
     [int] $QuickCheckUmoMaxAgeHours = 24
 )
@@ -923,6 +924,188 @@ function Write-UmoCheckState {
     Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
 }
 
+function Get-LauncherUpdateStatus {
+    param([Parameter(Mandatory = $true)][string] $Root)
+
+    Apply-ClientChannelConfiguration -Root $Root 6>$null
+
+    $channel = "default"
+    $channelPath = if ([string]::IsNullOrWhiteSpace($ClientChannelPath)) {
+        Join-Path $Root "fetcher-update-channel.json"
+    }
+    else {
+        $ClientChannelPath
+    }
+    if (Test-Path -LiteralPath $channelPath -PathType Leaf) {
+        try {
+            $channelConfiguration = Get-Content -LiteralPath $channelPath -Raw | ConvertFrom-Json
+            if (-not [string]::IsNullOrWhiteSpace([string]$channelConfiguration.channel)) {
+                $channel = [string]$channelConfiguration.channel
+            }
+        }
+        catch {
+            # The normal updater reports an invalid channel file in detail.
+        }
+    }
+
+    $reasons = New-Object 'System.Collections.Generic.List[string]'
+
+    $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag -ReleaseRepository $ClientRepository
+    $clientAsset = Get-ReleaseAsset -Release $clientRelease -AssetName $ClientAssetName `
+        -ReleaseTag $ClientReleaseTag -ReleaseRepository $ClientRepository
+    $availableClientCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag `
+        -ReleaseRepository $ClientRepository
+    $installedClientCommit = Get-InstalledClientCommit -Root $Root
+    $installedInventoryCommit = Get-InstalledClientInventoryCommit -Root $Root
+    $installedClientDigest = ""
+    $updateState = $null
+    $updateStatePath = Join-Path $Root "fetcher-update-state.json"
+    if (Test-Path -LiteralPath $updateStatePath -PathType Leaf) {
+        try {
+            $updateState = Get-Content -LiteralPath $updateStatePath -Raw | ConvertFrom-Json
+            if ($null -ne $updateState.client) {
+                $installedClientDigest = [string]$updateState.client.assetDigest
+            }
+        }
+        catch {
+            # An unreadable state file makes the client status conservative below.
+        }
+    }
+    $clientCurrent = $installedClientCommit -eq $availableClientCommit -and
+        $installedInventoryCommit -eq $availableClientCommit -and
+        $installedClientDigest -eq $clientAsset.Digest
+    if (-not $clientCurrent) {
+        $reasons.Add("Fetcher Simulator client")
+    }
+
+    $testerToolsRelease = Get-GitHubRelease -Tag $TesterToolsReleaseTag `
+        -ReleaseRepository $TesterToolsRepository
+    $availableTesterToolsCommit = Resolve-ReleaseCommit -Release $testerToolsRelease `
+        -Tag $TesterToolsReleaseTag -ReleaseRepository $TesterToolsRepository
+    $installedTesterToolsCommit = ""
+    $testerToolsManifestPath = Join-Path $Root "fetcher-tester-tools.json"
+    if (Test-Path -LiteralPath $testerToolsManifestPath -PathType Leaf) {
+        try {
+            $testerToolsManifest = Get-Content -LiteralPath $testerToolsManifestPath -Raw | ConvertFrom-Json
+            $installedTesterToolsCommit = [string]$testerToolsManifest.sourceCommit
+        }
+        catch {
+            # An unreadable manifest is treated as out of date.
+        }
+    }
+    $testerToolsCurrent = $installedTesterToolsCommit -eq $availableTesterToolsCommit
+    if (-not $testerToolsCurrent) {
+        $reasons.Add("launcher and tester tools")
+    }
+
+    $clientModRelease = Get-GitHubRelease -Tag $ClientModBundleReleaseTag `
+        -ReleaseRepository $TesterToolsRepository
+    $clientModAsset = Get-ReleaseAsset -Release $clientModRelease `
+        -AssetName $ClientModBundleAssetName -ReleaseTag $ClientModBundleReleaseTag `
+        -ReleaseRepository $TesterToolsRepository
+    $installedClientModDigest = ""
+    $clientModReceiptPath = Join-Path $Root "_fetcher_update\client-mod-bundle.json"
+    if (Test-Path -LiteralPath $clientModReceiptPath -PathType Leaf) {
+        try {
+            $clientModReceipt = Get-Content -LiteralPath $clientModReceiptPath -Raw | ConvertFrom-Json
+            $installedClientModDigest = [string]$clientModReceipt.assetDigest
+        }
+        catch {
+            # An unreadable receipt is treated as out of date.
+        }
+    }
+    $clientModBundleCurrent = $installedClientModDigest -eq $clientModAsset.Digest
+    if (-not $clientModBundleCurrent) {
+        $reasons.Add("Fetcher client mods")
+    }
+
+    $patchStates = @{}
+    if ($null -ne $updateState -and $null -ne $updateState.patches) {
+        foreach ($property in $updateState.patches.PSObject.Properties) {
+            $patchStates[$property.Name] = $property.Value
+        }
+    }
+    $patchResults = New-Object 'System.Collections.Generic.List[object]'
+    $patchesCurrent = $true
+    $resolvedPatchCatalogPath = if ([string]::IsNullOrWhiteSpace($PatchCatalogPath)) {
+        Join-Path $Root "fetcher-client-patches.json"
+    }
+    else {
+        $PatchCatalogPath
+    }
+    if (Test-Path -LiteralPath $resolvedPatchCatalogPath -PathType Leaf) {
+        $catalog = Get-Content -LiteralPath $resolvedPatchCatalogPath -Raw | ConvertFrom-Json
+        if ([int]$catalog.schemaVersion -ne 1 -or
+            $null -eq $catalog.PSObject.Properties["patches"] -or
+            @($catalog.patches).Count -eq 0) {
+            throw "Unsupported Fetcher client patch catalog schema: $($catalog.schemaVersion)"
+        }
+        foreach ($patch in @($catalog.patches)) {
+            Assert-ClientModPatchDefinition -Patch $patch
+            $targetRoot = Find-OpenMwPluginDataRoot -Root $Root -Plugin ([string]$patch.targetPlugin) `
+                -RequiredSubdirectory ([string]$patch.requiredSubdirectory)
+            if ($null -eq $targetRoot) {
+                continue
+            }
+            $patchRepository = Get-OptionalStringProperty -Object $patch -Name "repository"
+            $patchRelease = Get-GitHubRelease -Tag ([string]$patch.releaseTag) `
+                -ReleaseRepository $patchRepository
+            $patchAsset = Get-ReleaseAsset -Release $patchRelease -AssetName ([string]$patch.assetName) `
+                -ReleaseTag ([string]$patch.releaseTag) -ReleaseRepository $patchRepository
+            $patchCurrent = Test-ClientModPatchCurrent -Root $Root -Patch $patch -TargetRoot $targetRoot `
+                -Asset $patchAsset -PatchStates $patchStates
+            if (-not $patchCurrent) {
+                $patchesCurrent = $false
+            }
+            $patchResults.Add([ordered]@{
+                id = [string]$patch.id
+                name = [string]$patch.name
+                current = $patchCurrent
+                availableDigest = $patchAsset.Digest
+            })
+        }
+    }
+    else {
+        $patchesCurrent = $false
+    }
+    if (-not $patchesCurrent) {
+        $reasons.Add("multiplayer compatibility patches")
+    }
+
+    $upToDate = $clientCurrent -and $testerToolsCurrent -and $clientModBundleCurrent -and $patchesCurrent
+    return [ordered]@{
+        schemaVersion = 1
+        status = if ($upToDate) { "current" } else { "updateAvailable" }
+        upToDate = $upToDate
+        checkedAtUtc = [DateTime]::UtcNow.ToString("o")
+        channel = $channel
+        message = if ($upToDate) {
+            "Fetcher Simulator is up to date."
+        }
+        else {
+            "Update available: $($reasons -join ', ')."
+        }
+        reasons = $reasons.ToArray()
+        client = [ordered]@{
+            current = $clientCurrent
+            installedCommit = [string]$installedClientCommit
+            availableCommit = $availableClientCommit
+            releaseTag = $ClientReleaseTag
+        }
+        testerTools = [ordered]@{
+            current = $testerToolsCurrent
+            installedCommit = $installedTesterToolsCommit
+            availableCommit = $availableTesterToolsCommit
+        }
+        clientModBundle = [ordered]@{
+            current = $clientModBundleCurrent
+            installedDigest = $installedClientModDigest
+            availableDigest = $clientModAsset.Digest
+        }
+        patches = $patchResults.ToArray()
+    }
+}
+
 function Install-TesterTools {
     param([Parameter(Mandatory = $true)][string] $Root)
 
@@ -996,6 +1179,25 @@ if ($clientProtectionPolicyPath.Count -eq 0) {
 }
 $clientProtectionPolicyPath = [string]$clientProtectionPolicyPath[0]
 $clientProtectionPolicy = Read-ClientProtectionPolicy -Path $clientProtectionPolicyPath
+
+if ($StatusOnly) {
+    try {
+        Get-LauncherUpdateStatus -Root $root |
+            ConvertTo-Json -Depth 6 -Compress |
+            Write-Output
+    }
+    catch {
+        [ordered]@{
+            schemaVersion = 1
+            status = "error"
+            upToDate = $false
+            checkedAtUtc = [DateTime]::UtcNow.ToString("o")
+            message = $_.Exception.Message
+        } | ConvertTo-Json -Depth 6 -Compress | Write-Output
+    }
+    return
+}
+
 $rootHashAlgorithm = [Security.Cryptography.SHA256]::Create()
 try {
     $rootHashBytes = $rootHashAlgorithm.ComputeHash([Text.Encoding]::UTF8.GetBytes($root.ToLowerInvariant()))
