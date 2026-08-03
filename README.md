@@ -70,7 +70,7 @@ The build performs a synthetic PowerShell backend smoke test, validates the pack
   --install-root "C:\Games\Fetcher-Simulator-Test"
 ```
 
-The launcher is not included in `fetcher-tester-tools.zip` yet.
+The launcher is included in `fetcher-tester-tools.zip`. Existing testers receive `FetcherLauncher.exe` and `ui\index.html` the next time `Update-Fetcher-Simulator.bat` refreshes tester tools.
 
 ## Vehicle client-mod bundle
 

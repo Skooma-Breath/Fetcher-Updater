@@ -1,6 +1,8 @@
+[CmdletBinding()]
 param(
     [string] $SourceDir = "",
     [Parameter(Mandatory = $true)][string] $OutputDir,
+    [string] $LauncherDir = "",
     [string] $SourceCommit = ""
 )
 
@@ -11,6 +13,9 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($SourceDir)) {
     $SourceDir = Join-Path $repositoryRoot "release-root"
 }
+if ([string]::IsNullOrWhiteSpace($LauncherDir)) {
+    $LauncherDir = Join-Path $repositoryRoot "release-assets\fetcher-launcher"
+}
 if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
     $SourceCommit = (& git -C $repositoryRoot rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0) {
@@ -18,7 +23,7 @@ if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
     }
 }
 
-$files = @(
+$releaseRootFiles = @(
     "Apply-Fetcher-Public-Test-Config.bat",
     "Apply-Fetcher-Public-Test-Config.ps1",
     "Apply-Fetcher-ZHI-Compatibility.ps1",
@@ -38,11 +43,34 @@ $files = @(
     "Update-Fetcher-Simulator.ps1"
 )
 
+$launcherFiles = @(
+    "FetcherLauncher.exe",
+    "FetcherLauncher-THIRD-PARTY-NOTICES.txt",
+    "ui\index.html"
+)
+
 if (-not (Test-Path -LiteralPath $SourceDir -PathType Container)) {
     throw "Tester tools source directory was not found: $SourceDir"
 }
+if (-not (Test-Path -LiteralPath $LauncherDir -PathType Container)) {
+    throw "Fetcher Launcher build directory was not found: $LauncherDir"
+}
 if ($SourceCommit -notmatch "^[0-9a-fA-F]{40}$") {
     throw "SourceCommit must be a full 40-character Git commit hash."
+}
+
+$payloads = New-Object System.Collections.Generic.List[object]
+foreach ($relativePath in $releaseRootFiles) {
+    $payloads.Add([pscustomobject]@{
+        Source = Join-Path $SourceDir $relativePath
+        Destination = $relativePath
+    })
+}
+foreach ($relativePath in $launcherFiles) {
+    $payloads.Add([pscustomobject]@{
+        Source = Join-Path $LauncherDir $relativePath
+        Destination = $relativePath
+    })
 }
 
 $outputPath = [IO.Path]::GetFullPath($OutputDir)
@@ -57,11 +85,13 @@ $archive = Join-Path $outputPath "fetcher-tester-tools.zip"
 try {
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     $records = New-Object System.Collections.Generic.List[object]
-    foreach ($relativePath in $files) {
-        $source = Join-Path $SourceDir $relativePath
+    foreach ($payload in $payloads) {
+        $source = [string]$payload.Source
+        $relativePath = [string]$payload.Destination
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
             throw "Required tester tool was not found: $source"
         }
+
         $destination = Join-Path $stage $relativePath
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath $source -Destination $destination -Force

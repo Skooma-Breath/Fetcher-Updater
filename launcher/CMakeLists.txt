@@ -59,5 +59,8 @@ add_custom_command(TARGET FetcherLauncher POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/ui"
         "$<TARGET_FILE_DIR:FetcherLauncher>/ui"
-    COMMENT "Copying Fetcher Launcher UI"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.txt"
+        "$<TARGET_FILE_DIR:FetcherLauncher>/FetcherLauncher-THIRD-PARTY-NOTICES.txt"
+    COMMENT "Copying Fetcher Launcher UI and notices"
 )

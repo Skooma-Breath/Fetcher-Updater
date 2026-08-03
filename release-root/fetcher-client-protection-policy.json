@@ -20,6 +20,8 @@
     "fetcher-client-protection-policy.json",
     "fetcher-update-channel.json",
     "fetcher-tester-tools.json",
+    "fetcherlauncher.exe",
+    "fetcherlauncher-third-party-notices.txt",
     "fetcher_simulator_readme.txt",
     "install-fetcher-bardcraft-with-umo.bat",
     "install-fetcher-bardcraft-with-umo.ps1",
@@ -30,7 +32,8 @@
     "launch-fetcher-character.bat",
     "launch-fetcher-character.ps1",
     "update-fetcher-simulator.bat",
-    "update-fetcher-simulator.ps1"
+    "update-fetcher-simulator.ps1",
+    "ui/index.html"
   ],
   "prefixes": [
     "_fetcher_umo/",

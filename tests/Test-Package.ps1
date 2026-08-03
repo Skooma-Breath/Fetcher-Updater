@@ -98,6 +98,18 @@ try {
     if (-not $manifestPaths.Contains("fetcher-update-channel.json")) {
         throw "Package is missing fetcher-update-channel.json."
     }
+    if (-not $manifestPaths.Contains("FetcherLauncher.exe")) {
+        throw "Package is missing FetcherLauncher.exe."
+    }
+    if (-not $manifestPaths.Contains("FetcherLauncher-THIRD-PARTY-NOTICES.txt")) {
+        throw "Package is missing Fetcher Launcher third-party notices."
+    }
+    if (-not $manifestPaths.Contains("ui/index.html")) {
+        throw "Package is missing the Fetcher Launcher HTML interface."
+    }
+    if ((Get-Item -LiteralPath (Join-Path $workRoot "FetcherLauncher.exe")).Length -le 0) {
+        throw "FetcherLauncher.exe is empty."
+    }
     $channelConfiguration = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
     if ([int]$channelConfiguration.schemaVersion -ne 1 -or
         [string]$channelConfiguration.channel -ne "vehicles" -or
@@ -115,6 +127,15 @@ try {
     }
     if (@($protectionPolicy.exactPaths) -notcontains "fetcher-update-channel.json") {
         throw "Client protection policy does not protect fetcher-update-channel.json."
+    }
+    foreach ($launcherPath in @(
+        "fetcherlauncher.exe",
+        "fetcherlauncher-third-party-notices.txt",
+        "ui/index.html"
+    )) {
+        if (@($protectionPolicy.exactPaths) -notcontains $launcherPath) {
+            throw "Client protection policy does not protect $launcherPath."
+        }
     }
 
     $umoListPath = Join-Path $workRoot "fetcher-bardcraft-umo.json"

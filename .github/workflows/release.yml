@@ -17,11 +17,17 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Build Windows Fetcher Launcher
+        shell: pwsh
+        run: |
+          .\scripts\Build-FetcherLauncher.ps1 -Clean
+
       - name: Build digest-backed tester tools package
         shell: pwsh
         run: |
           .\scripts\Build-FetcherTesterTools.ps1 `
             -OutputDir "${{ github.workspace }}\release-assets" `
+            -LauncherDir "${{ github.workspace }}\release-assets\fetcher-launcher" `
             -SourceCommit "${{ github.sha }}"
 
       - name: Validate tester tools package and installer
@@ -43,7 +49,7 @@ jobs:
             -Tag "fetcher-tester-tools" `
             -TargetCommit "${{ github.sha }}" `
             -Title "Fetcher Simulator Updater and Tester Tools" `
-            -Notes "Install or refresh the Fetcher updater without copying individual files. Download and double-click Setup-Fetcher-Updater.bat once; subsequent updates are handled by Update-Fetcher-Simulator.bat." `
+            -Notes "Install or refresh the Fetcher updater and Windows launcher without copying individual files. Download and double-click Setup-Fetcher-Updater.bat once; subsequent updates are handled by Update-Fetcher-Simulator.bat or FetcherLauncher.exe." `
             -Assets @(
               "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
               "${{ github.workspace }}\release-assets\Install-Fetcher-Tester-Tools.ps1"

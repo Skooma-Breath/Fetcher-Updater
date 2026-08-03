@@ -387,6 +387,12 @@ try {
         -Message "Fresh tester-tools install did not install the Fetcher client mod bundle."
     Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "Data Files\FetcherVehicles.omwaddon") -PathType Leaf) `
         -Message "Fresh tester-tools install did not install FetcherVehicles.omwaddon."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "FetcherLauncher.exe") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install FetcherLauncher.exe."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "ui\index.html") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install the Fetcher Launcher HTML interface."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "FetcherLauncher-THIRD-PARTY-NOTICES.txt") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install Fetcher Launcher third-party notices."
     $clientModReceipt = Get-Content -LiteralPath (Join-Path $freshRoot "_fetcher_update\client-mod-bundle.json") -Raw | ConvertFrom-Json
     Assert-True -Condition ([string]$clientModReceipt.assetDigest -eq "sha256:$(Get-Sha256 -Path $clientModBundle)") `
         -Message "Client mod bundle receipt did not record the verified archive digest."

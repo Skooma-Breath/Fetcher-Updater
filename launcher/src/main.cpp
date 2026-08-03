@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj.h>
 
 #include <algorithm>
 #include <atomic>
@@ -431,6 +432,7 @@ namespace
         fs::path logFile;
         bool selfTest = false;
         bool runUpdater = false;
+        bool staged = false;
         bool debug = false;
     };
 
@@ -464,6 +466,10 @@ namespace
             else if (argument == L"--run-updater")
             {
                 options.runUpdater = true;
+            }
+            else if (argument == L"--staged")
+            {
+                options.staged = true;
             }
             else if (argument == L"--debug")
             {
@@ -504,6 +510,121 @@ namespace
             }
         }
         return {};
+    }
+
+    bool PathsEquivalent(const fs::path& left, const fs::path& right)
+    {
+        std::error_code leftError;
+        std::error_code rightError;
+        const fs::path normalizedLeft = fs::weakly_canonical(left, leftError);
+        const fs::path normalizedRight = fs::weakly_canonical(right, rightError);
+        const std::wstring leftText = (leftError ? fs::absolute(left) : normalizedLeft).wstring();
+        const std::wstring rightText = (rightError ? fs::absolute(right) : normalizedRight).wstring();
+        return _wcsicmp(leftText.c_str(), rightText.c_str()) == 0;
+    }
+
+    fs::path GetLauncherStageBase()
+    {
+        PWSTR rawPath = nullptr;
+        const HRESULT result = SHGetKnownFolderPath(
+            FOLDERID_LocalAppData, KF_FLAG_CREATE, nullptr, &rawPath);
+        if (FAILED(result) || rawPath == nullptr)
+        {
+            if (rawPath != nullptr)
+            {
+                CoTaskMemFree(rawPath);
+            }
+            throw std::runtime_error("Windows could not resolve the LocalAppData folder.");
+        }
+
+        const fs::path localAppData(rawPath);
+        CoTaskMemFree(rawPath);
+        return localAppData / L"FetcherSimulator" / L"LauncherStaging";
+    }
+
+    void CleanupOldStagedLaunchers(const fs::path& currentExecutable)
+    {
+        std::error_code error;
+        const fs::path stageBase = GetLauncherStageBase();
+        if (!fs::exists(stageBase, error) || error)
+        {
+            return;
+        }
+
+        for (const fs::directory_entry& entry : fs::directory_iterator(stageBase, error))
+        {
+            if (error)
+            {
+                return;
+            }
+            if (!entry.is_directory())
+            {
+                continue;
+            }
+
+            const std::wstring name = entry.path().filename().wstring();
+            if (name.rfind(L"stage-", 0) != 0)
+            {
+                continue;
+            }
+            if (!currentExecutable.empty() &&
+                PathsEquivalent(entry.path(), currentExecutable.parent_path()))
+            {
+                continue;
+            }
+
+            std::error_code removeError;
+            fs::remove_all(entry.path(), removeError);
+        }
+    }
+
+    bool StartStagedLauncher(const Options& options, const fs::path& executablePath)
+    {
+        if (options.staged || options.selfTest || options.runUpdater ||
+            !PathsEquivalent(executablePath.parent_path(), options.installRoot))
+        {
+            return false;
+        }
+
+        CleanupOldStagedLaunchers({});
+
+        const auto ticks = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+        const fs::path stageRoot = GetLauncherStageBase() /
+            (L"stage-" + std::to_wstring(GetCurrentProcessId()) +
+                L"-" + std::to_wstring(ticks));
+        const fs::path stagedExecutable = stageRoot / L"FetcherLauncher.exe";
+        const fs::path sourceUi = options.installRoot / L"ui" / L"index.html";
+        const fs::path stagedUi = stageRoot / L"ui" / L"index.html";
+
+        fs::create_directories(stagedUi.parent_path());
+        fs::copy_file(executablePath, stagedExecutable, fs::copy_options::overwrite_existing);
+        if (fs::exists(sourceUi))
+        {
+            fs::copy_file(sourceUi, stagedUi, fs::copy_options::overwrite_existing);
+        }
+
+        std::wstring commandLine = QuoteArgument(stagedExecutable.wstring()) +
+            L" --staged --install-root " + QuoteArgument(options.installRoot.wstring());
+        if (options.debug)
+        {
+            commandLine += L" --debug";
+        }
+        std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
+        mutableCommand.push_back(L'\0');
+
+        STARTUPINFOW startup{};
+        startup.cb = sizeof(startup);
+        PROCESS_INFORMATION processInfo{};
+        const BOOL created = CreateProcessW(nullptr, mutableCommand.data(), nullptr, nullptr,
+            FALSE, 0, nullptr, options.installRoot.c_str(), &startup, &processInfo);
+        if (!created)
+        {
+            throw std::runtime_error("Windows could not start the staged Fetcher Launcher.");
+        }
+
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return true;
     }
 
     std::string FallbackHtml()
@@ -712,6 +833,12 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 
     try
     {
+        if (StartStagedLauncher(options, executablePath))
+        {
+            return 0;
+        }
+        CleanupOldStagedLaunchers(executablePath);
+
         webview::webview window(options.debug, nullptr);
         LauncherApp app(window, options.installRoot);
 

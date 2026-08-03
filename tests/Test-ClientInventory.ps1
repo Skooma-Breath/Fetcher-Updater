@@ -16,11 +16,15 @@ function Assert-True {
 try {
     New-Item -ItemType Directory -Force -Path (Join-Path $workRoot "resources") | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $workRoot "userdata") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $workRoot "ui") | Out-Null
     Set-Content -LiteralPath (Join-Path $workRoot "openmw.exe") -Value "managed" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "resources\asset.bin") -Value "managed asset" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "openmw.cfg") -Value "protected config" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "userdata\settings.cfg") -Value "protected user data" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "Setup-Fetcher-Updater.bat") -Value "protected updater" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $workRoot "FetcherLauncher.exe") -Value "protected launcher" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $workRoot "FetcherLauncher-THIRD-PARTY-NOTICES.txt") -Value "protected launcher notices" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $workRoot "ui\index.html") -Value "protected launcher ui" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "embedded-protected.txt") -Value "protected by installed policy" -Encoding ASCII
     $installedPolicy = Get-Content -LiteralPath (Join-Path $repositoryRoot "release-root\fetcher-client-protection-policy.json") -Raw | ConvertFrom-Json
     $installedPolicy.exactPaths = @($installedPolicy.exactPaths) + "embedded-protected.txt"
@@ -36,7 +40,16 @@ try {
     Assert-True -Condition ([string]$inventory.clientCommit -eq ("a" * 40)) -Message "Inventory commit mismatch."
     Assert-True -Condition ($paths -contains "openmw.exe") -Message "Managed executable is missing from inventory."
     Assert-True -Condition ($paths -contains "resources/asset.bin") -Message "Managed resource is missing from inventory."
-    foreach ($protectedPath in @("openmw.cfg", "userdata/settings.cfg", "Setup-Fetcher-Updater.bat", "fetcher-client-protection-policy.json", "embedded-protected.txt")) {
+    foreach ($protectedPath in @(
+        "openmw.cfg",
+        "userdata/settings.cfg",
+        "Setup-Fetcher-Updater.bat",
+        "FetcherLauncher.exe",
+        "FetcherLauncher-THIRD-PARTY-NOTICES.txt",
+        "ui/index.html",
+        "fetcher-client-protection-policy.json",
+        "embedded-protected.txt"
+    )) {
         Assert-True -Condition ($paths -notcontains $protectedPath) -Message "Protected path was inventoried: $protectedPath"
     }
 }
