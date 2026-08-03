@@ -397,6 +397,95 @@ try {
     Assert-True -Condition ([string]$clientModReceipt.assetDigest -eq "sha256:$(Get-Sha256 -Path $clientModBundle)") `
         -Message "Client mod bundle receipt did not record the verified archive digest."
 
+    # A launcher quick check should validate an unchanged client-mod bundle from
+    # its receipt without extracting and replacing the installed files again.
+    $clientModInstaller = Join-Path $freshRoot "Install-Fetcher-Client-Mod-Bundle.ps1"
+    $clientModProbe = Join-Path $freshRoot "Data Files\FetcherVehicles.omwaddon"
+    $clientModProbeWriteTime = (Get-Item -LiteralPath $clientModProbe).LastWriteTimeUtc
+    $currentBundleOutput = & $clientModInstaller -InstallRoot $freshRoot `
+        -BundleArchivePath $clientModBundle -SkipIfCurrent 6>&1 | Out-String
+    Assert-True -Condition ($currentBundleOutput -match "Fetcher client mod bundle is current") `
+        -Message "Quick client-mod check did not recognize the current installed bundle."
+    Assert-True -Condition ((Get-Item -LiteralPath $clientModProbe).LastWriteTimeUtc -eq $clientModProbeWriteTime) `
+        -Message "Quick client-mod check unnecessarily replaced an installed bundle file."
+
+    # Quick launcher checks cache the expensive UMO scan only after a successful
+    # run. The cache is invalidated by a changed modlist, while full repair always
+    # invokes UMO regardless of cache age.
+    $umoProbeInstaller = Join-Path $workRoot "fake-umo-installer.ps1"
+    @'
+param(
+    [string] $UmoBasePath,
+    [string] $TesterToolsRepository,
+    [string] $TesterToolsReleaseTag,
+    [string] $GitHubDownloadBaseUrl,
+    [bool] $ApplyBardcraftMultiplayerPatch,
+    [bool] $ApplyPublicTestConfig
+)
+$installRoot = Split-Path -Parent $UmoBasePath
+$countPath = Join-Path $installRoot "_fetcher_update\umo-probe-count.txt"
+$count = if (Test-Path -LiteralPath $countPath) { [int](Get-Content -LiteralPath $countPath -Raw) } else { 0 }
+$count++
+Set-Content -LiteralPath $countPath -Value $count -Encoding ASCII
+Write-Host "Fake UMO invocation $count"
+'@ | Set-Content -LiteralPath $umoProbeInstaller -Encoding UTF8
+
+    $umoCountPath = Join-Path $freshRoot "_fetcher_update\umo-probe-count.txt"
+    $umoStatePath = Join-Path $freshRoot "_fetcher_update\umo-check-state.json"
+    $umoModListPath = Join-Path $freshRoot "fetcher-bardcraft-umo.json"
+    $originalUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
+    $quickUpdateParameters = @{
+        InstallRoot = $freshRoot
+        UmoInstallerPath = $umoProbeInstaller
+        SkipClientUpdate = $true
+        SkipTesterToolsUpdate = $true
+        SkipModPatches = $true
+        QuickCheck = $true
+    }
+
+    $firstQuickOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+        @quickUpdateParameters 6>&1 | Out-String
+    Assert-True -Condition ([int](Get-Content -LiteralPath $umoCountPath -Raw) -eq 1) `
+        -Message "First quick update did not invoke UMO."
+    Assert-True -Condition ($firstQuickOutput -match "Running the full UMO scan because") `
+        -Message "First quick update did not explain why UMO was required."
+
+    $secondQuickOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+        @quickUpdateParameters 6>&1 | Out-String
+    Assert-True -Condition ([int](Get-Content -LiteralPath $umoCountPath -Raw) -eq 1) `
+        -Message "Second quick update unnecessarily invoked UMO."
+    Assert-True -Condition ($secondQuickOutput -match "Skipping the full UMO scan during this quick check") `
+        -Message "Second quick update did not report the cached UMO check."
+
+    Add-Content -LiteralPath $umoModListPath -Value ""
+    $changedModListOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+        @quickUpdateParameters 6>&1 | Out-String
+    Assert-True -Condition ([int](Get-Content -LiteralPath $umoCountPath -Raw) -eq 2) `
+        -Message "Changed UMO modlist did not invalidate the quick-check cache."
+    Assert-True -Condition ($changedModListOutput -match "modlist changed") `
+        -Message "Changed UMO modlist did not report its cache invalidation reason."
+
+    [IO.File]::WriteAllBytes($umoModListPath, $originalUmoModListBytes)
+    $fullUpdateOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+        -InstallRoot $freshRoot -UmoInstallerPath $umoProbeInstaller `
+        -SkipClientUpdate -SkipTesterToolsUpdate -SkipModPatches 6>&1 | Out-String
+    Assert-True -Condition ([int](Get-Content -LiteralPath $umoCountPath -Raw) -eq 3) `
+        -Message "Full mod repair did not force a UMO invocation."
+    Assert-True -Condition ($fullUpdateOutput -match "Fake UMO invocation 3") `
+        -Message "Full mod repair output did not include the forced UMO invocation."
+
+    Remove-Item -LiteralPath $umoStatePath -Force
+    $migrationQuickOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
+        @quickUpdateParameters 6>&1 | Out-String
+    Assert-True -Condition ([int](Get-Content -LiteralPath $umoCountPath -Raw) -eq 3) `
+        -Message "Recent legacy updater state did not prevent an unnecessary UMO migration scan."
+    Assert-True -Condition ($migrationQuickOutput -match "Skipping the full UMO scan during this quick check") `
+        -Message "Legacy updater state migration did not report the cached UMO check."
+    Assert-True -Condition (Test-Path -LiteralPath $umoStatePath -PathType Leaf) `
+        -Message "Legacy updater state migration did not create the dedicated UMO cache state."
+
+    Remove-Item -LiteralPath $umoCountPath, $umoStatePath -Force -ErrorAction SilentlyContinue
+
     # The .bat launcher stages only the updater script in TEMP. The staged script must
     # resolve companion policy files from the actual installation root.
     $stagedUpdaterPath = Join-Path ([IO.Path]::GetTempPath()) `

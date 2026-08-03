@@ -13,6 +13,7 @@ param(
     [string] $ClientModBundleAssetName = "openmw-client-mods.zip",
     [string] $ClientModBundleArchivePath = "",
     [switch] $SkipClientModBundle,
+    [switch] $QuickCheck,
     [switch] $SkipUpdater
 )
 
@@ -180,6 +181,7 @@ if (-not $SkipClientModBundle) {
         AssetName = $ClientModBundleAssetName
         GitHubApiBaseUrl = $GitHubApiBaseUrl
         GitHubDownloadBaseUrl = $GitHubDownloadBaseUrl
+        SkipIfCurrent = $QuickCheck
     }
     if (-not [string]::IsNullOrWhiteSpace($ClientModBundleArchivePath)) {
         $bundleParameters.BundleArchivePath = $ClientModBundleArchivePath

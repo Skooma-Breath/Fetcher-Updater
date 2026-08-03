@@ -346,7 +346,8 @@
           <p id="summary">The launcher uses the existing Fetcher PowerShell updater and keeps its tested update behavior intact.</p>
         </div>
         <div class="button-row">
-          <button id="updateButton" class="primary">Run Update</button>
+          <button id="updateButton" class="primary">Check for Updates</button>
+          <button id="fullUpdateButton">Full Mod Check / Repair</button>
           <button id="playButton" class="play">Play</button>
           <button id="wizardButton">Setup Wizard</button>
           <button id="folderButton">Open Folder</button>
@@ -389,7 +390,7 @@
 
   <script type="module">
     const ui = Object.fromEntries([
-      "channelPill", "headline", "summary", "updateButton", "playButton",
+      "channelPill", "headline", "summary", "updateButton", "fullUpdateButton", "playButton",
       "wizardButton", "folderButton", "channelValue", "releaseValue",
       "commitValue", "installValue", "indicator", "logStatus", "log",
       "clearButton", "notice"
@@ -440,10 +441,12 @@
         ? "Update-Fetcher-Simulator.ps1 is missing from this folder."
         : !status.openmwAvailable
           ? "Run the updater or setup wizard to finish installing OpenMW."
-          : "Run the updater before joining, then launch OpenMW from this window.";
+          : "Check for client and tools updates quickly. Use Full Mod Check / Repair when you want to rescan all UMO-managed mods.";
 
       ui.updateButton.disabled = updateRunning || !status.updaterAvailable;
-      ui.updateButton.textContent = updateRunning ? "Updating…" : "Run Update";
+      ui.fullUpdateButton.disabled = updateRunning || !status.updaterAvailable;
+      ui.updateButton.textContent = updateRunning ? "Updating…" : "Check for Updates";
+      ui.fullUpdateButton.textContent = updateRunning ? "Please wait…" : "Full Mod Check / Repair";
       ui.playButton.disabled = updateRunning || !status.openmwAvailable;
       ui.wizardButton.disabled = updateRunning || !status.wizardAvailable;
       ui.folderButton.disabled = updateRunning;
@@ -467,19 +470,24 @@
       }
     }
 
-    ui.updateButton.addEventListener("click", async () => {
+    async function startUpdater(action, description) {
       try {
-        const result = await window.fetcherStartUpdate();
+        const result = await action();
         if (!result.started) {
-          showNotice(result.error || "The updater could not start.");
+          showNotice(result.error || `${description} could not start.`);
           return;
         }
         updateRunning = true;
         applyStatus({ ...currentStatus, busy: true });
       } catch (error) {
-        showNotice(`The updater could not start: ${error}`);
+        showNotice(`${description} could not start: ${error}`);
       }
-    });
+    }
+
+    ui.updateButton.addEventListener("click", () =>
+      startUpdater(() => window.fetcherStartUpdate(), "The quick update check"));
+    ui.fullUpdateButton.addEventListener("click", () =>
+      startUpdater(() => window.fetcherStartFullUpdate(), "The full mod check"));
 
     ui.playButton.addEventListener("click", () =>
       runAction(() => window.fetcherLaunchOpenMw(), "OpenMW could not be launched"));

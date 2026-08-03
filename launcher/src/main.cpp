@@ -316,6 +316,7 @@ namespace
 
     UpdaterProcessResult RunUpdaterProcess(
         const fs::path& installRoot,
+        bool quickCheck,
         const std::function<void(const std::string&)>& onOutput)
     {
         UpdaterProcessResult result;
@@ -366,12 +367,13 @@ namespace
             startup.hStdInput = nullInput ? nullInput.get() : GetStdHandle(STD_INPUT_HANDLE);
 
             PROCESS_INFORMATION processInfo{};
+            const std::wstring quickCheckArgument = quickCheck ? L" -QuickCheck" : L"";
             const std::wstring powerShellScript =
                 L"[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); "
                 L"$OutputEncoding = [Console]::OutputEncoding; "
                 L"& '" + EscapePowerShellLiteral(stagedScript.wstring()) +
                 L"' -InstallRoot '" + EscapePowerShellLiteral(installRoot.wstring()) +
-                L"'; exit $LASTEXITCODE";
+                L"'" + quickCheckArgument + L"; exit $LASTEXITCODE";
             const std::string encoded = EncodePowerShellCommand(powerShellScript);
             const fs::path powerShell = GetPowerShellPath();
             std::wstring commandLine = QuoteArgument(powerShell.wstring()) +
@@ -432,6 +434,7 @@ namespace
         fs::path logFile;
         bool selfTest = false;
         bool runUpdater = false;
+        bool quickCheck = false;
         bool staged = false;
         bool debug = false;
     };
@@ -466,6 +469,10 @@ namespace
             else if (argument == L"--run-updater")
             {
                 options.runUpdater = true;
+            }
+            else if (argument == L"--quick-check")
+            {
+                options.quickCheck = true;
             }
             else if (argument == L"--staged")
             {
@@ -687,7 +694,7 @@ namespace
             return json.str();
         }
 
-        std::string StartUpdate()
+        std::string StartUpdate(bool quickCheck)
         {
             if (!fs::exists(mInstallRoot / L"Update-Fetcher-Simulator.ps1"))
             {
@@ -703,7 +710,7 @@ namespace
             {
                 mWorker.join();
             }
-            mWorker = std::thread([this]() { RunUpdate(); });
+            mWorker = std::thread([this, quickCheck]() { RunUpdate(quickCheck); });
             return "{\"started\":true}";
         }
 
@@ -769,13 +776,16 @@ namespace
             }
         }
 
-        void RunUpdate()
+        void RunUpdate(bool quickCheck)
         {
             PostEvent("{\"type\":\"update-started\"}");
-            PostLog("Starting Fetcher Simulator updater...\n");
+            PostLog(quickCheck
+                ? "Starting Fetcher Simulator quick update check...\n"
+                : "Starting Fetcher Simulator full mod check and repair...\n");
 
             const UpdaterProcessResult result = RunUpdaterProcess(
                 mInstallRoot,
+                quickCheck,
                 [this](const std::string& output) { PostLog(output); });
 
             mBusy.store(false);
@@ -814,6 +824,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 
         const UpdaterProcessResult result = RunUpdaterProcess(
             options.installRoot,
+            options.quickCheck,
             [&log](const std::string& output) {
                 if (log)
                 {
@@ -850,7 +861,10 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
             return app.GetStatusJson();
         });
         window.bind("fetcherStartUpdate", [&app](const std::string&) {
-            return app.StartUpdate();
+            return app.StartUpdate(true);
+        });
+        window.bind("fetcherStartFullUpdate", [&app](const std::string&) {
+            return app.StartUpdate(false);
         });
         window.bind("fetcherLaunchOpenMw", [&app](const std::string&) {
             return app.LaunchOpenMw();

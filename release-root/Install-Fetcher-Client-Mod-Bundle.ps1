@@ -7,7 +7,8 @@ param(
     [string] $AssetName = "openmw-client-mods.zip",
     [string] $GitHubApiBaseUrl = "https://api.github.com",
     [string] $GitHubDownloadBaseUrl = "https://github.com",
-    [string] $BundleArchivePath = ""
+    [string] $BundleArchivePath = "",
+    [switch] $SkipIfCurrent
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,10 +43,60 @@ function ConvertTo-SafeRelativePath {
     return ($segments -join "/")
 }
 
+function Test-InstalledBundleReceipt {
+    param(
+        [Parameter(Mandatory = $true)][string] $Root,
+        [Parameter(Mandatory = $true)][string] $ReceiptPath,
+        [Parameter(Mandatory = $true)][string] $ExpectedDigest
+    )
+
+    if (-not (Test-Path -LiteralPath $ReceiptPath -PathType Leaf)) {
+        return $false
+    }
+
+    try {
+        $receipt = Get-Content -LiteralPath $ReceiptPath -Raw | ConvertFrom-Json
+        if ([int]$receipt.schemaVersion -ne 1 -or
+            [string]$receipt.repository -ne $Repository -or
+            [string]$receipt.releaseTag -ne $ReleaseTag -or
+            [string]$receipt.assetName -ne $AssetName -or
+            [string]$receipt.assetDigest -ne $ExpectedDigest -or
+            @($receipt.files).Count -eq 0) {
+            return $false
+        }
+
+        foreach ($record in @($receipt.files)) {
+            $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
+            if (-not $relativePath.StartsWith("Data Files/", [StringComparison]::OrdinalIgnoreCase)) {
+                return $false
+            }
+            $installedPath = Join-Path $Root $relativePath.Replace("/", "\")
+            if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf)) {
+                return $false
+            }
+            $item = Get-Item -LiteralPath $installedPath
+            if ($item.Length -ne [int64]$record.size) {
+                return $false
+            }
+            $expectedHash = [string]$record.sha256
+            if ($expectedHash -notmatch "^[0-9a-fA-F]{64}$" -or
+                (Get-FileHash -LiteralPath $installedPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expectedHash.ToLowerInvariant()) {
+                return $false
+            }
+        }
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 $root = (Resolve-Path -LiteralPath $InstallRoot).Path.TrimEnd("\", "/")
 if (-not (Test-Path -LiteralPath (Join-Path $root "openmw.exe") -PathType Leaf)) {
     throw "The selected folder does not contain openmw.exe: $root"
 }
+$receiptRoot = Join-Path $root "_fetcher_update"
+$receiptPath = Join-Path $receiptRoot "client-mod-bundle.json"
 
 $workRoot = Join-Path ([IO.Path]::GetTempPath()) ("fetcher-client-mods-" + [Guid]::NewGuid().ToString("N"))
 $archivePath = Join-Path $workRoot $AssetName
@@ -58,6 +109,10 @@ try {
         Copy-Item -LiteralPath $BundleArchivePath -Destination $archivePath -Force
         $expectedHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
         $assetDigest = "sha256:$expectedHash"
+        if ($SkipIfCurrent -and (Test-InstalledBundleReceipt -Root $root -ReceiptPath $receiptPath -ExpectedDigest $assetDigest)) {
+            Write-Host "Fetcher client mod bundle is current."
+            return
+        }
     }
     else {
         $encodedTag = [Uri]::EscapeDataString($ReleaseTag)
@@ -69,6 +124,10 @@ try {
         }
         $expectedHash = $Matches[1].ToLowerInvariant()
         $assetDigest = "sha256:$expectedHash"
+        if ($SkipIfCurrent -and (Test-InstalledBundleReceipt -Root $root -ReceiptPath $receiptPath -ExpectedDigest $assetDigest)) {
+            Write-Host "Fetcher client mod bundle is current."
+            return
+        }
         $downloadUrl = "$($GitHubDownloadBaseUrl.TrimEnd('/'))/$Repository/releases/download/$encodedTag/$([Uri]::EscapeDataString($AssetName))"
         Write-Host "Downloading Fetcher client mod bundle..."
         Write-Host "  $downloadUrl"
@@ -136,8 +195,6 @@ try {
         })
     }
 
-    $receiptRoot = Join-Path $root "_fetcher_update"
-    $receiptPath = Join-Path $receiptRoot "client-mod-bundle.json"
     New-Item -ItemType Directory -Force -Path $receiptRoot | Out-Null
     [ordered]@{
         schemaVersion = 1

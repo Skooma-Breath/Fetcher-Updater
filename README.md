@@ -57,6 +57,8 @@ Every GitHub download requires the SHA-256 digest supplied by the release API. T
 
 The initial launcher uses C++17 and `webview/webview` with the installed Microsoft Edge WebView2 Runtime. It deliberately keeps `Update-Fetcher-Simulator.ps1` as the update backend instead of reimplementing updater behavior.
 
+The normal **Check for Updates** action uses `-QuickCheck`: an unchanged successful UMO scan is reused for up to 24 hours, and an unchanged client-mod bundle is validated from its digest-backed receipt rather than reinstalled. **Full Mod Check / Repair** omits `-QuickCheck` and always runs the complete UMO workflow.
+
 Build and validate it with:
 
 ```powershell

@@ -86,34 +86,47 @@ try {
     $backendTestMarker = Join-Path $backendTestRoot "backend-smoke-result.txt"
 
     @'
-param([string] $InstallRoot)
+param([string] $InstallRoot, [switch] $QuickCheck)
 Write-Host "Fetcher launcher backend smoke test"
-Set-Content -LiteralPath (Join-Path $InstallRoot "backend-smoke-result.txt") -Value $InstallRoot -Encoding UTF8
+[ordered]@{
+    installRoot = $InstallRoot
+    quickCheck = [bool]$QuickCheck
+} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $InstallRoot "backend-smoke-result.txt") -Encoding UTF8
 exit 0
 '@ | Set-Content -LiteralPath $backendTestScript -Encoding UTF8
 
-    $backendTest = Start-Process `
-        -FilePath (Join-Path $OutputDir "FetcherLauncher.exe") `
-        -ArgumentList @(
-            "--run-updater",
-            "--install-root", ('"' + $backendTestRoot + '"'),
-            "--log-file", ('"' + $backendTestLog + '"')
-        ) `
-        -Wait `
-        -PassThru
+    $launcherPath = Join-Path $OutputDir "FetcherLauncher.exe"
+    $baseArguments = @(
+        "--run-updater",
+        "--install-root", ('"' + $backendTestRoot + '"'),
+        "--log-file", ('"' + $backendTestLog + '"')
+    )
+
+    $backendTest = Start-Process -FilePath $launcherPath -ArgumentList $baseArguments -Wait -PassThru
     if ($backendTest.ExitCode -ne 0) {
         throw "Fetcher Launcher backend smoke test failed with exit code $($backendTest.ExitCode)."
     }
     if (-not (Test-Path -LiteralPath $backendTestMarker -PathType Leaf)) {
         throw "Fetcher Launcher backend smoke test did not create its result marker."
     }
-    $recordedInstallRoot = (Get-Content -LiteralPath $backendTestMarker -Raw).Trim()
-    if ($recordedInstallRoot -ne $backendTestRoot) {
-        throw "Fetcher Launcher passed the wrong install root to PowerShell: $recordedInstallRoot"
+    $backendResult = Get-Content -LiteralPath $backendTestMarker -Raw | ConvertFrom-Json
+    if ([string]$backendResult.installRoot -ne $backendTestRoot -or [bool]$backendResult.quickCheck) {
+        throw "Fetcher Launcher passed incorrect arguments to the full PowerShell backend."
     }
     $backendLogText = Get-Content -LiteralPath $backendTestLog -Raw
     if ($backendLogText -notmatch "Fetcher launcher backend smoke test") {
         throw "Fetcher Launcher did not capture PowerShell output."
+    }
+
+    Remove-Item -LiteralPath $backendTestMarker, $backendTestLog -Force
+    $quickBackendTest = Start-Process -FilePath $launcherPath `
+        -ArgumentList @($baseArguments + "--quick-check") -Wait -PassThru
+    if ($quickBackendTest.ExitCode -ne 0) {
+        throw "Fetcher Launcher quick-check backend smoke test failed with exit code $($quickBackendTest.ExitCode)."
+    }
+    $quickBackendResult = Get-Content -LiteralPath $backendTestMarker -Raw | ConvertFrom-Json
+    if ([string]$quickBackendResult.installRoot -ne $backendTestRoot -or -not [bool]$quickBackendResult.quickCheck) {
+        throw "Fetcher Launcher did not pass -QuickCheck to PowerShell."
     }
 }
 finally {

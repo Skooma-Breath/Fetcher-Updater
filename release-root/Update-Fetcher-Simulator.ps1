@@ -21,7 +21,10 @@ param(
     [switch] $SkipTesterToolsUpdate,
     [switch] $SkipClientModBundle,
     [switch] $SkipUmoMods,
-    [switch] $SkipModPatches
+    [switch] $SkipModPatches,
+    [switch] $QuickCheck,
+    [ValidateRange(1, 168)]
+    [int] $QuickCheckUmoMaxAgeHours = 24
 )
 
 $ErrorActionPreference = "Stop"
@@ -801,6 +804,125 @@ function Install-UmoModList {
     }
 }
 
+function Get-UmoCheckState {
+    param(
+        [Parameter(Mandatory = $true)][string] $Root,
+        [Parameter(Mandatory = $true)][string] $StatePath
+    )
+
+    $modListPath = Join-Path $Root "fetcher-bardcraft-umo.json"
+    if (-not (Test-Path -LiteralPath $modListPath -PathType Leaf)) {
+        return [pscustomobject]@{
+            IsCurrent = $false
+            Reason = "the installed UMO modlist is missing"
+            ModListPath = $modListPath
+            ModListSha256 = ""
+            CheckedAtUtc = $null
+        }
+    }
+
+    $modListSha256 = Get-Sha256 -Path $modListPath
+    if (-not (Test-Path -LiteralPath $StatePath -PathType Leaf)) {
+        $legacyStatePath = Join-Path $Root "fetcher-update-state.json"
+        if (Test-Path -LiteralPath $legacyStatePath -PathType Leaf) {
+            try {
+                $legacyState = Get-Content -LiteralPath $legacyStatePath -Raw | ConvertFrom-Json
+                $legacyCheckedAt = [DateTimeOffset]::Parse(
+                    [string]$legacyState.checkedAtUtc,
+                    [Globalization.CultureInfo]::InvariantCulture,
+                    [Globalization.DateTimeStyles]::RoundtripKind)
+                $legacyAge = [DateTimeOffset]::UtcNow - $legacyCheckedAt.ToUniversalTime()
+                $modListWriteTime = [DateTimeOffset](Get-Item -LiteralPath $modListPath).LastWriteTimeUtc
+                if ($legacyAge.TotalHours -le $QuickCheckUmoMaxAgeHours -and
+                    $legacyAge.TotalSeconds -ge -300 -and
+                    $modListWriteTime -le $legacyCheckedAt.ToUniversalTime().AddMinutes(5)) {
+                    return [pscustomobject]@{
+                        IsCurrent = $true
+                        Reason = ""
+                        ModListPath = $modListPath
+                        ModListSha256 = $modListSha256
+                        CheckedAtUtc = $legacyCheckedAt
+                        NeedsMigration = $true
+                    }
+                }
+            }
+            catch {
+                # Fall through and perform a real UMO check.
+            }
+        }
+
+        return [pscustomobject]@{
+            IsCurrent = $false
+            Reason = "no previous successful UMO check is recorded"
+            ModListPath = $modListPath
+            ModListSha256 = $modListSha256
+            CheckedAtUtc = $null
+        }
+    }
+
+    try {
+        $state = Get-Content -LiteralPath $StatePath -Raw | ConvertFrom-Json
+        if ([int]$state.schemaVersion -ne 1 -or
+            [string]$state.modListSha256 -ne $modListSha256 -or
+            [string]::IsNullOrWhiteSpace([string]$state.checkedAtUtc)) {
+            return [pscustomobject]@{
+                IsCurrent = $false
+                Reason = "the UMO modlist changed or its state is unsupported"
+                ModListPath = $modListPath
+                ModListSha256 = $modListSha256
+                CheckedAtUtc = $null
+            }
+        }
+
+        $checkedAt = [DateTimeOffset]::Parse(
+            [string]$state.checkedAtUtc,
+            [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::RoundtripKind)
+        $age = [DateTimeOffset]::UtcNow - $checkedAt.ToUniversalTime()
+        if ($age.TotalHours -gt $QuickCheckUmoMaxAgeHours -or $age.TotalSeconds -lt -300) {
+            return [pscustomobject]@{
+                IsCurrent = $false
+                Reason = "the previous successful UMO check is older than $QuickCheckUmoMaxAgeHours hours"
+                ModListPath = $modListPath
+                ModListSha256 = $modListSha256
+                CheckedAtUtc = $checkedAt
+            }
+        }
+
+        return [pscustomobject]@{
+            IsCurrent = $true
+            Reason = ""
+            ModListPath = $modListPath
+            ModListSha256 = $modListSha256
+            CheckedAtUtc = $checkedAt
+        }
+    }
+    catch {
+        return [pscustomobject]@{
+            IsCurrent = $false
+            Reason = "the previous UMO check state is unreadable"
+            ModListPath = $modListPath
+            ModListSha256 = $modListSha256
+            CheckedAtUtc = $null
+        }
+    }
+}
+
+function Write-UmoCheckState {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][string] $ModListSha256
+    )
+
+    $temporaryPath = "$Path.$([Guid]::NewGuid().ToString('N')).tmp"
+    [ordered]@{
+        schemaVersion = 1
+        modListSha256 = $ModListSha256
+        checkedAtUtc = [DateTime]::UtcNow.ToString("o")
+    } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
+    Move-Item -LiteralPath $temporaryPath -Destination $Path -Force
+}
+
 function Install-TesterTools {
     param([Parameter(Mandatory = $true)][string] $Root)
 
@@ -821,6 +943,7 @@ function Install-TesterTools {
         ClientModBundleReleaseTag = $ClientModBundleReleaseTag
         ClientModBundleAssetName = $ClientModBundleAssetName
         SkipClientModBundle = $SkipClientModBundle
+        QuickCheck = $QuickCheck
         SkipUpdater = $true
     }
     if (-not [string]::IsNullOrWhiteSpace($TesterToolsArchivePath)) {
@@ -903,6 +1026,7 @@ if (Test-Path -LiteralPath $workParent -PathType Container) {
 }
 $runWorkRoot = Join-Path $workParent ([Guid]::NewGuid().ToString("N"))
 $statePath = Join-Path $root "fetcher-update-state.json"
+$umoStatePath = Join-Path $updateRoot "umo-check-state.json"
 New-Item -ItemType Directory -Force -Path $runWorkRoot | Out-Null
 
 $clientState = [ordered]@{}
@@ -965,7 +1089,31 @@ try {
     }
 
     if (-not $SkipUmoMods) {
-        Install-UmoModList -Root $root
+        $umoCheckState = Get-UmoCheckState -Root $root -StatePath $umoStatePath
+        if ($QuickCheck -and $umoCheckState.IsCurrent) {
+            $checkedAtLocal = $umoCheckState.CheckedAtUtc.ToLocalTime().ToString("g")
+            Write-Host "Required Fetcher mods were checked through UMO at $checkedAtLocal."
+            Write-Host "Skipping the full UMO scan during this quick check."
+            Write-Host "Use Full Mod Check / Repair in the launcher to force it now."
+            if ($null -ne $umoCheckState.PSObject.Properties["NeedsMigration"] -and
+                [bool]$umoCheckState.NeedsMigration) {
+                Write-UmoCheckState -Path $umoStatePath -ModListSha256 ([string]$umoCheckState.ModListSha256)
+            }
+        }
+        else {
+            if ($QuickCheck) {
+                Write-Host "Running the full UMO scan because $($umoCheckState.Reason)."
+            }
+            Install-UmoModList -Root $root
+            $completedUmoState = Get-UmoCheckState -Root $root -StatePath $umoStatePath
+            $modListSha256 = if ([string]::IsNullOrWhiteSpace([string]$completedUmoState.ModListSha256)) {
+                Get-Sha256 -Path (Join-Path $root "fetcher-bardcraft-umo.json")
+            }
+            else {
+                [string]$completedUmoState.ModListSha256
+            }
+            Write-UmoCheckState -Path $umoStatePath -ModListSha256 $modListSha256
+        }
     }
 
     $modCompatibilityScript = Join-Path $root "Apply-Fetcher-ZHI-Compatibility.ps1"
