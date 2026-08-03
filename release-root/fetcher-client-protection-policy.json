@@ -18,6 +18,7 @@
     "fetcher-bardcraft-umo.json",
     "fetcher-client-patches.json",
     "fetcher-client-protection-policy.json",
+    "fetcher-update-channel.json",
     "fetcher-tester-tools.json",
     "fetcher_simulator_readme.txt",
     "install-fetcher-bardcraft-with-umo.bat",

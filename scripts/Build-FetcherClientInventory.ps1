@@ -57,7 +57,13 @@ function Test-FetcherProtectedPath {
 }
 
 if ([string]::IsNullOrWhiteSpace($ProtectionPolicyPath)) {
-    $ProtectionPolicyPath = Join-Path $repositoryRoot "release-root\fetcher-client-protection-policy.json"
+    $installedPolicyPath = Join-Path $InstallDir "fetcher-client-protection-policy.json"
+    if (Test-Path -LiteralPath $installedPolicyPath -PathType Leaf) {
+        $ProtectionPolicyPath = $installedPolicyPath
+    }
+    else {
+        $ProtectionPolicyPath = Join-Path $repositoryRoot "release-root\fetcher-client-protection-policy.json"
+    }
 }
 $root = (Resolve-Path -LiteralPath $InstallDir).Path.TrimEnd("\", "/")
 $resolvedPolicyPath = (Resolve-Path -LiteralPath $ProtectionPolicyPath).Path

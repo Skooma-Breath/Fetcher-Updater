@@ -33,24 +33,44 @@ function Get-Sha256 {
 function New-ToolsPackage {
     param(
         [Parameter(Mandatory)][string] $Path,
-        [Parameter(Mandatory)][string] $Probe
+        [Parameter(Mandatory)][string] $Probe,
+        [string] $ClientReleaseTag = ""
     )
 
     $stage = "$Path.stage"
     New-Item -ItemType Directory -Force -Path $stage | Out-Null
     try {
+        $records = New-Object System.Collections.Generic.List[object]
         $probePath = Join-Path $stage "migration-probe.txt"
         Set-Content -LiteralPath $probePath -Encoding UTF8 -Value $Probe
+        $records.Add([ordered]@{
+            path = "migration-probe.txt"
+            size = (Get-Item -LiteralPath $probePath).Length
+            sha256 = Get-Sha256 -Path $probePath
+        })
+
+        if (-not [string]::IsNullOrWhiteSpace($ClientReleaseTag)) {
+            $channelPath = Join-Path $stage "fetcher-update-channel.json"
+            [ordered]@{
+                schemaVersion = 1
+                channel = "vehicles"
+                clientRepository = "Fetcher-Simulator/Fetcher-Simulator"
+                clientReleaseTag = $ClientReleaseTag
+                clientAssetName = "fetcher-simulator.zip"
+            } | ConvertTo-Json | Set-Content -LiteralPath $channelPath -Encoding UTF8
+            $records.Add([ordered]@{
+                path = "fetcher-update-channel.json"
+                size = (Get-Item -LiteralPath $channelPath).Length
+                sha256 = Get-Sha256 -Path $channelPath
+            })
+        }
+
         $manifest = [ordered]@{
             schemaVersion = 1
             channel = "fetcher-simulator-test"
             sourceCommit = ("0" * 40)
             generatedAtUtc = [DateTime]::UtcNow.ToString("o")
-            files = @([ordered]@{
-                path = "migration-probe.txt"
-                size = (Get-Item -LiteralPath $probePath).Length
-                sha256 = Get-Sha256 -Path $probePath
-            })
+            files = @($records | ForEach-Object { $_ })
         }
         $manifest | ConvertTo-Json -Depth 5 |
             Set-Content -LiteralPath (Join-Path $stage "fetcher-tester-tools.json") -Encoding UTF8
@@ -74,7 +94,8 @@ function New-ClientModBundle {
             "surf_kitsune.omwaddon",
             "surf_kitsune.omwscripts",
             "surf_kitsune2.omwaddon",
-            "mp_phase7_test.omwscripts"
+            "mp_phase7_test.omwscripts",
+            "FetcherVehicles.omwaddon"
         )
         foreach ($plugin in $plugins) {
             Set-Content -LiteralPath (Join-Path $dataRoot $plugin) -Value "fixture:$plugin" -Encoding UTF8
@@ -364,6 +385,8 @@ try {
     }
     Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "Data Files\surf_mesa_mw.omwaddon") -PathType Leaf) `
         -Message "Fresh tester-tools install did not install the Fetcher client mod bundle."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "Data Files\FetcherVehicles.omwaddon") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install FetcherVehicles.omwaddon."
     $clientModReceipt = Get-Content -LiteralPath (Join-Path $freshRoot "_fetcher_update\client-mod-bundle.json") -Raw | ConvertFrom-Json
     Assert-True -Condition ([string]$clientModReceipt.assetDigest -eq "sha256:$(Get-Sha256 -Path $clientModBundle)") `
         -Message "Client mod bundle receipt did not record the verified archive digest."
@@ -465,6 +488,39 @@ try {
         -SkipClientUpdate -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
     Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $migrationRoot "migration-probe.txt") -Raw).Trim() -eq "bridge-v2") `
         -Message "Changed tester-tools digest was not downloaded and installed."
+
+    # A refreshed tester-tools package can switch an existing installation to
+    # the vehicle client in the same updater invocation.
+    $vehicleTools = Join-Path $workRoot "tools-vehicles.zip"
+    $vehicleClientArchive = Join-Path $workRoot "fetcher-simulator-vehicles.zip"
+    $vehicleClientCommit = "e" * 40
+    New-ToolsPackage -Path $vehicleTools -Probe "vehicles" `
+        -ClientReleaseTag "Fetcher-Simulator-Vehicles"
+    New-ClientPackage -Path $vehicleClientArchive -Commit $vehicleClientCommit
+    Add-ReleaseRoute -Routes $routes -Repository "Skooma-Breath/Fetcher-Updater" `
+        -Tag "fetcher-tester-tools" -AssetName "fetcher-tester-tools.zip" -AssetPath $vehicleTools
+    Add-ReleaseRoute -Routes $routes -Repository "Fetcher-Simulator/Fetcher-Simulator" `
+        -Tag "Fetcher-Simulator-Vehicles" -AssetName "fetcher-simulator.zip" `
+        -AssetPath $vehicleClientArchive -TargetCommit $vehicleClientCommit
+    Set-TestRoutes -Path $routesPath -Routes $routes
+    Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
+
+    $channelRoot = Join-Path $workRoot "channel-client"
+    New-ClientRoot -Path $channelRoot
+    Copy-Item -LiteralPath (Join-Path $releaseRoot "Install-Fetcher-Tester-Tools.ps1") -Destination $channelRoot
+    $channelOutput = & $migrationUpdater -InstallRoot $channelRoot `
+        -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
+        -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+    $channelRequests = Get-Content -LiteralPath $logPath -Raw
+    Assert-True -Condition ($channelOutput.Contains("Fetcher client channel: vehicles")) `
+        -Message "Updater did not apply the refreshed vehicle channel."
+    Assert-True -Condition ($channelRequests.Contains("/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator-Vehicles")) `
+        -Message "Updater did not query the vehicle client release after refreshing tester tools."
+    Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $channelRoot "client-probe.txt") -Raw).Trim() -eq "refreshed") `
+        -Message "Vehicle channel did not install the vehicle client archive."
+    $installedChannel = Get-Content -LiteralPath (Join-Path $channelRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
+    Assert-True -Condition ([string]$installedChannel.clientReleaseTag -eq "Fetcher-Simulator-Vehicles") `
+        -Message "Vehicle channel configuration was not preserved through the client refresh."
 
     # Create realistic Bardcraft and Starwind fixtures and digest-backed releases.
     $bardV1 = New-PatchArchive -Kind Bardcraft -Path (Join-Path $workRoot "bard-v1.zip") -Variant "initial"

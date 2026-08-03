@@ -1,9 +1,10 @@
 Fetcher Simulator test channel
 ==============================
 
-The clean Fetcher Simulator release intentionally excludes this updater, its
-BAT/PowerShell helpers, and all test-server gameplay mods. These tools are
-distributed through the separate fetcher-tester-tools prerelease.
+The normal Fetcher Simulator release remains separate from the multiplayer
+vehicle test. Tester installations receive these updater tools through the
+fetcher-tester-tools prerelease and are routed to the dedicated
+Fetcher-Simulator-Vehicles client release.
 
 Existing clean install
 ----------------------
@@ -13,7 +14,7 @@ Download and double-click the single Setup-Fetcher-Updater.bat asset from:
    https://github.com/Skooma-Breath/Fetcher-Updater/releases/tag/fetcher-tester-tools
 
 The bootstrap asks for the folder containing openmw.exe, verifies and installs
-the tester tools ZIP, keeps the client on the unified clean Fetcher-Simulator
+the tester tools ZIP, selects the Fetcher-Simulator-Vehicles
 release, and starts the updater. Do not manually copy the individual BAT/PS1
 files. After this one-time bootstrap, use Update-Fetcher-Simulator.bat for every
 client, tool, mod, and Bardcraft patch update.
@@ -44,7 +45,11 @@ Close OpenMW and double-click:
 
    Update-Fetcher-Simulator.bat
 
-The updater checks the unified Fetcher-Simulator Git commit and GitHub release digest.
+For the initial migration from the older updater order, run the same BAT a
+second time after the first successful update. Future channel changes and client
+updates complete in one run because tester tools refresh before client routing.
+
+The updater checks the Fetcher-Simulator-Vehicles Git commit and GitHub release digest.
 Client archives remain owned by Fetcher-Simulator/Fetcher-Simulator. Updater and
 tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
 Starwind compatibility patches remain owned by their respective repositories.

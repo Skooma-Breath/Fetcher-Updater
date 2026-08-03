@@ -25,6 +25,7 @@ $files = @(
     "fetcher-bardcraft-umo.json",
     "fetcher-client-patches.json",
     "fetcher-client-protection-policy.json",
+    "fetcher-update-channel.json",
     "FETCHER_SIMULATOR_README.txt",
     "Install-Fetcher-Bardcraft-With-UMO.bat",
     "Install-Fetcher-Bardcraft-With-UMO.ps1",

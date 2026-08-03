@@ -21,6 +21,10 @@ try {
     Set-Content -LiteralPath (Join-Path $workRoot "openmw.cfg") -Value "protected config" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "userdata\settings.cfg") -Value "protected user data" -Encoding ASCII
     Set-Content -LiteralPath (Join-Path $workRoot "Setup-Fetcher-Updater.bat") -Value "protected updater" -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $workRoot "embedded-protected.txt") -Value "protected by installed policy" -Encoding ASCII
+    $installedPolicy = Get-Content -LiteralPath (Join-Path $repositoryRoot "release-root\fetcher-client-protection-policy.json") -Raw | ConvertFrom-Json
+    $installedPolicy.exactPaths = @($installedPolicy.exactPaths) + "embedded-protected.txt"
+    $installedPolicy | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $workRoot "fetcher-client-protection-policy.json") -Encoding UTF8
 
     & (Join-Path $repositoryRoot "scripts\Build-FetcherClientInventory.ps1") `
         -InstallDir $workRoot -ClientCommit ("a" * 40)
@@ -32,7 +36,7 @@ try {
     Assert-True -Condition ([string]$inventory.clientCommit -eq ("a" * 40)) -Message "Inventory commit mismatch."
     Assert-True -Condition ($paths -contains "openmw.exe") -Message "Managed executable is missing from inventory."
     Assert-True -Condition ($paths -contains "resources/asset.bin") -Message "Managed resource is missing from inventory."
-    foreach ($protectedPath in @("openmw.cfg", "userdata/settings.cfg", "Setup-Fetcher-Updater.bat")) {
+    foreach ($protectedPath in @("openmw.cfg", "userdata/settings.cfg", "Setup-Fetcher-Updater.bat", "fetcher-client-protection-policy.json", "embedded-protected.txt")) {
         Assert-True -Condition ($paths -notcontains $protectedPath) -Message "Protected path was inventoried: $protectedPath"
     }
 }

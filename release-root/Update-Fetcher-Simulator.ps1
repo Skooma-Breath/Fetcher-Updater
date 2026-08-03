@@ -8,6 +8,7 @@ param(
     [string] $GitHubDownloadBaseUrl = "https://github.com",
     [string] $ClientReleaseTag = "Fetcher-Simulator",
     [string] $ClientAssetName = "fetcher-simulator.zip",
+    [string] $ClientChannelPath = "",
     [string] $TesterToolsReleaseTag = "fetcher-tester-tools",
     [string] $TesterToolsAssetName = "fetcher-tester-tools.zip",
     [string] $TesterToolsArchivePath = "",
@@ -26,6 +27,49 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $headers = @{ "User-Agent" = "Fetcher-Simulator-Updater" }
+$clientRepositoryWasBound = $PSBoundParameters.ContainsKey("ClientRepository")
+$clientReleaseTagWasBound = $PSBoundParameters.ContainsKey("ClientReleaseTag")
+$clientAssetNameWasBound = $PSBoundParameters.ContainsKey("ClientAssetName")
+
+function Apply-ClientChannelConfiguration {
+    param([Parameter(Mandatory = $true)][string] $Root)
+
+    $path = $ClientChannelPath
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        $path = Join-Path $Root "fetcher-update-channel.json"
+    }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        Write-Host "Fetcher client channel: default ($ClientReleaseTag)"
+        return
+    }
+
+    $configuration = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    $requiredProperties = @("channel", "clientRepository", "clientReleaseTag", "clientAssetName")
+    if ([int]$configuration.schemaVersion -ne 1) {
+        throw "Unsupported Fetcher update channel schema: $($configuration.schemaVersion)"
+    }
+    foreach ($propertyName in $requiredProperties) {
+        $property = $configuration.PSObject.Properties[$propertyName]
+        if ($null -eq $property -or [string]::IsNullOrWhiteSpace([string]$property.Value)) {
+            throw "Fetcher update channel is missing required property: $propertyName"
+        }
+    }
+
+    if (-not $clientRepositoryWasBound) {
+        $script:ClientRepository = [string]$configuration.clientRepository
+    }
+    if (-not $clientReleaseTagWasBound) {
+        $script:ClientReleaseTag = [string]$configuration.clientReleaseTag
+    }
+    if (-not $clientAssetNameWasBound) {
+        $script:ClientAssetName = [string]$configuration.clientAssetName
+    }
+
+    Write-Host "Fetcher client channel: $([string]$configuration.channel)"
+    Write-Host "  repository: $ClientRepository"
+    Write-Host "  release tag: $ClientReleaseTag"
+    Write-Host "  asset: $ClientAssetName"
+}
 
 function Get-Sha256 {
     param([Parameter(Mandatory = $true)][string] $Path)
@@ -883,6 +927,15 @@ if (Test-Path -LiteralPath $statePath -PathType Leaf) {
 }
 
 try {
+    # Refresh tester tools before resolving the client channel. The BAT launcher
+    # runs this script from a temporary copy, so installed tools can be replaced
+    # safely while this invocation continues.
+    if (-not $SkipTesterToolsUpdate) {
+        Install-TesterTools -Root $root
+    }
+
+    Apply-ClientChannelConfiguration -Root $root
+
     if (-not $SkipClientUpdate) {
         Write-Host "Checking Fetcher Simulator client release..."
         $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag -ReleaseRepository $ClientRepository
@@ -909,10 +962,6 @@ try {
             assetDigest = $clientAsset.Digest
             checkedAtUtc = [DateTime]::UtcNow.ToString("o")
         }
-    }
-
-    if (-not $SkipTesterToolsUpdate) {
-        Install-TesterTools -Root $root
     }
 
     if (-not $SkipUmoMods) {

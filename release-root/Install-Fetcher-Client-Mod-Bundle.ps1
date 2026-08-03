@@ -19,7 +19,8 @@ $requiredPlugins = @(
     "surf_kitsune.omwaddon",
     "surf_kitsune.omwscripts",
     "surf_kitsune2.omwaddon",
-    "mp_phase7_test.omwscripts"
+    "mp_phase7_test.omwscripts",
+    "FetcherVehicles.omwaddon"
 )
 
 function ConvertTo-SafeRelativePath {

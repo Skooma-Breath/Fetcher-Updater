@@ -1,0 +1,7 @@
+﻿{
+    "schemaVersion":  1,
+    "channel":  "vehicles",
+    "clientRepository":  "Fetcher-Simulator/Fetcher-Simulator",
+    "clientReleaseTag":  "Fetcher-Simulator-Vehicles",
+    "clientAssetName":  "fetcher-simulator.zip"
+}

@@ -95,12 +95,26 @@ try {
     if (-not $manifestPaths.Contains("fetcher-client-protection-policy.json")) {
         throw "Package is missing fetcher-client-protection-policy.json."
     }
+    if (-not $manifestPaths.Contains("fetcher-update-channel.json")) {
+        throw "Package is missing fetcher-update-channel.json."
+    }
+    $channelConfiguration = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
+    if ([int]$channelConfiguration.schemaVersion -ne 1 -or
+        [string]$channelConfiguration.channel -ne "vehicles" -or
+        [string]$channelConfiguration.clientRepository -ne "Fetcher-Simulator/Fetcher-Simulator" -or
+        [string]$channelConfiguration.clientReleaseTag -ne "Fetcher-Simulator-Vehicles" -or
+        [string]$channelConfiguration.clientAssetName -ne "fetcher-simulator.zip") {
+        throw "Package contains an invalid vehicle update channel."
+    }
     $protectionPolicy = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-client-protection-policy.json") -Raw |
         ConvertFrom-Json
     if ([int]$protectionPolicy.schemaVersion -ne 1 -or
         @($protectionPolicy.exactPaths).Count -eq 0 -or
         @($protectionPolicy.prefixes).Count -eq 0) {
         throw "Package contains an unsupported client protection policy."
+    }
+    if (@($protectionPolicy.exactPaths) -notcontains "fetcher-update-channel.json") {
+        throw "Client protection policy does not protect fetcher-update-channel.json."
     }
 
     $umoListPath = Join-Path $workRoot "fetcher-bardcraft-umo.json"
