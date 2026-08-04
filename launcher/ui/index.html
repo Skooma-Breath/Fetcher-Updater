@@ -4,33 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fetcher Simulator Launcher</title>
+
   <style>
     :root {
       color-scheme: dark;
       font-family: Georgia, "Times New Roman", serif;
-      --soot: #090b0c;
-      --plate: rgba(23, 24, 22, 0.96);
-      --plate-deep: rgba(12, 14, 14, 0.97);
-      --paper: #dfd2b8;
-      --muted: #9f9687;
-      --brass: #b77931;
-      --brass-hot: #e1ac5b;
-      --copper: #8b4a2d;
-      --green: #78a46b;
-      --red: #b5503b;
-      --line: rgba(213, 156, 76, 0.3);
-      --shadow: 0 24px 62px rgba(0, 0, 0, 0.68);
+      --panel: rgba(9, 12, 20, 0.55);
+      --panel-deep: rgba(3, 5, 10, 0.70);
+      --paper: #ececf2;
+      --muted: #abb1c0;
+      --gold: #d2b16c;
+      --green: #82b797;
+      --red: #c87870;
+      --line: rgba(205, 214, 243, 0.16);
+      --line-strong: rgba(215, 223, 251, 0.27);
+      --shadow: 0 22px 56px rgba(0, 0, 0, 0.58);
     }
 
     * { box-sizing: border-box; min-width: 0; }
     html, body { margin: 0; min-height: 100%; overflow-x: hidden; }
+
     body {
       min-height: 100vh;
       color: var(--paper);
       background:
-        radial-gradient(circle at 15% 8%, rgba(151, 76, 30, 0.18), transparent 28rem),
-        radial-gradient(circle at 86% 18%, rgba(157, 111, 45, 0.11), transparent 36rem),
-        linear-gradient(145deg, #050607, #12110f 56%, #07090a);
+        linear-gradient(rgba(1, 2, 7, 0.11), rgba(1, 2, 7, 0.24)),
+        url("assets/potm2504a.jpg") center center / cover no-repeat fixed,
+        #020308;
     }
 
     body::before,
@@ -43,17 +43,18 @@
     }
 
     body::before {
-      opacity: .24;
-      background-image:
-        repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.018) 3px 4px),
-        repeating-linear-gradient(90deg, transparent 0 83px, rgba(190,132,56,.035) 84px 85px);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(125, 170, 255, 0.055), transparent 17rem),
+        radial-gradient(circle at 84% 12%, rgba(255, 190, 112, 0.045), transparent 15rem),
+        radial-gradient(circle at 76% 74%, rgba(126, 169, 255, 0.04), transparent 18rem),
+        linear-gradient(180deg, rgba(255,255,255,.018), transparent 38%, rgba(0,0,0,.12));
       mix-blend-mode: screen;
     }
 
     body::after {
       background:
-        radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,.67) 100%),
-        linear-gradient(90deg, rgba(0,0,0,.24), transparent 12%, transparent 88%, rgba(0,0,0,.24));
+        radial-gradient(ellipse at center, transparent 47%, rgba(0, 1, 5, 0.52) 100%),
+        linear-gradient(90deg, rgba(0,0,0,.15), transparent 13%, transparent 87%, rgba(0,0,0,.15));
     }
 
     .float-layer {
@@ -71,7 +72,12 @@
       width: var(--size);
       opacity: 0;
       image-rendering: auto;
-      filter: sepia(.28) saturate(.92) contrast(1.12) brightness(.92) drop-shadow(0 13px 18px rgba(0,0,0,.72));
+      filter:
+        saturate(1.04)
+        contrast(1.10)
+        brightness(1.04)
+        drop-shadow(0 0 14px rgba(116, 189, 255, 0.22))
+        drop-shadow(0 12px 19px rgba(0,0,0,.75));
       mix-blend-mode: normal;
       animation: drift var(--duration) linear forwards;
       will-change: transform, opacity;
@@ -89,13 +95,13 @@
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 1180px;
+      max-width: 1160px;
       min-height: 100vh;
       margin: 0 auto;
-      padding: 30px;
+      padding: 29px;
       display: grid;
       grid-template-rows: auto auto minmax(270px, 1fr);
-      gap: 20px;
+      gap: 17px;
     }
 
     .masthead {
@@ -104,130 +110,284 @@
       justify-content: space-between;
       gap: 18px;
       flex-wrap: wrap;
-      padding: 2px 4px;
+      padding: 15px 17px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(17, 21, 31, .55), rgba(5, 8, 15, .66));
+      box-shadow: inset 0 1px rgba(255,255,255,.035), var(--shadow);
+      backdrop-filter: blur(3px);
     }
 
-    .brand { display: flex; align-items: center; gap: 15px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+
     .seal {
       position: relative;
-      width: 58px;
-      height: 58px;
+      width: 54px;
+      height: 54px;
       flex: 0 0 auto;
       display: grid;
       place-items: center;
-      border-radius: 50%;
-      color: #171009;
-      font: 900 27px/1 Georgia, serif;
-      background: radial-gradient(circle at 34% 28%, #efbc69, #a76626 62%, #503117 100%);
-      border: 2px solid #5c391b;
-      box-shadow: inset 0 0 0 4px rgba(255,218,151,.12), 0 10px 28px rgba(173,101,37,.29);
+      border: 1px solid rgba(213, 221, 251, .23);
+      border-radius: 8px;
+      color: #f0f1f7;
+      font: 800 25px/1 Georgia, serif;
+      background:
+        radial-gradient(circle at 30% 22%, rgba(185, 205, 255, .20), transparent 42%),
+        linear-gradient(145deg, #30374d, #171c29 68%, #0b0f17);
+      box-shadow: inset 0 0 0 4px rgba(6, 9, 16, .30), 0 8px 18px rgba(0,0,0,.38);
+      text-shadow: 0 2px 2px rgba(0,0,0,.72);
     }
+
     .seal::after {
       content: "";
       position: absolute;
-      inset: 5px;
-      border: 1px dashed rgba(45,27,12,.78);
-      border-radius: 50%;
+      inset: 8px;
+      border: 1px solid rgba(181, 198, 255, .29);
+      border-radius: 4px;
     }
 
-    h1 { margin: 0; font-size: clamp(26px, 3.4vw, 39px); letter-spacing: .025em; text-shadow: 0 2px 0 #000; }
-    .subtitle { margin-top: 4px; color: var(--muted); font: 12px/1.2 "Cascadia Mono", Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
+    h1 {
+      margin: 0;
+      color: #f1f2f8;
+      font-size: clamp(25px, 3.2vw, 37px);
+      letter-spacing: .025em;
+      text-shadow: 0 2px 4px rgba(0,0,0,.76);
+    }
 
-    .tags { display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
     .tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid var(--line);
-      border-radius: 3px;
       padding: 8px 11px;
-      color: #e5c58d;
-      background: linear-gradient(#29261f, #181713);
-      box-shadow: inset 0 1px rgba(255,255,255,.05), 0 6px 18px rgba(0,0,0,.28);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: #dce1ef;
+      background: rgba(7, 10, 18, .61);
+      box-shadow: inset 0 1px rgba(255,255,255,.03);
       font: 700 11px/1 "Cascadia Mono", Consolas, monospace;
-      letter-spacing: .09em;
+      letter-spacing: .08em;
       text-transform: uppercase;
+      backdrop-filter: blur(3px);
     }
+
     .status-tag::before {
       content: "";
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #6d685d;
-      box-shadow: 0 0 0 3px rgba(255,255,255,.04);
+      background: #72798a;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.025);
     }
-    .status-tag.checking::before { background: var(--brass-hot); animation: blink 1s ease-in-out infinite; }
-    .status-tag.current::before { background: var(--green); box-shadow: 0 0 9px rgba(120,164,107,.82); }
-    .status-tag.outdated::before { background: var(--red); box-shadow: 0 0 9px rgba(181,80,59,.82); }
-    .status-tag.error::before { background: #d29348; }
+    .status-tag.checking::before { background: var(--gold); animation: blink 1s ease-in-out infinite; }
+    .status-tag.current::before { background: var(--green); box-shadow: 0 0 9px rgba(130,183,151,.74); }
+    .status-tag.outdated::before { background: var(--red); box-shadow: 0 0 9px rgba(200,120,112,.72); }
+    .status-tag.error::before { background: #bba879; }
     @keyframes blink { 50% { opacity: .35; } }
 
     .plate {
       position: relative;
-      border: 1px solid rgba(197,139,63,.31);
-      border-radius: 4px;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,.025), transparent 24%),
-        linear-gradient(180deg, var(--plate), var(--plate-deep));
-      box-shadow: inset 0 0 0 3px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.04), var(--shadow);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel), var(--panel-deep));
+      box-shadow: inset 0 1px rgba(255,255,255,.026), var(--shadow);
+      backdrop-filter: blur(4px);
     }
-    .plate::before,
-    .plate::after {
+
+    .plate::before {
       content: "";
       position: absolute;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #d2a15c, #62401e 65%, #24170d);
-      box-shadow: 0 1px 2px #000;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(211, 220, 255, .27) 20%,
+        rgba(255, 208, 131, .15) 50%,
+        rgba(173, 205, 255, .20) 78%,
+        transparent);
+      pointer-events: none;
     }
-    .plate::before { top: 8px; left: 8px; }
-    .plate::after { right: 8px; bottom: 8px; }
+    .plate::after { content: none; }
 
-    .hero { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(285px, .6fr); gap: 18px; }
-    .command { padding: 27px; display: flex; flex-direction: column; justify-content: space-between; gap: 22px; }
-    .eyebrow { margin-bottom: 8px; color: var(--brass-hot); font: 700 11px/1 "Cascadia Mono", Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; }
-    .command h2 { margin: 0 0 9px; font-size: clamp(23px, 3vw, 32px); }
-    .command p { max-width: 720px; margin: 0; color: #b8ae9d; font: 15px/1.58 "Segoe UI", sans-serif; }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(285px, .6fr);
+      gap: 17px;
+    }
 
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .command {
+      padding: 27px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 23px;
+      background: linear-gradient(180deg, rgba(13, 17, 26, .43), rgba(4, 7, 12, .56));
+    }
+
+    .eyebrow {
+      margin-bottom: 8px;
+      color: #b5bdd0;
+      font: 700 11px/1 "Cascadia Mono", Consolas, monospace;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .command h2 {
+      margin: 0 0 9px;
+      color: #f0f1f7;
+      font-size: clamp(23px, 3vw, 31px);
+      text-shadow: 0 2px 4px rgba(0,0,0,.64);
+    }
+
+    .command p {
+      max-width: 720px;
+      margin: 0;
+      color: #c6ccda;
+      font: 15px/1.58 "Segoe UI", sans-serif;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; }
+
     button {
       appearance: none;
-      min-height: 43px;
-      border: 1px solid #5c4a30;
-      border-radius: 3px;
-      padding: 10px 16px;
-      color: #dfd3bb;
-      background: linear-gradient(#302d27, #1b1a17);
-      box-shadow: inset 0 1px rgba(255,255,255,.06), 0 5px 12px rgba(0,0,0,.34);
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 1px solid rgba(187, 198, 232, .18);
+      border-radius: 6px;
+      color: #e0e4f0;
+      background: linear-gradient(180deg, rgba(54, 62, 84, .72), rgba(17, 22, 33, .86));
+      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 5px 12px rgba(0,0,0,.28);
       font: 750 13px/1 "Segoe UI", sans-serif;
-      letter-spacing: .025em;
+      letter-spacing: .02em;
       cursor: pointer;
       transition: transform 100ms ease, filter 100ms ease, border-color 100ms ease;
     }
-    button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.12); border-color: #a6783e; }
+    button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.09); border-color: rgba(209, 221, 255, .35); }
     button:active:not(:disabled) { transform: translateY(0); }
     button:disabled { cursor: not-allowed; opacity: .43; }
-    .primary { color: #170f08; border-color: #b47a35; background: linear-gradient(#e2ae60, #9d5d25); text-shadow: 0 1px rgba(255,255,255,.18); }
-    .play { color: #e4dfc9; border-color: #63734f; background: linear-gradient(#48533d, #262d24); }
-    .repair { border-color: #704235; color: #d9b8aa; }
 
-    .gauges { padding: 19px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .gauge { min-height: 87px; padding: 14px; border: 1px solid rgba(199,149,79,.16); background: linear-gradient(145deg, rgba(0,0,0,.20), rgba(255,255,255,.018)); box-shadow: inset 0 0 18px rgba(0,0,0,.22); }
-    .gauge-label { color: #8f897d; font: 10px/1.2 "Cascadia Mono", Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; }
-    .gauge-value { margin-top: 9px; color: #ddd0b7; font: 700 14px/1.35 "Segoe UI", sans-serif; overflow-wrap: anywhere; }
+    .primary {
+      color: #181913;
+      border-color: rgba(220, 193, 126, .42);
+      background: linear-gradient(180deg, #d7bf88, #9b8556);
+      text-shadow: 0 1px rgba(255,255,255,.16);
+    }
 
-    .console { min-height: 280px; overflow: hidden; display: grid; grid-template-rows: auto minmax(0,1fr); }
-    .console-head { padding: 14px 17px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid rgba(199,149,79,.20); }
-    .console-title { display: flex; align-items: center; gap: 9px; font: 700 12px/1 "Cascadia Mono", Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
-    .lamp { width: 9px; height: 9px; border-radius: 50%; background: #6e675b; box-shadow: 0 0 0 4px rgba(255,255,255,.025); }
-    .lamp.running { background: var(--brass-hot); animation: blink 1s infinite; }
-    .lamp.success { background: var(--green); box-shadow: 0 0 9px rgba(120,164,107,.72); }
-    .lamp.failed { background: var(--red); box-shadow: 0 0 9px rgba(181,80,59,.72); }
-    .small { min-height: 30px; padding: 6px 10px; font-size: 11px; background: transparent; }
-    #log { margin: 0; padding: 17px; min-height: 245px; max-height: 43vh; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; color: #c8bda7; background: rgba(2,3,3,.48); font: 12px/1.55 "Cascadia Mono", Consolas, monospace; }
+    .play {
+      color: #e9edf7;
+      border-color: rgba(128, 183, 158, .34);
+      background: linear-gradient(180deg, #47746a, #23433e);
+    }
 
-    .notice { position: fixed; z-index: 10; left: 50%; bottom: 22px; max-width: min(660px, calc(100vw - 34px)); padding: 11px 14px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; color: #f0d8c5; border: 1px solid #724839; border-radius: 3px; background: #321e19; box-shadow: var(--shadow); transition: .16s ease; }
+    .repair { border-color: rgba(177, 188, 219, .22); color: #d3d8e7; }
+
+    .gauges {
+      padding: 17px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .gauge {
+      min-height: 86px;
+      padding: 14px;
+      border: 1px solid rgba(183, 195, 225, .10);
+      border-radius: 4px;
+      background: rgba(3, 6, 11, .32);
+      box-shadow: inset 0 0 14px rgba(0,0,0,.12);
+    }
+
+    .gauge-label {
+      color: #9fa8bc;
+      font: 10px/1.2 "Cascadia Mono", Consolas, monospace;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+    }
+
+    .gauge-value {
+      margin-top: 9px;
+      color: #e5e8f0;
+      font: 700 14px/1.35 "Segoe UI", sans-serif;
+      overflow-wrap: anywhere;
+    }
+
+    .console {
+      min-height: 280px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0,1fr);
+      background: linear-gradient(180deg, rgba(9, 13, 21, .49), rgba(2, 5, 9, .60));
+    }
+
+    .console-head {
+      padding: 13px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(185, 197, 227, .13);
+      background: rgba(76, 90, 124, .06);
+    }
+
+    .console-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #d7dcea;
+      font: 700 12px/1 "Cascadia Mono", Consolas, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .lamp {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #72798a;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.02);
+    }
+    .lamp.running { background: var(--gold); animation: blink 1s infinite; }
+    .lamp.success { background: var(--green); box-shadow: 0 0 9px rgba(130,183,151,.68); }
+    .lamp.failed { background: var(--red); box-shadow: 0 0 9px rgba(200,120,112,.68); }
+
+    .small { min-height: 29px; padding: 6px 10px; font-size: 11px; background: rgba(15, 20, 31, .44); }
+
+    #log {
+      margin: 0;
+      padding: 17px;
+      min-height: 245px;
+      max-height: 43vh;
+      overflow: auto;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      color: #dbe0ed;
+      background: rgba(1, 3, 7, .22);
+      font: 12px/1.55 "Cascadia Mono", Consolas, monospace;
+    }
+
+    #log::selection { color: #f6f7fb; background: rgba(95, 134, 213, .52); }
+
+    .notice {
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      bottom: 22px;
+      max-width: min(660px, calc(100vw - 34px));
+      padding: 11px 14px;
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      pointer-events: none;
+      color: #edf0f8;
+      border: 1px solid rgba(191, 203, 233, .24);
+      border-radius: 6px;
+      background: rgba(12, 16, 25, .94);
+      box-shadow: var(--shadow);
+      transition: .16s ease;
+    }
     .notice.visible { opacity: 1; transform: translate(-50%, 0); }
 
     @media (max-width: 850px) {
@@ -236,292 +396,818 @@
       .gauges { grid-template-columns: repeat(4, minmax(0,1fr)); }
       .gauge { min-height: 76px; }
     }
+
     @media (max-width: 680px) {
       .app { padding: 14px; gap: 14px; }
+      .masthead { padding: 14px; }
       .gauges { grid-template-columns: 1fr 1fr; }
-      .command { padding: 21px; }
+      .command { padding: 22px 20px; }
     }
+
     @media (prefers-reduced-motion: reduce) { .floater { display: none; } }
   </style>
 </head>
+
 <body>
-  <div id="floatLayer" class="float-layer" aria-hidden="true"></div>
+  <div
+    id="floatLayer"
+    class="float-layer"
+    aria-hidden="true"
+  ></div>
 
   <main class="app">
     <header class="masthead">
       <div class="brand">
         <div class="seal">F</div>
+
         <div>
           <h1>Fetcher Simulator</h1>
-          <div class="subtitle">Industrial field launcher · public test division</div>
         </div>
       </div>
+
       <div class="tags">
-        <div id="channelPill" class="tag">Loading channel</div>
-        <div id="statusBadge" class="tag status-tag checking">Checking releases</div>
+        <div
+          id="channelPill"
+          class="tag"
+        >
+          Loading channel
+        </div>
+
+        <div
+          id="statusBadge"
+          class="tag status-tag checking"
+        >
+          Checking releases
+        </div>
       </div>
     </header>
 
     <section class="hero">
       <article class="plate command">
         <div>
-          <div class="eyebrow">Deployment status</div>
-          <h2 id="headline">Inspecting the machinery…</h2>
-          <p id="summary">Comparing this installation with the active Fetcher release channel before the game can be launched.</p>
+          <div class="eyebrow">Status</div>
+
+          <h2 id="headline">
+            Checking for updates…
+          </h2>
+
+          <p id="summary">
+            Comparing this installation with the current published release.
+          </p>
         </div>
+
         <div class="actions">
-          <button id="updateButton" class="primary">Check for Updates</button>
-          <button id="playButton" class="play" disabled>Play</button>
-          <button id="fullButton" class="repair">Full Mod Check / Repair</button>
-          <button id="wizardButton">Setup Wizard</button>
-          <button id="folderButton">Open Folder</button>
+          <button
+            id="updateButton"
+            class="primary"
+          >
+            Check for Updates
+          </button>
+
+          <button
+            id="playButton"
+            class="play"
+            disabled
+          >
+            Play
+          </button>
+
+          <button
+            id="fullButton"
+            class="repair"
+          >
+            Full Mod Check / Repair
+          </button>
+
+          <button id="wizardButton">
+            Setup Wizard
+          </button>
+
+          <button id="folderButton">
+            Open Folder
+          </button>
         </div>
       </article>
 
       <aside class="plate gauges">
-        <div class="gauge"><div class="gauge-label">Channel</div><div id="channelValue" class="gauge-value">—</div></div>
-        <div class="gauge"><div class="gauge-label">Release</div><div id="releaseValue" class="gauge-value">—</div></div>
-        <div class="gauge"><div class="gauge-label">Installed commit</div><div id="commitValue" class="gauge-value">—</div></div>
-        <div class="gauge"><div class="gauge-label">Last inspection</div><div id="checkedValue" class="gauge-value">Pending</div></div>
+        <div class="gauge">
+          <div class="gauge-label">
+            Channel
+          </div>
+
+          <div
+            id="channelValue"
+            class="gauge-value"
+          >
+            —
+          </div>
+        </div>
+
+        <div class="gauge">
+          <div class="gauge-label">
+            Release
+          </div>
+
+          <div
+            id="releaseValue"
+            class="gauge-value"
+          >
+            —
+          </div>
+        </div>
+
+        <div class="gauge">
+          <div class="gauge-label">
+            Installed commit
+          </div>
+
+          <div
+            id="commitValue"
+            class="gauge-value"
+          >
+            —
+          </div>
+        </div>
+
+        <div class="gauge">
+          <div class="gauge-label">
+            Last checked
+          </div>
+
+          <div
+            id="checkedValue"
+            class="gauge-value"
+          >
+            Pending
+          </div>
+        </div>
       </aside>
     </section>
 
     <section class="plate console">
       <div class="console-head">
-        <div class="console-title"><span id="lamp" class="lamp"></span><span id="logStatus">Launcher ready</span></div>
-        <button id="clearButton" class="small">Clear ledger</button>
+        <div class="console-title">
+          <span
+            id="lamp"
+            class="lamp"
+          ></span>
+
+          <span id="logStatus">
+            Launcher ready
+          </span>
+        </div>
+
+        <button
+          id="clearButton"
+          class="small"
+        >
+          Clear log
+        </button>
       </div>
-      <pre id="log">Fetcher industrial launcher initialized.\n</pre>
+
+      <pre id="log">Fetcher launcher initialized.
+</pre>
     </section>
   </main>
 
-  <div id="notice" class="notice"></div>
+  <div
+    id="notice"
+    class="notice"
+  ></div>
 
   <script type="module">
     const ui = Object.fromEntries([
-      "floatLayer", "channelPill", "statusBadge", "headline", "summary",
-      "updateButton", "playButton", "fullButton", "wizardButton", "folderButton",
-      "channelValue", "releaseValue", "commitValue", "checkedValue",
-      "lamp", "logStatus", "log", "clearButton", "notice"
-    ].map(id => [id, document.getElementById(id)]));
+      "floatLayer",
+      "channelPill",
+      "statusBadge",
+      "headline",
+      "summary",
+      "updateButton",
+      "playButton",
+      "fullButton",
+      "wizardButton",
+      "folderButton",
+      "channelValue",
+      "releaseValue",
+      "commitValue",
+      "checkedValue",
+      "lamp",
+      "logStatus",
+      "log",
+      "clearButton",
+      "notice"
+    ].map(id => [
+      id,
+      document.getElementById(id)
+    ]));
 
     let localStatus = null;
-    let releaseStatus = { state: "checking", result: null };
+
+    let releaseStatus = {
+      state: "checking",
+      result: null
+    };
+
     let busy = false;
     let noticeTimer = null;
 
-    function shortCommit(value) { return value ? value.slice(0, 10) : "Not installed"; }
+    function shortCommit(value) {
+      return value
+        ? value.slice(0, 10)
+        : "Not installed";
+    }
+
     function showNotice(message) {
-      if (!message) return;
+      if (!message) {
+        return;
+      }
+
       ui.notice.textContent = message;
       ui.notice.classList.add("visible");
+
       clearTimeout(noticeTimer);
-      noticeTimer = setTimeout(() => ui.notice.classList.remove("visible"), 5200);
+
+      noticeTimer = setTimeout(() => {
+        ui.notice.classList.remove("visible");
+      }, 5200);
     }
+
     function appendLog(text) {
-      if (!text) return;
-      ui.log.textContent += text.replace(/\r(?!\n)/g, "\n");
-      ui.log.scrollTop = ui.log.scrollHeight;
+      if (!text) {
+        return;
+      }
+
+      ui.log.textContent += text.replace(
+        /\r(?!\n)/g,
+        "\n"
+      );
+
+      ui.log.scrollTop =
+        ui.log.scrollHeight;
     }
+
     function setLamp(state, label) {
-      ui.lamp.className = `lamp ${state || ""}`.trim();
+      ui.lamp.className =
+        `lamp ${state || ""}`.trim();
+
       ui.logStatus.textContent = label;
     }
+
     function formatChecked(value) {
-      if (!value) return "Pending";
+      if (!value) {
+        return "Pending";
+      }
+
       const date = new Date(value);
-      return Number.isNaN(date.valueOf()) ? "Completed" : date.toLocaleString();
+
+      return Number.isNaN(date.valueOf())
+        ? "Completed"
+        : date.toLocaleString();
     }
 
     function render() {
-      const channel = localStatus?.channel || releaseStatus.result?.channel || "default";
+      const channel =
+        localStatus?.channel ||
+        releaseStatus.result?.channel ||
+        "default";
+
       ui.channelPill.textContent = channel;
       ui.channelValue.textContent = channel;
-      ui.releaseValue.textContent = localStatus?.releaseTag || releaseStatus.result?.client?.releaseTag || "Unknown";
-      ui.commitValue.textContent = shortCommit(localStatus?.commit);
-      ui.checkedValue.textContent = formatChecked(releaseStatus.result?.checkedAtUtc);
 
-      ui.statusBadge.className = `tag status-tag ${releaseStatus.state}`;
+      ui.releaseValue.textContent =
+        localStatus?.releaseTag ||
+        releaseStatus.result?.client?.releaseTag ||
+        "Unknown";
+
+      ui.commitValue.textContent =
+        shortCommit(localStatus?.commit);
+
+      ui.checkedValue.textContent =
+        formatChecked(
+          releaseStatus.result?.checkedAtUtc
+        );
+
+      ui.statusBadge.className =
+        `tag status-tag ${releaseStatus.state}`;
+
       if (releaseStatus.state === "checking") {
-        ui.statusBadge.textContent = "Checking releases";
-        ui.headline.textContent = "Inspecting the machinery…";
-        ui.summary.textContent = "Comparing this installation with the active Fetcher release channel before the game can be launched.";
-      } else if (releaseStatus.state === "current") {
-        ui.statusBadge.textContent = "Up to date";
-        ui.headline.textContent = "All systems are current";
-        ui.summary.textContent = "The client, launcher tools, Fetcher mod bundle, and installed multiplayer patches match the published releases.";
-      } else if (releaseStatus.state === "outdated") {
-        ui.statusBadge.textContent = "Update required";
-        ui.headline.textContent = "New components are available";
-        ui.summary.textContent = releaseStatus.result?.message || "Run the update before joining the public test server.";
-      } else {
-        ui.statusBadge.textContent = "Unable to verify";
-        ui.headline.textContent = "Release service unavailable";
-        ui.summary.textContent = releaseStatus.result?.message || "The launcher could not verify the current release. You may still launch the installed client.";
+        ui.statusBadge.textContent =
+          "Checking releases";
+
+        ui.headline.textContent =
+          "Checking for updates…";
+
+        ui.summary.textContent =
+          "Comparing this installation with the current published release.";
+      }
+      else if (releaseStatus.state === "current") {
+        ui.statusBadge.textContent =
+          "Up to date";
+
+        ui.headline.textContent =
+          "Ready to play";
+
+        ui.summary.textContent =
+          "The client, launcher tools, Fetcher mod bundle, and installed multiplayer patches match the published releases.";
+      }
+      else if (releaseStatus.state === "outdated") {
+        ui.statusBadge.textContent =
+          "Update required";
+
+        ui.headline.textContent =
+          "Update available";
+
+        ui.summary.textContent =
+          releaseStatus.result?.message ||
+          "Run the update before joining the public test server.";
+      }
+      else {
+        ui.statusBadge.textContent =
+          "Unable to verify";
+
+        ui.headline.textContent =
+          "Unable to check for updates";
+
+        ui.summary.textContent =
+          releaseStatus.result?.message ||
+          "The launcher could not verify the current release. You may still launch the installed client.";
       }
 
-      const updaterAvailable = Boolean(localStatus?.updaterAvailable);
-      const openmwAvailable = Boolean(localStatus?.openmwAvailable);
-      ui.updateButton.disabled = busy || !updaterAvailable;
-      ui.fullButton.disabled = busy || !updaterAvailable;
-      ui.wizardButton.disabled = busy || !localStatus?.wizardAvailable;
-      ui.folderButton.disabled = busy;
+      const updaterAvailable =
+        Boolean(localStatus?.updaterAvailable);
+
+      const openmwAvailable =
+        Boolean(localStatus?.openmwAvailable);
+
+      ui.updateButton.disabled =
+        busy || !updaterAvailable;
+
+      ui.fullButton.disabled =
+        busy || !updaterAvailable;
+
+      ui.wizardButton.disabled =
+        busy || !localStatus?.wizardAvailable;
+
+      ui.folderButton.disabled =
+        busy;
 
       if (busy) {
-        ui.updateButton.textContent = "Working…";
-        ui.fullButton.textContent = "Please wait…";
+        ui.updateButton.textContent =
+          "Working…";
+
+        ui.fullButton.textContent =
+          "Please wait…";
+
         ui.playButton.disabled = true;
         ui.playButton.textContent = "Play";
-      } else {
-        ui.updateButton.textContent = releaseStatus.state === "outdated" ? "Install Update" : "Check for Updates";
-        ui.fullButton.textContent = "Full Mod Check / Repair";
+      }
+      else {
+        ui.updateButton.textContent =
+          releaseStatus.state === "outdated"
+            ? "Install Update"
+            : "Check for Updates";
+
+        ui.fullButton.textContent =
+          "Full Mod Check / Repair";
+
         if (releaseStatus.state === "current") {
-          ui.playButton.disabled = !openmwAvailable;
-          ui.playButton.textContent = "Play";
-        } else if (releaseStatus.state === "error") {
-          ui.playButton.disabled = !openmwAvailable;
-          ui.playButton.textContent = "Play Anyway";
-        } else {
+          ui.playButton.disabled =
+            !openmwAvailable;
+
+          ui.playButton.textContent =
+            "Play";
+        }
+        else if (releaseStatus.state === "error") {
+          ui.playButton.disabled =
+            !openmwAvailable;
+
+          ui.playButton.textContent =
+            "Play Anyway";
+        }
+        else {
           ui.playButton.disabled = true;
-          ui.playButton.textContent = releaseStatus.state === "outdated" ? "Update Required" : "Play";
+
+          ui.playButton.textContent =
+            releaseStatus.state === "outdated"
+              ? "Update Required"
+              : "Play";
         }
       }
     }
 
     async function refreshLocalStatus() {
-      localStatus = await window.fetcherGetStatus();
+      localStatus =
+        await window.fetcherGetStatus();
+
       render();
     }
 
     async function checkReleaseStatus() {
-      releaseStatus = { state: "checking", result: null };
+      releaseStatus = {
+        state: "checking",
+        result: null
+      };
+
       render();
+
       try {
-        const started = await window.fetcherCheckUpdateStatus();
+        const started =
+          await window.fetcherCheckUpdateStatus();
+
         if (!started.started) {
-          releaseStatus = { state: "error", result: { message: started.error || "The release check could not start." } };
+          releaseStatus = {
+            state: "error",
+            result: {
+              message:
+                started.error ||
+                "The release check could not start."
+            }
+          };
+
           render();
         }
-      } catch (error) {
-        releaseStatus = { state: "error", result: { message: String(error) } };
+      }
+      catch (error) {
+        releaseStatus = {
+          state: "error",
+          result: {
+            message: String(error)
+          }
+        };
+
         render();
       }
     }
 
     async function runUpdate(action, label) {
-      if (busy) return;
+      if (busy) {
+        return;
+      }
+
       try {
         const result = await action();
+
         if (!result.started) {
-          showNotice(result.error || `${label} could not start.`);
+          showNotice(
+            result.error ||
+            `${label} could not start.`
+          );
+
           return;
         }
+
         busy = true;
-        setLamp("running", label);
+
+        setLamp(
+          "running",
+          label
+        );
+
         render();
-      } catch (error) {
-        showNotice(`${label} could not start: ${error}`);
+      }
+      catch (error) {
+        showNotice(
+          `${label} could not start: ${error}`
+        );
       }
     }
 
     async function runAction(action, fallback) {
       try {
         const result = await action();
-        if (result?.ok === false) showNotice(result.error || fallback);
-      } catch (error) {
-        showNotice(`${fallback}: ${error}`);
+
+        if (result?.ok === false) {
+          showNotice(
+            result.error ||
+            fallback
+          );
+        }
+      }
+      catch (error) {
+        showNotice(
+          `${fallback}: ${error}`
+        );
       }
     }
 
-    ui.updateButton.addEventListener("click", () =>
-      runUpdate(() => window.fetcherStartUpdate(), "Checking and installing updates"));
-    ui.fullButton.addEventListener("click", () =>
-      runUpdate(() => window.fetcherStartFullUpdate(), "Running full mod check and repair"));
-    ui.playButton.addEventListener("click", () =>
-      runAction(() => window.fetcherLaunchOpenMw(), "OpenMW could not be launched"));
-    ui.wizardButton.addEventListener("click", () =>
-      runAction(() => window.fetcherLaunchWizard(), "The setup wizard could not be launched"));
-    ui.folderButton.addEventListener("click", () =>
-      runAction(() => window.fetcherOpenInstallFolder(), "The installation folder could not be opened"));
-    ui.clearButton.addEventListener("click", () => { ui.log.textContent = ""; });
+    ui.updateButton.addEventListener(
+      "click",
+      () => runUpdate(
+        () => window.fetcherStartUpdate(),
+        "Checking and installing updates"
+      )
+    );
+
+    ui.fullButton.addEventListener(
+      "click",
+      () => runUpdate(
+        () => window.fetcherStartFullUpdate(),
+        "Running full mod check and repair"
+      )
+    );
+
+    ui.playButton.addEventListener(
+      "click",
+      () => runAction(
+        () => window.fetcherLaunchOpenMw(),
+        "OpenMW could not be launched"
+      )
+    );
+
+    ui.wizardButton.addEventListener(
+      "click",
+      () => runAction(
+        () => window.fetcherLaunchWizard(),
+        "The setup wizard could not be launched"
+      )
+    );
+
+    ui.folderButton.addEventListener(
+      "click",
+      () => runAction(
+        () => window.fetcherOpenInstallFolder(),
+        "The installation folder could not be opened"
+      )
+    );
+
+    ui.clearButton.addEventListener(
+      "click",
+      () => {
+        ui.log.textContent = "";
+      }
+    );
 
     window.fetcherReceive = event => {
-      if (!event?.type) return;
+      if (!event?.type) {
+        return;
+      }
+
       if (event.type === "log") {
         appendLog(event.text);
-      } else if (event.type === "status-check-started") {
-        releaseStatus = { state: "checking", result: null };
-        setLamp("running", "Inspecting published releases");
-        render();
-      } else if (event.type === "status-check-complete") {
-        busy = false;
-        if (event.localStatus) localStatus = event.localStatus;
-        const result = event.result || {};
+      }
+      else if (
+        event.type ===
+        "status-check-started"
+      ) {
         releaseStatus = {
-          state: result.status === "current" ? "current" : result.status === "updateAvailable" ? "outdated" : "error",
+          state: "checking",
+          result: null
+        };
+
+        setLamp(
+          "running",
+          "Checking published releases"
+        );
+
+        render();
+      }
+      else if (
+        event.type ===
+        "status-check-complete"
+      ) {
+        busy = false;
+
+        if (event.localStatus) {
+          localStatus =
+            event.localStatus;
+        }
+
+        const result =
+          event.result || {};
+
+        releaseStatus = {
+          state:
+            result.status === "current"
+              ? "current"
+              : result.status ===
+                  "updateAvailable"
+                ? "outdated"
+                : "error",
+
           result
         };
-        setLamp(releaseStatus.state === "current" ? "success" : releaseStatus.state === "outdated" ? "failed" : "", result.message || "Release inspection complete");
+
+        setLamp(
+          releaseStatus.state === "current"
+            ? "success"
+            : releaseStatus.state === "outdated"
+              ? "failed"
+              : "",
+
+          result.message ||
+          "Update check complete"
+        );
+
         render();
-      } else if (event.type === "update-started") {
+      }
+      else if (
+        event.type ===
+        "update-started"
+      ) {
         busy = true;
-        setLamp("running", "Updater running");
+
+        setLamp(
+          "running",
+          "Updater running"
+        );
+
         render();
-      } else if (event.type === "update-complete") {
+      }
+      else if (
+        event.type ===
+        "update-complete"
+      ) {
         busy = false;
-        if (event.status) localStatus = event.status;
+
+        if (event.status) {
+          localStatus =
+            event.status;
+        }
+
         if (event.success) {
-          appendLog("\nUpdate completed successfully. Rechecking published releases…\n");
-          setLamp("success", "Update complete");
+          appendLog(
+            "\nUpdate completed successfully. Rechecking published releases…\n"
+          );
+
+          setLamp(
+            "success",
+            "Update complete"
+          );
+
           render();
           checkReleaseStatus();
-        } else {
-          appendLog(`\nUpdate failed with exit code ${event.exitCode}.\n`);
-          setLamp("failed", "Update failed");
-          showNotice(event.error || `Updater exited with code ${event.exitCode}.`);
-          releaseStatus = { state: "error", result: { message: "The update did not complete successfully." } };
+        }
+        else {
+          appendLog(
+            `\nUpdate failed with exit code ${event.exitCode}.\n`
+          );
+
+          setLamp(
+            "failed",
+            "Update failed"
+          );
+
+          showNotice(
+            event.error ||
+            `Updater exited with code ${event.exitCode}.`
+          );
+
+          releaseStatus = {
+            state: "error",
+            result: {
+              message:
+                "The update did not complete successfully."
+            }
+          };
+
           render();
         }
       }
     };
 
     function spawnFloater(initial = false) {
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      const img = document.createElement("img");
+      if (
+        matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches
+      ) {
+        return;
+      }
+
+      const img =
+        document.createElement("img");
+
       img.className = "floater";
 
-      const movingRight = Math.random() >= .5;
+      const movingRight =
+        Math.random() >= 0.5;
+
       img.src = movingRight
         ? "assets/fetcher-float-right.gif"
         : "assets/fetcher-float.gif";
 
-      const size = 62 + Math.round(Math.random() * 155);
-      const duration = 18 + Math.round(Math.random() * 22);
-      const top = 4 + Math.round(Math.random() * 76);
-      const tilt = -18 + Math.round(Math.random() * 36);
-      img.style.setProperty("--size", `${size}px`);
-      img.style.setProperty("--duration", `${duration}s`);
-      img.style.setProperty("--top", `${top}%`);
-      img.style.setProperty("--opacity", String(.42 + Math.random() * .20));
-      img.style.setProperty("--tilt", `${tilt}deg`);
-      img.style.setProperty("--mid-tilt", `${Math.round(tilt * -.35)}deg`);
-      img.style.setProperty("--end-tilt", `${Math.round(tilt * .55)}deg`);
-      img.style.setProperty("--start", movingRight ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`);
-      img.style.setProperty("--mid", movingRight ? "48vw" : "42vw");
-      img.style.setProperty("--end", movingRight ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`);
-      if (initial) img.style.animationDelay = `-${Math.round(Math.random() * duration * .65)}s`;
-      img.addEventListener("animationend", () => img.remove());
+      const size =
+        62 +
+        Math.round(
+          Math.random() * 155
+        );
+
+      const duration =
+        18 +
+        Math.round(
+          Math.random() * 22
+        );
+
+      const top =
+        4 +
+        Math.round(
+          Math.random() * 76
+        );
+
+      const tilt =
+        -18 +
+        Math.round(
+          Math.random() * 36
+        );
+
+      img.style.setProperty(
+        "--size",
+        `${size}px`
+      );
+
+      img.style.setProperty(
+        "--duration",
+        `${duration}s`
+      );
+
+      img.style.setProperty(
+        "--top",
+        `${top}%`
+      );
+
+      img.style.setProperty("--opacity", "1");
+
+      img.style.setProperty(
+        "--tilt",
+        `${tilt}deg`
+      );
+
+      img.style.setProperty(
+        "--mid-tilt",
+        `${Math.round(tilt * -0.35)}deg`
+      );
+
+      img.style.setProperty(
+        "--end-tilt",
+        `${Math.round(tilt * 0.55)}deg`
+      );
+
+      img.style.setProperty(
+        "--start",
+        movingRight
+          ? `-${size + 40}px`
+          : `calc(100vw + ${size + 40}px)`
+      );
+
+      img.style.setProperty(
+        "--mid",
+        movingRight
+          ? "48vw"
+          : "42vw"
+      );
+
+      img.style.setProperty(
+        "--end",
+        movingRight
+          ? `calc(100vw + ${size + 40}px)`
+          : `-${size + 40}px`
+      );
+
+      if (initial) {
+        img.style.animationDelay =
+          `-${Math.round(
+            Math.random() *
+            duration *
+            0.65
+          )}s`;
+      }
+
+      img.addEventListener(
+        "animationend",
+        () => img.remove()
+      );
+
       ui.floatLayer.appendChild(img);
     }
 
     function scheduleFloater() {
       spawnFloater(false);
-      setTimeout(scheduleFloater, 5200 + Math.random() * 7200);
+
+      setTimeout(
+        scheduleFloater,
+        5200 +
+        Math.random() * 7200
+      );
     }
 
-    window.addEventListener("resize", () => window.scrollTo(0, window.scrollY));
-    for (let i = 0; i < 3; ++i) spawnFloater(true);
-    setTimeout(scheduleFloater, 3200);
+    window.addEventListener(
+      "resize",
+      () => {
+        window.scrollTo(
+          0,
+          window.scrollY
+        );
+      }
+    );
+
+    for (let i = 0; i < 3; ++i) {
+      spawnFloater(true);
+    }
+
+    setTimeout(
+      scheduleFloater,
+      3200
+    );
 
     await refreshLocalStatus();
     await checkReleaseStatus();

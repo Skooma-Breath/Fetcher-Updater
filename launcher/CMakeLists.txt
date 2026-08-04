@@ -68,6 +68,9 @@ add_custom_command(TARGET FetcherLauncher POST_BUILD
         "${CMAKE_CURRENT_SOURCE_DIR}/ui/assets/fetcher-float-right.gif"
         "$<TARGET_FILE_DIR:FetcherLauncher>/ui/assets/fetcher-float-right.gif"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/ui/assets/potm2504a.jpg"
+        "$<TARGET_FILE_DIR:FetcherLauncher>/ui/assets/potm2504a.jpg"
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/THIRD_PARTY_NOTICES.txt"
         "$<TARGET_FILE_DIR:FetcherLauncher>/FetcherLauncher-THIRD-PARTY-NOTICES.txt"
     COMMENT "Copying Fetcher Launcher UI, animation assets, and notices"

@@ -35,7 +35,8 @@
     "update-fetcher-simulator.ps1",
     "ui/index.html",
     "ui/assets/fetcher-float.gif",
-    "ui/assets/fetcher-float-right.gif"
+    "ui/assets/fetcher-float-right.gif",
+    "ui/assets/potm2504a.jpg"
   ],
   "prefixes": [
     "_fetcher_umo/",

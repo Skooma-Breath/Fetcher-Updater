@@ -57,9 +57,10 @@ if ($LASTEXITCODE -ne 0) {
 $launcherExe = Join-Path $BuildDir "bin\FetcherLauncher.exe"
 $launcherUi = Join-Path $BuildDir "bin\ui"
 $launcherNotices = Join-Path $BuildDir "bin\FetcherLauncher-THIRD-PARTY-NOTICES.txt"
-$launcherAnimations = @(
+$launcherUiAssets = @(
     (Join-Path $launcherUi "assets\fetcher-float.gif"),
-    (Join-Path $launcherUi "assets\fetcher-float-right.gif")
+    (Join-Path $launcherUi "assets\fetcher-float-right.gif"),
+    (Join-Path $launcherUi "assets\potm2504a.jpg")
 )
 if (-not (Test-Path -LiteralPath $launcherExe -PathType Leaf)) {
     throw "Built launcher was not found at: $launcherExe"
@@ -67,12 +68,12 @@ if (-not (Test-Path -LiteralPath $launcherExe -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath (Join-Path $launcherUi "index.html") -PathType Leaf)) {
     throw "Built launcher UI was not found at: $launcherUi"
 }
-foreach ($launcherAnimation in $launcherAnimations) {
-    if (-not (Test-Path -LiteralPath $launcherAnimation -PathType Leaf)) {
-        throw "Built launcher animation was not found at: $launcherAnimation"
+foreach ($launcherUiAsset in $launcherUiAssets) {
+    if (-not (Test-Path -LiteralPath $launcherUiAsset -PathType Leaf)) {
+        throw "Built launcher UI asset was not found at: $launcherUiAsset"
     }
-    if ((Get-Item -LiteralPath $launcherAnimation).Length -le 0) {
-        throw "Built launcher animation is empty: $launcherAnimation"
+    if ((Get-Item -LiteralPath $launcherUiAsset).Length -le 0) {
+        throw "Built launcher UI asset is empty: $launcherUiAsset"
     }
 }
 if (-not (Test-Path -LiteralPath $launcherNotices -PathType Leaf)) {
