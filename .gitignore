@@ -3,4 +3,5 @@
 /launcher/build/
 /launcher/ui/assets/Screen Recording *.mp4
 /launcher/ui/assets/fetcher simulator.gif
+/launcher/ui/assets/flipped.gif
 *.tmp

@@ -113,6 +113,12 @@ try {
     if ((Get-Item -LiteralPath (Join-Path $workRoot "ui\assets\fetcher-float.gif")).Length -le 0) {
         throw "Fetcher Launcher background animation is empty."
     }
+    if (-not $manifestPaths.Contains("ui/assets/fetcher-float-right.gif")) {
+        throw "Package is missing the right-facing Fetcher Launcher background animation."
+    }
+    if ((Get-Item -LiteralPath (Join-Path $workRoot "ui\assets\fetcher-float-right.gif")).Length -le 0) {
+        throw "Right-facing Fetcher Launcher background animation is empty."
+    }
     if ((Get-Item -LiteralPath (Join-Path $workRoot "FetcherLauncher.exe")).Length -le 0) {
         throw "FetcherLauncher.exe is empty."
     }
@@ -138,7 +144,8 @@ try {
         "fetcherlauncher.exe",
         "fetcherlauncher-third-party-notices.txt",
         "ui/index.html",
-        "ui/assets/fetcher-float.gif"
+        "ui/assets/fetcher-float.gif",
+        "ui/assets/fetcher-float-right.gif"
     )) {
         if (@($protectionPolicy.exactPaths) -notcontains $launcherPath) {
             throw "Client protection policy does not protect $launcherPath."

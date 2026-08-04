@@ -71,8 +71,8 @@
       width: var(--size);
       opacity: 0;
       image-rendering: auto;
-      filter: sepia(.48) saturate(.7) contrast(1.18) brightness(.72) drop-shadow(0 13px 18px rgba(0,0,0,.72));
-      mix-blend-mode: screen;
+      filter: sepia(.28) saturate(.92) contrast(1.12) brightness(.92) drop-shadow(0 13px 18px rgba(0,0,0,.72));
+      mix-blend-mode: normal;
       animation: drift var(--duration) linear forwards;
       will-change: transform, opacity;
     }
@@ -489,8 +489,12 @@
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       const img = document.createElement("img");
       img.className = "floater";
-      img.src = "assets/fetcher-float.gif";
-      const leftToRight = Math.random() > .28;
+
+      const movingRight = Math.random() >= .5;
+      img.src = movingRight
+        ? "assets/fetcher-float-right.gif"
+        : "assets/fetcher-float.gif";
+
       const size = 62 + Math.round(Math.random() * 155);
       const duration = 18 + Math.round(Math.random() * 22);
       const top = 4 + Math.round(Math.random() * 76);
@@ -498,13 +502,13 @@
       img.style.setProperty("--size", `${size}px`);
       img.style.setProperty("--duration", `${duration}s`);
       img.style.setProperty("--top", `${top}%`);
-      img.style.setProperty("--opacity", String(.08 + Math.random() * .15));
+      img.style.setProperty("--opacity", String(.42 + Math.random() * .20));
       img.style.setProperty("--tilt", `${tilt}deg`);
       img.style.setProperty("--mid-tilt", `${Math.round(tilt * -.35)}deg`);
       img.style.setProperty("--end-tilt", `${Math.round(tilt * .55)}deg`);
-      img.style.setProperty("--start", leftToRight ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`);
-      img.style.setProperty("--mid", leftToRight ? "48vw" : "42vw");
-      img.style.setProperty("--end", leftToRight ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`);
+      img.style.setProperty("--start", movingRight ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`);
+      img.style.setProperty("--mid", movingRight ? "48vw" : "42vw");
+      img.style.setProperty("--end", movingRight ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`);
       if (initial) img.style.animationDelay = `-${Math.round(Math.random() * duration * .65)}s`;
       img.addEventListener("animationend", () => img.remove());
       ui.floatLayer.appendChild(img);

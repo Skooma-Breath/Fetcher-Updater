@@ -47,7 +47,8 @@ $launcherFiles = @(
     "FetcherLauncher.exe",
     "FetcherLauncher-THIRD-PARTY-NOTICES.txt",
     "ui\index.html",
-    "ui\assets\fetcher-float.gif"
+    "ui\assets\fetcher-float.gif",
+    "ui\assets\fetcher-float-right.gif"
 )
 
 if (-not (Test-Path -LiteralPath $SourceDir -PathType Container)) {

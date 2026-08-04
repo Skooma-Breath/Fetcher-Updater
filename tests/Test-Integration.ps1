@@ -395,6 +395,10 @@ try {
         -Message "Fresh tester-tools install did not install the Fetcher Launcher background animation."
     Assert-True -Condition ((Get-Item -LiteralPath (Join-Path $freshRoot "ui\assets\fetcher-float.gif")).Length -gt 0) `
         -Message "Installed Fetcher Launcher background animation is empty."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "ui\assets\fetcher-float-right.gif") -PathType Leaf) `
+        -Message "Fresh tester-tools install did not install the right-facing Fetcher Launcher background animation."
+    Assert-True -Condition ((Get-Item -LiteralPath (Join-Path $freshRoot "ui\assets\fetcher-float-right.gif")).Length -gt 0) `
+        -Message "Installed right-facing Fetcher Launcher background animation is empty."
     Assert-True -Condition (Test-Path -LiteralPath (Join-Path $freshRoot "FetcherLauncher-THIRD-PARTY-NOTICES.txt") -PathType Leaf) `
         -Message "Fresh tester-tools install did not install Fetcher Launcher third-party notices."
     $clientModReceipt = Get-Content -LiteralPath (Join-Path $freshRoot "_fetcher_update\client-mod-bundle.json") -Raw | ConvertFrom-Json
