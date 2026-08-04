@@ -44,6 +44,7 @@ The installed updater keeps each release source independent:
 - The normal public `Fetcher-Simulator` release remains available for users who are not participating in the multiplayer vehicle test.
 - Tester tools refresh before client resolution, so a newly installed channel file can redirect the same updater invocation. Installations running the older updater order require one additional updater run for this initial migration.
 - The Fetcher map/client-mod bundle is independently published here as the `openmw-client-mods-mp-clients` prerelease and installed by the tester-tools bootstrap.
+- Hash-gated Lua compatibility deltas for non-Bardcraft UMO mods are packaged with tester tools and owned here. Current records cover Fashionwind Expanded polling and Devilish Touch of Madness clif-racer behavior; unknown or locally edited source hashes are refused.
 - `TesterToolsRepository` defaults to `Skooma-Breath/Fetcher-Updater`.
 - Bardcraft and Starwind repositories are required in `fetcher-client-patches.json`.
 

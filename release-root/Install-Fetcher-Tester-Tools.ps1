@@ -198,6 +198,13 @@ if (Test-Path -LiteralPath $modCompatibilityScript -PathType Leaf) {
         throw "Fetcher client mod compatibility fixes failed."
     }
 }
+$managedModCompatibilityScript = Join-Path $root "Apply-Fetcher-Mod-Compatibility.ps1"
+if (Test-Path -LiteralPath $managedModCompatibilityScript -PathType Leaf) {
+    & $managedModCompatibilityScript -InstallRoot $root
+    if (-not $?) {
+        throw "Fetcher managed mod compatibility patches failed."
+    }
+}
 if (-not $SkipUpdater) {
     & (Join-Path $root "Update-Fetcher-Simulator.ps1") -InstallRoot $root
 }

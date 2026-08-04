@@ -1,0 +1,677 @@
+{
+  "formatVersion": 1,
+  "patchVersion": "2026.08.04",
+  "files": [
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",
+      "sourceSha256": "a8c8d5a01bb78993ac3b4dd88e1ff94067e0046f1c7fc7049b00a6bf1715eccf",
+      "sourceSize": 4340,
+      "outputSha256": "0e67dcc62e9463928cb45e814d224590a8c5398fd662e8bc9f2fdc93ebb7e344",
+      "outputSize": 5023,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 153
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQo="
+        },
+        {
+          "copyOffset": 153,
+          "copyLength": 3375
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUKbG9jYWwgSU5JVElBTF9TQ0FOX1NQUkVBRCA9IDEKbG9jYWwgUEhBU0VfS0VZID0gJ2NpcmNsZXRzJwpsb2NhbCBzY2FuR2VuZXJhdGlvbiA9IDAKbG9jYWwgYWN0aXZlID0gZmFsc2UKCmxvY2FsIGZ1bmN0aW9uIGdldFNjYW5QaGFzZSgpCiAgICBsb2NhbCBrZXkgPSBQSEFTRV9LRVkgLi4gJzonIC4uIHRvc3RyaW5nKHNlbGYuaWQpCiAgICBsb2NhbCBoYXNoID0gNTM4MQogICAgZm9yIGkgPSAxLCAja2V5IGRvCiAgICAgICAgaGFzaCA9IChoYXNoICogMzMgKyBrZXk6Ynl0ZShpKSkgJSAxMDQ3MjkKICAgIGVuZAogICAgcmV0dXJuIGhhc2ggLyAxMDQ3MjkgKiBTQ0FOX0lOVEVSVkFMCmVuZAoKbG9jYWwgZnVuY3Rpb24gc2NoZWR1bGVTY2FuKGRlbGF5LCBmb3JjZSwgZm9sbG93aW5nRGVsYXkpCiAgICBsb2NhbCBnZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24KICAgIGFzeW5jOm5ld1Vuc2F2YWJsZVNpbXVsYXRpb25UaW1lcihkZWxheSwgZnVuY3Rpb24oKQogICAgICAgIGlmIG5vdCBhY3RpdmUgb3IgZ2VuZXJhdGlvbiB+PSBzY2FuR2VuZXJhdGlvbiB0aGVuIHJldHVybiBlbmQKICAgICAgICBzY2FuSW52KGZvcmNlKQogICAgICAgIHNjaGVkdWxlU2Nhbihmb2xsb3dpbmdEZWxheSBvciBTQ0FOX0lOVEVSVkFMLCBmYWxzZSkKICAgIGVuZCkKZW5kCg=="
+        },
+        {
+          "copyOffset": 3620,
+          "copyLength": 27
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUKICAgIHNjYW5HZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24gKyAxCg=="
+        },
+        {
+          "copyOffset": 3668,
+          "copyLength": 22
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkKICAgIGxvY2FsIGluaXRpYWxEZWxheSA9IHBoYXNlICUgSU5JVElBTF9TQ0FOX1NQUkVBRAogICAgc2NoZWR1bGVTY2FuKGluaXRpYWxEZWxheSwgdHJ1ZSwgU0NBTl9JTlRFUlZBTCAtIGluaXRpYWxEZWxheSArIHBoYXNlKQo="
+        },
+        {
+          "copyOffset": 3708,
+          "copyLength": 5
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpCiAgICBhY3RpdmUgPSBmYWxzZQogICAgc2NhbkdlbmVyYXRpb24gPSBzY2FuR2VuZXJhdGlvbiArIDEKZW5kCgpsb2NhbCBmdW5jdGlvbiByZXF1ZXN0SW1tZWRpYXRlU2NhbigpCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZAo="
+        },
+        {
+          "copyOffset": 3951,
+          "copyLength": 37
+        },
+        {
+          "copyOffset": 4017,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwK"
+        },
+        {
+          "copyOffset": 4046,
+          "copyLength": 93
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQo="
+        },
+        {
+          "copyOffset": 4212,
+          "copyLength": 13
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sCiAgICAgICAgdW5lcXVpcHBlZCA9IHJlcXVlc3RJbW1lZGlhdGVTY2FuLAo="
+        },
+        {
+          "copyOffset": 4331,
+          "copyLength": 9
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua",
+      "sourceSha256": "7573a20a450664d3fbdc693c2b220b46819fd45577b527f7a35beadc6833c850",
+      "sourceSize": 3815,
+      "outputSha256": "b4f6f5bf01dfb01809b1a565e30dcae0f96af5b1bfb0771070d282e9ecd79286",
+      "outputSize": 4498,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 153
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQo="
+        },
+        {
+          "copyOffset": 153,
+          "copyLength": 2850
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUKbG9jYWwgSU5JVElBTF9TQ0FOX1NQUkVBRCA9IDEKbG9jYWwgUEhBU0VfS0VZID0gJ2VhcnJpbmdzJwpsb2NhbCBzY2FuR2VuZXJhdGlvbiA9IDAKbG9jYWwgYWN0aXZlID0gZmFsc2UKCmxvY2FsIGZ1bmN0aW9uIGdldFNjYW5QaGFzZSgpCiAgICBsb2NhbCBrZXkgPSBQSEFTRV9LRVkgLi4gJzonIC4uIHRvc3RyaW5nKHNlbGYuaWQpCiAgICBsb2NhbCBoYXNoID0gNTM4MQogICAgZm9yIGkgPSAxLCAja2V5IGRvCiAgICAgICAgaGFzaCA9IChoYXNoICogMzMgKyBrZXk6Ynl0ZShpKSkgJSAxMDQ3MjkKICAgIGVuZAogICAgcmV0dXJuIGhhc2ggLyAxMDQ3MjkgKiBTQ0FOX0lOVEVSVkFMCmVuZAoKbG9jYWwgZnVuY3Rpb24gc2NoZWR1bGVTY2FuKGRlbGF5LCBmb3JjZSwgZm9sbG93aW5nRGVsYXkpCiAgICBsb2NhbCBnZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24KICAgIGFzeW5jOm5ld1Vuc2F2YWJsZVNpbXVsYXRpb25UaW1lcihkZWxheSwgZnVuY3Rpb24oKQogICAgICAgIGlmIG5vdCBhY3RpdmUgb3IgZ2VuZXJhdGlvbiB+PSBzY2FuR2VuZXJhdGlvbiB0aGVuIHJldHVybiBlbmQKICAgICAgICBzY2FuSW52KGZvcmNlKQogICAgICAgIHNjaGVkdWxlU2Nhbihmb2xsb3dpbmdEZWxheSBvciBTQ0FOX0lOVEVSVkFMLCBmYWxzZSkKICAgIGVuZCkKZW5kCg=="
+        },
+        {
+          "copyOffset": 3095,
+          "copyLength": 27
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUKICAgIHNjYW5HZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24gKyAxCg=="
+        },
+        {
+          "copyOffset": 3143,
+          "copyLength": 22
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkKICAgIGxvY2FsIGluaXRpYWxEZWxheSA9IHBoYXNlICUgSU5JVElBTF9TQ0FOX1NQUkVBRAogICAgc2NoZWR1bGVTY2FuKGluaXRpYWxEZWxheSwgdHJ1ZSwgU0NBTl9JTlRFUlZBTCAtIGluaXRpYWxEZWxheSArIHBoYXNlKQo="
+        },
+        {
+          "copyOffset": 3183,
+          "copyLength": 5
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpCiAgICBhY3RpdmUgPSBmYWxzZQogICAgc2NhbkdlbmVyYXRpb24gPSBzY2FuR2VuZXJhdGlvbiArIDEKZW5kCgpsb2NhbCBmdW5jdGlvbiByZXF1ZXN0SW1tZWRpYXRlU2NhbigpCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZAo="
+        },
+        {
+          "copyOffset": 3426,
+          "copyLength": 37
+        },
+        {
+          "copyOffset": 3492,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwK"
+        },
+        {
+          "copyOffset": 3521,
+          "copyLength": 93
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQo="
+        },
+        {
+          "copyOffset": 3687,
+          "copyLength": 13
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sCiAgICAgICAgdW5lcXVpcHBlZCA9IHJlcXVlc3RJbW1lZGlhdGVTY2FuLAo="
+        },
+        {
+          "copyOffset": 3806,
+          "copyLength": 9
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua",
+      "sourceSha256": "c5f7ba3665a8890d6c345b2c788798d4627bfeaf6c170c8b24d5ab0488d1bddc",
+      "sourceSize": 3491,
+      "outputSha256": "fd7b8c08a76bde830fad0ee9fd91c191dee3d823afb26a8affdb2ca93450b6f9",
+      "outputSize": 4198,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 157
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQ0K"
+        },
+        {
+          "copyOffset": 157,
+          "copyLength": 2490
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUNCmxvY2FsIElOSVRJQUxfU0NBTl9TUFJFQUQgPSAxDQpsb2NhbCBQSEFTRV9LRVkgPSAnZ2xhc3NlcycNCmxvY2FsIHNjYW5HZW5lcmF0aW9uID0gMA0KbG9jYWwgYWN0aXZlID0gZmFsc2UNCg0KbG9jYWwgZnVuY3Rpb24gZ2V0U2NhblBoYXNlKCkNCiAgICBsb2NhbCBrZXkgPSBQSEFTRV9LRVkgLi4gJzonIC4uIHRvc3RyaW5nKHNlbGYuaWQpDQogICAgbG9jYWwgaGFzaCA9IDUzODENCiAgICBmb3IgaSA9IDEsICNrZXkgZG8NCiAgICAgICAgaGFzaCA9IChoYXNoICogMzMgKyBrZXk6Ynl0ZShpKSkgJSAxMDQ3MjkNCiAgICBlbmQNCiAgICByZXR1cm4gaGFzaCAvIDEwNDcyOSAqIFNDQU5fSU5URVJWQUwNCmVuZA0KDQpsb2NhbCBmdW5jdGlvbiBzY2hlZHVsZVNjYW4oZGVsYXksIGZvcmNlLCBmb2xsb3dpbmdEZWxheSkNCiAgICBsb2NhbCBnZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24NCiAgICBhc3luYzpuZXdVbnNhdmFibGVTaW11bGF0aW9uVGltZXIoZGVsYXksIGZ1bmN0aW9uKCkNCiAgICAgICAgaWYgbm90IGFjdGl2ZSBvciBnZW5lcmF0aW9uIH49IHNjYW5HZW5lcmF0aW9uIHRoZW4gcmV0dXJuIGVuZA0KICAgICAgICBzY2FuSW52KGZvcmNlKQ0KICAgICAgICBzY2hlZHVsZVNjYW4oZm9sbG93aW5nRGVsYXkgb3IgU0NBTl9JTlRFUlZBTCwgZmFsc2UpDQogICAgZW5kKQ0KZW5kDQo="
+        },
+        {
+          "copyOffset": 2742,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0K"
+        },
+        {
+          "copyOffset": 2793,
+          "copyLength": 23
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkNCiAgICBsb2NhbCBpbml0aWFsRGVsYXkgPSBwaGFzZSAlIElOSVRJQUxfU0NBTl9TUFJFQUQNCiAgICBzY2hlZHVsZVNjYW4oaW5pdGlhbERlbGF5LCB0cnVlLCBTQ0FOX0lOVEVSVkFMIC0gaW5pdGlhbERlbGF5ICsgcGhhc2UpDQo="
+        },
+        {
+          "copyOffset": 2835,
+          "copyLength": 7
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpDQogICAgYWN0aXZlID0gZmFsc2UNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0KZW5kDQoNCmxvY2FsIGZ1bmN0aW9uIHJlcXVlc3RJbW1lZGlhdGVTY2FuKCkNCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZA0K"
+        },
+        {
+          "copyOffset": 3085,
+          "copyLength": 41
+        },
+        {
+          "copyOffset": 3156,
+          "copyLength": 30
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwNCg=="
+        },
+        {
+          "copyOffset": 3186,
+          "copyLength": 97
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQ0K"
+        },
+        {
+          "copyOffset": 3358,
+          "copyLength": 14
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sDQogICAgICAgIHVuZXF1aXBwZWQgPSByZXF1ZXN0SW1tZWRpYXRlU2NhbiwNCg=="
+        },
+        {
+          "copyOffset": 3480,
+          "copyLength": 11
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua",
+      "sourceSha256": "d3c454573177b12b54dc12e38b17dbe2f5ec27583919540da135cec71d07632e",
+      "sourceSize": 3032,
+      "outputSha256": "62a61e990cf28e3648d70bd33c305f9744b0c4e5a7ade8afb42469da58f769fd",
+      "outputSize": 3737,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 157
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQ0K"
+        },
+        {
+          "copyOffset": 157,
+          "copyLength": 2031
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUNCmxvY2FsIElOSVRJQUxfU0NBTl9TUFJFQUQgPSAxDQpsb2NhbCBQSEFTRV9LRVkgPSAnaG9ybnMnDQpsb2NhbCBzY2FuR2VuZXJhdGlvbiA9IDANCmxvY2FsIGFjdGl2ZSA9IGZhbHNlDQoNCmxvY2FsIGZ1bmN0aW9uIGdldFNjYW5QaGFzZSgpDQogICAgbG9jYWwga2V5ID0gUEhBU0VfS0VZIC4uICc6JyAuLiB0b3N0cmluZyhzZWxmLmlkKQ0KICAgIGxvY2FsIGhhc2ggPSA1MzgxDQogICAgZm9yIGkgPSAxLCAja2V5IGRvDQogICAgICAgIGhhc2ggPSAoaGFzaCAqIDMzICsga2V5OmJ5dGUoaSkpICUgMTA0NzI5DQogICAgZW5kDQogICAgcmV0dXJuIGhhc2ggLyAxMDQ3MjkgKiBTQ0FOX0lOVEVSVkFMDQplbmQNCg0KbG9jYWwgZnVuY3Rpb24gc2NoZWR1bGVTY2FuKGRlbGF5LCBmb3JjZSwgZm9sbG93aW5nRGVsYXkpDQogICAgbG9jYWwgZ2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uDQogICAgYXN5bmM6bmV3VW5zYXZhYmxlU2ltdWxhdGlvblRpbWVyKGRlbGF5LCBmdW5jdGlvbigpDQogICAgICAgIGlmIG5vdCBhY3RpdmUgb3IgZ2VuZXJhdGlvbiB+PSBzY2FuR2VuZXJhdGlvbiB0aGVuIHJldHVybiBlbmQNCiAgICAgICAgc2Nhbkludihmb3JjZSkNCiAgICAgICAgc2NoZWR1bGVTY2FuKGZvbGxvd2luZ0RlbGF5IG9yIFNDQU5fSU5URVJWQUwsIGZhbHNlKQ0KICAgIGVuZCkNCmVuZA0K"
+        },
+        {
+          "copyOffset": 2283,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0K"
+        },
+        {
+          "copyOffset": 2334,
+          "copyLength": 23
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkNCiAgICBsb2NhbCBpbml0aWFsRGVsYXkgPSBwaGFzZSAlIElOSVRJQUxfU0NBTl9TUFJFQUQNCiAgICBzY2hlZHVsZVNjYW4oaW5pdGlhbERlbGF5LCB0cnVlLCBTQ0FOX0lOVEVSVkFMIC0gaW5pdGlhbERlbGF5ICsgcGhhc2UpDQo="
+        },
+        {
+          "copyOffset": 2376,
+          "copyLength": 7
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpDQogICAgYWN0aXZlID0gZmFsc2UNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0KZW5kDQoNCmxvY2FsIGZ1bmN0aW9uIHJlcXVlc3RJbW1lZGlhdGVTY2FuKCkNCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZA0K"
+        },
+        {
+          "copyOffset": 2626,
+          "copyLength": 41
+        },
+        {
+          "copyOffset": 2697,
+          "copyLength": 30
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwNCg=="
+        },
+        {
+          "copyOffset": 2727,
+          "copyLength": 97
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQ0K"
+        },
+        {
+          "copyOffset": 2899,
+          "copyLength": 14
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sDQogICAgICAgIHVuZXF1aXBwZWQgPSByZXF1ZXN0SW1tZWRpYXRlU2NhbiwNCg=="
+        },
+        {
+          "copyOffset": 3021,
+          "copyLength": 11
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua",
+      "sourceSha256": "77250f631cd616f8e6205d12b993503b285fb7b9c0a4c378415da822d6d77e46",
+      "sourceSize": 3391,
+      "outputSha256": "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9",
+      "outputSize": 4096,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 157
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQ0K"
+        },
+        {
+          "copyOffset": 157,
+          "copyLength": 2390
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUNCmxvY2FsIElOSVRJQUxfU0NBTl9TUFJFQUQgPSAxDQpsb2NhbCBQSEFTRV9LRVkgPSAnbWFza3MnDQpsb2NhbCBzY2FuR2VuZXJhdGlvbiA9IDANCmxvY2FsIGFjdGl2ZSA9IGZhbHNlDQoNCmxvY2FsIGZ1bmN0aW9uIGdldFNjYW5QaGFzZSgpDQogICAgbG9jYWwga2V5ID0gUEhBU0VfS0VZIC4uICc6JyAuLiB0b3N0cmluZyhzZWxmLmlkKQ0KICAgIGxvY2FsIGhhc2ggPSA1MzgxDQogICAgZm9yIGkgPSAxLCAja2V5IGRvDQogICAgICAgIGhhc2ggPSAoaGFzaCAqIDMzICsga2V5OmJ5dGUoaSkpICUgMTA0NzI5DQogICAgZW5kDQogICAgcmV0dXJuIGhhc2ggLyAxMDQ3MjkgKiBTQ0FOX0lOVEVSVkFMDQplbmQNCg0KbG9jYWwgZnVuY3Rpb24gc2NoZWR1bGVTY2FuKGRlbGF5LCBmb3JjZSwgZm9sbG93aW5nRGVsYXkpDQogICAgbG9jYWwgZ2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uDQogICAgYXN5bmM6bmV3VW5zYXZhYmxlU2ltdWxhdGlvblRpbWVyKGRlbGF5LCBmdW5jdGlvbigpDQogICAgICAgIGlmIG5vdCBhY3RpdmUgb3IgZ2VuZXJhdGlvbiB+PSBzY2FuR2VuZXJhdGlvbiB0aGVuIHJldHVybiBlbmQNCiAgICAgICAgc2Nhbkludihmb3JjZSkNCiAgICAgICAgc2NoZWR1bGVTY2FuKGZvbGxvd2luZ0RlbGF5IG9yIFNDQU5fSU5URVJWQUwsIGZhbHNlKQ0KICAgIGVuZCkNCmVuZA0K"
+        },
+        {
+          "copyOffset": 2642,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0K"
+        },
+        {
+          "copyOffset": 2693,
+          "copyLength": 23
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkNCiAgICBsb2NhbCBpbml0aWFsRGVsYXkgPSBwaGFzZSAlIElOSVRJQUxfU0NBTl9TUFJFQUQNCiAgICBzY2hlZHVsZVNjYW4oaW5pdGlhbERlbGF5LCB0cnVlLCBTQ0FOX0lOVEVSVkFMIC0gaW5pdGlhbERlbGF5ICsgcGhhc2UpDQo="
+        },
+        {
+          "copyOffset": 2735,
+          "copyLength": 7
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpDQogICAgYWN0aXZlID0gZmFsc2UNCiAgICBzY2FuR2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uICsgMQ0KZW5kDQoNCmxvY2FsIGZ1bmN0aW9uIHJlcXVlc3RJbW1lZGlhdGVTY2FuKCkNCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZA0K"
+        },
+        {
+          "copyOffset": 2985,
+          "copyLength": 41
+        },
+        {
+          "copyOffset": 3056,
+          "copyLength": 30
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwNCg=="
+        },
+        {
+          "copyOffset": 3086,
+          "copyLength": 97
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQ0K"
+        },
+        {
+          "copyOffset": 3258,
+          "copyLength": 14
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sDQogICAgICAgIHVuZXF1aXBwZWQgPSByZXF1ZXN0SW1tZWRpYXRlU2NhbiwNCg=="
+        },
+        {
+          "copyOffset": 3380,
+          "copyLength": 11
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua",
+      "sourceSha256": "b740101be8131df080c507b700125adbe1ea42deb676cc91871a067884fbc1b7",
+      "sourceSize": 3757,
+      "outputSha256": "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb",
+      "outputSize": 4439,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 498
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQo="
+        },
+        {
+          "copyOffset": 498,
+          "copyLength": 2447
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUKbG9jYWwgSU5JVElBTF9TQ0FOX1NQUkVBRCA9IDEKbG9jYWwgUEhBU0VfS0VZID0gJ3NjYXJ2ZXMnCmxvY2FsIHNjYW5HZW5lcmF0aW9uID0gMApsb2NhbCBhY3RpdmUgPSBmYWxzZQoKbG9jYWwgZnVuY3Rpb24gZ2V0U2NhblBoYXNlKCkKICAgIGxvY2FsIGtleSA9IFBIQVNFX0tFWSAuLiAnOicgLi4gdG9zdHJpbmcoc2VsZi5pZCkKICAgIGxvY2FsIGhhc2ggPSA1MzgxCiAgICBmb3IgaSA9IDEsICNrZXkgZG8KICAgICAgICBoYXNoID0gKGhhc2ggKiAzMyArIGtleTpieXRlKGkpKSAlIDEwNDcyOQogICAgZW5kCiAgICByZXR1cm4gaGFzaCAvIDEwNDcyOSAqIFNDQU5fSU5URVJWQUwKZW5kCgpsb2NhbCBmdW5jdGlvbiBzY2hlZHVsZVNjYW4oZGVsYXksIGZvcmNlLCBmb2xsb3dpbmdEZWxheSkKICAgIGxvY2FsIGdlbmVyYXRpb24gPSBzY2FuR2VuZXJhdGlvbgogICAgYXN5bmM6bmV3VW5zYXZhYmxlU2ltdWxhdGlvblRpbWVyKGRlbGF5LCBmdW5jdGlvbigpCiAgICAgICAgaWYgbm90IGFjdGl2ZSBvciBnZW5lcmF0aW9uIH49IHNjYW5HZW5lcmF0aW9uIHRoZW4gcmV0dXJuIGVuZAogICAgICAgIHNjYW5JbnYoZm9yY2UpCiAgICAgICAgc2NoZWR1bGVTY2FuKGZvbGxvd2luZ0RlbGF5IG9yIFNDQU5fSU5URVJWQUwsIGZhbHNlKQogICAgZW5kKQplbmQK"
+        },
+        {
+          "copyOffset": 3037,
+          "copyLength": 27
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUKICAgIHNjYW5HZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24gKyAxCg=="
+        },
+        {
+          "copyOffset": 3085,
+          "copyLength": 22
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkKICAgIGxvY2FsIGluaXRpYWxEZWxheSA9IHBoYXNlICUgSU5JVElBTF9TQ0FOX1NQUkVBRAogICAgc2NoZWR1bGVTY2FuKGluaXRpYWxEZWxheSwgdHJ1ZSwgU0NBTl9JTlRFUlZBTCAtIGluaXRpYWxEZWxheSArIHBoYXNlKQo="
+        },
+        {
+          "copyOffset": 3125,
+          "copyLength": 5
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpCiAgICBhY3RpdmUgPSBmYWxzZQogICAgc2NhbkdlbmVyYXRpb24gPSBzY2FuR2VuZXJhdGlvbiArIDEKZW5kCgpsb2NhbCBmdW5jdGlvbiByZXF1ZXN0SW1tZWRpYXRlU2NhbigpCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZAo="
+        },
+        {
+          "copyOffset": 3368,
+          "copyLength": 37
+        },
+        {
+          "copyOffset": 3434,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwK"
+        },
+        {
+          "copyOffset": 3463,
+          "copyLength": 93
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQo="
+        },
+        {
+          "copyOffset": 3629,
+          "copyLength": 13
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sCiAgICAgICAgdW5lcXVpcHBlZCA9IHJlcXVlc3RJbW1lZGlhdGVTY2FuLAo="
+        },
+        {
+          "copyOffset": 3748,
+          "copyLength": 9
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua",
+      "sourceSha256": "d84d5db61171e989fbe4b77446a0e26a0db7388ca722eb7f4b29ddcb93875261",
+      "sourceSize": 3608,
+      "outputSha256": "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb",
+      "outputSize": 4292,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 507
+        },
+        {
+          "data": "bG9jYWwgYXN5bmMgPSByZXF1aXJlKCdvcGVubXcuYXN5bmMnKQo="
+        },
+        {
+          "copyOffset": 507,
+          "copyLength": 2289
+        },
+        {
+          "data": "bG9jYWwgU0NBTl9JTlRFUlZBTCA9IDUKbG9jYWwgSU5JVElBTF9TQ0FOX1NQUkVBRCA9IDEKbG9jYWwgUEhBU0VfS0VZID0gJ2JhY2twYWNrcycKbG9jYWwgc2NhbkdlbmVyYXRpb24gPSAwCmxvY2FsIGFjdGl2ZSA9IGZhbHNlCgpsb2NhbCBmdW5jdGlvbiBnZXRTY2FuUGhhc2UoKQogICAgbG9jYWwga2V5ID0gUEhBU0VfS0VZIC4uICc6JyAuLiB0b3N0cmluZyhzZWxmLmlkKQogICAgbG9jYWwgaGFzaCA9IDUzODEKICAgIGZvciBpID0gMSwgI2tleSBkbwogICAgICAgIGhhc2ggPSAoaGFzaCAqIDMzICsga2V5OmJ5dGUoaSkpICUgMTA0NzI5CiAgICBlbmQKICAgIHJldHVybiBoYXNoIC8gMTA0NzI5ICogU0NBTl9JTlRFUlZBTAplbmQKCmxvY2FsIGZ1bmN0aW9uIHNjaGVkdWxlU2NhbihkZWxheSwgZm9yY2UsIGZvbGxvd2luZ0RlbGF5KQogICAgbG9jYWwgZ2VuZXJhdGlvbiA9IHNjYW5HZW5lcmF0aW9uCiAgICBhc3luYzpuZXdVbnNhdmFibGVTaW11bGF0aW9uVGltZXIoZGVsYXksIGZ1bmN0aW9uKCkKICAgICAgICBpZiBub3QgYWN0aXZlIG9yIGdlbmVyYXRpb24gfj0gc2NhbkdlbmVyYXRpb24gdGhlbiByZXR1cm4gZW5kCiAgICAgICAgc2Nhbkludihmb3JjZSkKICAgICAgICBzY2hlZHVsZVNjYW4oZm9sbG93aW5nRGVsYXkgb3IgU0NBTl9JTlRFUlZBTCwgZmFsc2UpCiAgICBlbmQpCmVuZAo="
+        },
+        {
+          "copyOffset": 2888,
+          "copyLength": 27
+        },
+        {
+          "data": "ICAgIGFjdGl2ZSA9IHRydWUKICAgIHNjYW5HZW5lcmF0aW9uID0gc2NhbkdlbmVyYXRpb24gKyAxCg=="
+        },
+        {
+          "copyOffset": 2936,
+          "copyLength": 22
+        },
+        {
+          "data": "ICAgIGxvY2FsIHBoYXNlID0gZ2V0U2NhblBoYXNlKCkKICAgIGxvY2FsIGluaXRpYWxEZWxheSA9IHBoYXNlICUgSU5JVElBTF9TQ0FOX1NQUkVBRAogICAgc2NoZWR1bGVTY2FuKGluaXRpYWxEZWxheSwgdHJ1ZSwgU0NBTl9JTlRFUlZBTCAtIGluaXRpYWxEZWxheSArIHBoYXNlKQo="
+        },
+        {
+          "copyOffset": 2976,
+          "copyLength": 5
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gb25JbmFjdGl2ZSgpCiAgICBhY3RpdmUgPSBmYWxzZQogICAgc2NhbkdlbmVyYXRpb24gPSBzY2FuR2VuZXJhdGlvbiArIDEKZW5kCgpsb2NhbCBmdW5jdGlvbiByZXF1ZXN0SW1tZWRpYXRlU2NhbigpCiAgICBpZiBhY3RpdmUgdGhlbiBzY2FuSW52KHRydWUpIGVuZAo="
+        },
+        {
+          "copyOffset": 3219,
+          "copyLength": 37
+        },
+        {
+          "copyOffset": 3285,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgICAgICBvbkluYWN0aXZlID0gb25JbmFjdGl2ZSwK"
+        },
+        {
+          "copyOffset": 3314,
+          "copyLength": 93
+        },
+        {
+          "data": "ICAgICAgICAgICAgcmVxdWVzdEltbWVkaWF0ZVNjYW4oKQo="
+        },
+        {
+          "copyOffset": 3480,
+          "copyLength": 13
+        },
+        {
+          "data": "ICAgICAgICBlcXVpcHBlZCAgID0gcmVxdWVzdEltbWVkaWF0ZVNjYW4sCiAgICAgICAgdW5lcXVpcHBlZCA9IHJlcXVlc3RJbW1lZGlhdGVTY2FuLAo="
+        },
+        {
+          "copyOffset": 3599,
+          "copyLength": 9
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-bardcraft/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua",
+      "sourceSha256": "33bcb752a60800346c016f53fcb1bbe182f88a61c9c515520a3188713bc514a3",
+      "sourceSize": 19984,
+      "outputSha256": "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175",
+      "outputSize": 22791,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 115
+        },
+        {
+          "data": "bG9jYWwgbXBBdmFpbGFibGUsIG1wID0gcGNhbGwocmVxdWlyZSwgJ29wZW5tdy5tcCcpDQo="
+        },
+        {
+          "copyOffset": 115,
+          "copyLength": 1994
+        },
+        {
+          "data": "ICAgIC0tIE1hdGNoIGRldGRfY2xpZmZyYWNlcl9jaXJjbGUsIHRoZSBsZWdhY3kgc2NyaXB0IGF0dGFjaGVkIHRvIHRoZXNlDQogICAgLS0gY3JlYXR1cmVzLiBJdCBlbmFibGVzIHRoZW0gb25seSBmb3IgdGhlIHNlY29uZCBza29vbWEgdHJpcCBlZmZlY3QuDQogICAgY2lyY2xpbmdBY3RpdmVHbG9iYWxOYW1lID0gJ2RldGRfc2tvb21hX2hpZ2hfMicsDQogICAgY2lyY2xpbmdBY3RpdmVHbG9iYWxWYWx1ZSA9IDEsDQoNCiAgICAtLSBBY3RvclN5bmMgaW50ZXJwb2xhdGVzIHRoZSBhdXRob3JpdHkncyBzYW1wbGVzIGZvciBvYnNlcnZlcnMuIE1vdmluZyBhdA0KICAgIC0tIGEgZml4ZWQgY2FkZW5jZSBhdm9pZHMgcmVidWlsZGluZyBhY3RvciB0cmFuc2Zvcm1zIGV2ZXJ5IHJlbmRlcmVkIGZyYW1lLg0KICAgIGNpcmNsaW5nVXBkYXRlSW50ZXJ2YWwgPSAwLjA1LA0KICAgIGNpcmNsaW5nTWluTW92ZURpc3RhbmNlID0gNCwNCg0KICAgIC0tIFRoZSBvcmJpdCBvY2N1cGllcyBleHRlcmlvciBjZWxscyAoNiwtNTEpIGFuZCAoNiwtNTApLiBLZWVwaW5nIHRoZQ0KICAgIC0tIGRyaXZlciB3aXRoaW4gcm91Z2hseSBvbmUgZXh0ZXJpb3IgY2VsbCBvZiB0aGUgcnVpbiBwcmV2ZW50cyBjYWNoZWQNCiAgICAtLSBhY3RvcnMgZnJvbSBiZWluZyBwdXNoZWQgYmV5b25kIHRoZSBhY3RpdmUgc2NlbmUgYXQgdGhlIGdyaWQgZnJpbmdlLg0KICAgIGNpcmNsaW5nUGxheWVyQWN0aXZhdGlvbkRpc3RhbmNlID0gODAwMCwNCg=="
+        },
+        {
+          "copyOffset": 2223,
+          "copyLength": 1816
+        },
+        {
+          "data": "bG9jYWwgQ0lSQ0xJTkdfTUlOX01PVkVfRElTVEFOQ0VfU1EgPQ0KICAgIGNvbmZpZy5jaXJjbGluZ01pbk1vdmVEaXN0YW5jZSAqIGNvbmZpZy5jaXJjbGluZ01pbk1vdmVEaXN0YW5jZQ0KbG9jYWwgQ0lSQ0xJTkdfUExBWUVSX0FDVElWQVRJT05fRElTVEFOQ0VfU1EgPQ0KICAgIGNvbmZpZy5jaXJjbGluZ1BsYXllckFjdGl2YXRpb25EaXN0YW5jZQ0KICAgICAgICAqIGNvbmZpZy5jaXJjbGluZ1BsYXllckFjdGl2YXRpb25EaXN0YW5jZQ0K"
+        },
+        {
+          "copyOffset": 4039,
+          "copyLength": 779
+        },
+        {
+          "data": "ICAgIGNpcmNsaW5nVXBkYXRlVGltZXIgPSAwLA0KICAgIGNpcmNsaW5nV2FzQWN0aXZlID0gZmFsc2UsDQo="
+        },
+        {
+          "copyOffset": 4818,
+          "copyLength": 752
+        },
+        {
+          "data": "ZW5kDQoNCmxvY2FsIGZ1bmN0aW9uIGdldENpcmNsaW5nR2xvYmFsKGdsb2JhbHMpDQogICAgZ2xvYmFscyA9IGdsb2JhbHMgb3IgZ2V0R2xvYmFscygpDQogICAgcmV0dXJuIGdsb2JhbHNbY29uZmlnLmNpcmNsaW5nQWN0aXZlR2xvYmFsTmFtZV0gb3IgMA0K"
+        },
+        {
+          "copyOffset": 5570,
+          "copyLength": 3434
+        },
+        {
+          "data": "ICAgIGlmIG5vdCBvYmplY3Qgb3Igbm90IG9iamVjdDppc1ZhbGlkKCkgb3Igbm90IG9iamVjdC5lbmFibGVkIHRoZW4NCg=="
+        },
+        {
+          "copyOffset": 9052,
+          "copyLength": 137
+        },
+        {
+          "data": "ZW5kDQoNCmxvY2FsIGZ1bmN0aW9uIGNhbk1vdmVBdXRob3JpdHlPd25lZEFjdG9yKGFjdG9yKQ0KICAgIGlmIG5vdCBtcEF2YWlsYWJsZSBvciBub3QgbXAuaXNDb25uZWN0ZWQgb3Igbm90IG1wLmlzQ29ubmVjdGVkKCkgdGhlbg0KICAgICAgICByZXR1cm4gdHJ1ZQ0KICAgIGVuZA0KDQogICAgcmV0dXJuIG1wLmhhc0FjdG9yQXV0aG9yaXR5Rm9yT2JqZWN0DQogICAgICAgIGFuZCBtcC5oYXNBY3RvckF1dGhvcml0eUZvck9iamVjdChhY3RvcikNCg=="
+        },
+        {
+          "copyOffset": 9189,
+          "copyLength": 6597
+        },
+        {
+          "data": "ICAgIHJldHVybiAodG9udW1iZXIoZ2xvYmFsVmFsdWUpIG9yIDApID09IGNvbmZpZy5jaXJjbGluZ0FjdGl2ZUdsb2JhbFZhbHVlDQplbmQNCg0KbG9jYWwgZnVuY3Rpb24gcGxheWVySXNOZWFyQ2lyY2xpbmdSdWluKHBsYXllcikNCiAgICBpZiBub3QgcGxheWVyDQogICAgICAgIG9yIG5vdCBwbGF5ZXI6aXNWYWxpZCgpDQogICAgICAgIG9yIG5vdCBwbGF5ZXIuY2VsbA0KICAgICAgICBvciBub3QgcGxheWVyLmNlbGwuaXNFeHRlcmlvcg0KICAgIHRoZW4NCiAgICAgICAgcmV0dXJuIGZhbHNlDQogICAgZW5kDQoNCiAgICBsb2NhbCBkeCA9IHBsYXllci5wb3NpdGlvbi54IC0gY29uZmlnLmNpcmNsaW5nQ2VudGVyLngNCiAgICBsb2NhbCBkeSA9IHBsYXllci5wb3NpdGlvbi55IC0gY29uZmlnLmNpcmNsaW5nQ2VudGVyLnkNCiAgICByZXR1cm4gZHggKiBkeCArIGR5ICogZHkgPD0gQ0lSQ0xJTkdfUExBWUVSX0FDVElWQVRJT05fRElTVEFOQ0VfU1ENCg=="
+        },
+        {
+          "copyOffset": 15865,
+          "copyLength": 650
+        },
+        {
+          "data": "ICAgICAgICBzdGF0ZS5jaXJjbGluZ1VwZGF0ZVRpbWVyID0gMA0K"
+        },
+        {
+          "copyOffset": 16515,
+          "copyLength": 79
+        },
+        {
+          "data": "ICAgIHN0YXRlLmNpcmNsaW5nVXBkYXRlVGltZXIgPSBzdGF0ZS5jaXJjbGluZ1VwZGF0ZVRpbWVyICsgZHQNCg0KICAgIGlmIHN0YXRlLmNpcmNsaW5nVXBkYXRlVGltZXIgPCBjb25maWcuY2lyY2xpbmdVcGRhdGVJbnRlcnZhbCB0aGVuDQogICAgICAgIHJldHVybg0KICAgIGVuZA0KDQogICAgc3RhdGUuY2lyY2xpbmdVcGRhdGVUaW1lciA9DQogICAgICAgIHN0YXRlLmNpcmNsaW5nVXBkYXRlVGltZXIgJSBjb25maWcuY2lyY2xpbmdVcGRhdGVJbnRlcnZhbA0K"
+        },
+        {
+          "copyOffset": 16594,
+          "copyLength": 850
+        },
+        {
+          "data": "ICAgICAgICBpZiBjbGlmZnJhY2VyIGFuZCBjbGlmZnJhY2VyOmlzVmFsaWQoKSBhbmQgY2xpZmZyYWNlci5lbmFibGVkIHRoZW4NCiAgICAgICAgICAgIGlmIGNhbk1vdmVBdXRob3JpdHlPd25lZEFjdG9yKGNsaWZmcmFjZXIpIHRoZW4NCiAgICAgICAgICAgICAgICBsb2NhbCBwaGFzZURhdGEgPSBzdGF0ZS5jaXJjbGluZ1BoYXNlc1tpbmRleF0NCiAgICAgICAgICAgICAgICBsb2NhbCBzaW5QaGFzZSA9IHBoYXNlRGF0YS5zaW5QaGFzZQ0KICAgICAgICAgICAgICAgIGxvY2FsIGNvc1BoYXNlID0gcGhhc2VEYXRhLmNvc1BoYXNlDQo="
+        },
+        {
+          "copyOffset": 17654,
+          "copyLength": 2
+        },
+        {
+          "data": "ICAgICAgICAgICAgICAgIGxvY2FsIHNpbkFuZ2xlID0gb3JiaXRTaW4gKiBjb3NQaGFzZSArIG9yYml0Q29zICogc2luUGhhc2UNCiAgICAgICAgICAgICAgICBsb2NhbCBjb3NBbmdsZSA9IG9yYml0Q29zICogY29zUGhhc2UgLSBvcmJpdFNpbiAqIHNpblBoYXNlDQo="
+        },
+        {
+          "copyOffset": 17800,
+          "copyLength": 2
+        },
+        {
+          "data": "ICAgICAgICAgICAgICAgIGxvY2FsIHNpbldvYmJsZSA9IHdvYmJsZVNpbiAqIGNvc1BoYXNlICsgd29iYmxlQ29zICogc2luUGhhc2UNCiAgICAgICAgICAgICAgICBsb2NhbCByYWRpdXMgPSBjb25maWcuY2lyY2xpbmdSYWRpdXMNCiAgICAgICAgICAgICAgICAgICAgKyBzaW5Xb2JibGUgKiBjb25maWcuY2lyY2xpbmdSYWRpdXNXb2JibGVBbW91bnQNCg=="
+        },
+        {
+          "copyOffset": 17992,
+          "copyLength": 2
+        },
+        {
+          "data": "ICAgICAgICAgICAgICAgIGxvY2FsIHNpbkJvYiA9IGJvYlNpbiAqIGNvc1BoYXNlICsgYm9iQ29zICogc2luUGhhc2UNCiAgICAgICAgICAgICAgICBsb2NhbCB6Qm9iID0gc2luQm9iICogY29uZmlnLmNpcmNsaW5nQm9iQW1vdW50DQo="
+        },
+        {
+          "copyOffset": 18120,
+          "copyLength": 2
+        },
+        {
+          "data": "ICAgICAgICAgICAgICAgIGxvY2FsIHBvc2l0aW9uID0gdXRpbC52ZWN0b3IzKA0KICAgICAgICAgICAgICAgICAgICBjZW50ZXIueCArIHNpbkFuZ2xlICogcmFkaXVzLA0KICAgICAgICAgICAgICAgICAgICBjZW50ZXIueSArIGNvc0FuZ2xlICogcmFkaXVzLA0KICAgICAgICAgICAgICAgICAgICBjZW50ZXIueiArIGNvbmZpZy5jaXJjbGluZ0hlaWdodE9mZnNldCArIHpCb2INCiAgICAgICAgICAgICAgICApDQo="
+        },
+        {
+          "copyOffset": 18338,
+          "copyLength": 2
+        },
+        {
+          "data": "ICAgICAgICAgICAgICAgIGxvY2FsIHJvdGF0aW9uID0gbmlsDQogICAgICAgICAgICAgICAgaWYgY29uZmlnLmNpcmNsaW5nRmFjZURpcmVjdGlvbiB0aGVuDQogICAgICAgICAgICAgICAgICAgIHJvdGF0aW9uID0gdXRpbC50cmFuc2Zvcm0ucm90YXRlWigNCiAgICAgICAgICAgICAgICAgICAgICAgIG9yYml0QmFzZSArIHBoYXNlRGF0YS5waGFzZSArIG1hdGgucGkgLyAyDQogICAgICAgICAgICAgICAgICAgICkNCiAgICAgICAgICAgICAgICBlbmQNCg0KICAgICAgICAgICAgICAgIGxvY2FsIG1vdmVtZW50ID0gcG9zaXRpb24gLSBjbGlmZnJhY2VyLnBvc2l0aW9uDQogICAgICAgICAgICAgICAgaWYgbW92ZW1lbnQ6ZG90KG1vdmVtZW50KSA+PSBDSVJDTElOR19NSU5fTU9WRV9ESVNUQU5DRV9TUSB0aGVuDQogICAgICAgICAgICAgICAgICAgIHRlbGVwb3J0T2JqZWN0KGNsaWZmcmFjZXIsIHBvc2l0aW9uLCByb3RhdGlvbikNCiAgICAgICAgICAgICAgICBlbmQNCg=="
+        },
+        {
+          "copyOffset": 18558,
+          "copyLength": 17
+        },
+        {
+          "copyOffset": 18637,
+          "copyLength": 547
+        },
+        {
+          "data": "ICAgIGxvY2FsIGNpcmNsaW5nR2xvYmFsVmFsdWUgPSBnZXRDaXJjbGluZ0dsb2JhbChnbG9iYWxzKQ0KICAgIGxvY2FsIHBsYXllciA9IGdldFBsYXllcigpDQo="
+        },
+        {
+          "copyOffset": 19184,
+          "copyLength": 45
+        },
+        {
+          "data": "ICAgIGxvY2FsIGNpcmNsaW5nU2hvdWxkUnVuID0gY2lyY2xpbmdDbGlmZnJhY2Vyc1Nob3VsZFJ1bihjaXJjbGluZ0dsb2JhbFZhbHVlKQ0KICAgICAgICBhbmQgcGxheWVySXNOZWFyQ2lyY2xpbmdSdWluKHBsYXllcikNCg0KICAgIGlmIGNpcmNsaW5nU2hvdWxkUnVuIGFuZCBub3Qgc3RhdGUuY2lyY2xpbmdXYXNBY3RpdmUgdGhlbg0KICAgICAgICBzdGF0ZS5mb3JjZUFjdG9yU2NhbiA9IHRydWUNCiAgICBlbmQNCiAgICBzdGF0ZS5jaXJjbGluZ1dhc0FjdGl2ZSA9IGNpcmNsaW5nU2hvdWxkUnVuDQo="
+        },
+        {
+          "copyOffset": 19302,
+          "copyLength": 463
+        },
+        {
+          "data": "ICAgICAgICBwbGF5ZXINCg=="
+        },
+        {
+          "copyOffset": 19786,
+          "copyLength": 54
+        },
+        {
+          "data": "ICAgICAgICBjaXJjbGluZ0dsb2JhbFZhbHVlLA0K"
+        },
+        {
+          "copyOffset": 19862,
+          "copyLength": 121
+        },
+        {
+          "data": "fQ0K"
+        }
+      ]
+    }
+  ]
+}

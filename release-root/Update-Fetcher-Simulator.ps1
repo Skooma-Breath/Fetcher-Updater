@@ -1326,6 +1326,14 @@ try {
         }
     }
 
+    $managedModCompatibilityScript = Join-Path $root "Apply-Fetcher-Mod-Compatibility.ps1"
+    if (Test-Path -LiteralPath $managedModCompatibilityScript -PathType Leaf) {
+        & $managedModCompatibilityScript -InstallRoot $root
+        if (-not $?) {
+            throw "Fetcher managed mod compatibility patches failed."
+        }
+    }
+
     if (-not $SkipModPatches) {
         if ([string]::IsNullOrWhiteSpace($PatchCatalogPath)) {
             $PatchCatalogPath = Join-Path $root "fetcher-client-patches.json"

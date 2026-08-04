@@ -52,10 +52,14 @@ updates complete in one run because tester tools refresh before client routing.
 The updater checks the Fetcher-Simulator-Vehicles Git commit and GitHub release digest.
 Client archives remain owned by Fetcher-Simulator/Fetcher-Simulator. Updater and
 tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
-Starwind compatibility patches remain owned by their respective repositories.
+Starwind-specific compatibility patches remain owned by their respective
+repositories. Hash-gated compatibility deltas for other UMO-installed mods,
+including Fashionwind Expanded and Devilish Touch of Madness, are owned by
+Fetcher-Updater.
 It downloads the full client only when the packaged client changed. It checks
 the tester tools and Bardcraft multiplayer patch separately, so script-only
-fixes do not require another full client download.
+fixes do not require another full client download. Updater-owned mod deltas are
+included with the tester tools and applied only to verified upstream files.
 
 Client files are staged, hash-verified, and installed with rollback. The updater
 does not overwrite openmw.cfg, settings.cfg, userdata, saves, screenshots, logs,
@@ -106,6 +110,10 @@ It also downloads a portable copy of the official 7-Zip command-line tools when
 7-Zip is unavailable. Nothing is installed system-wide. The helper then uses the
 included fetcher-bardcraft-umo.json modlist. If that file is missing, it tries to
 download it from the Fetcher Simulator GitHub prerelease.
+
+The updater also applies its own hash-gated Lua compatibility deltas after UMO
+finishes. It preserves verified upstream backups under _fetcher_update and
+refuses unknown versions or locally edited files instead of overwriting them.
 
 After UMO installs the Nexus version of Bardcraft, the helper downloads the
 small Fetcher Bardcraft multiplayer compatibility patch from its own GitHub

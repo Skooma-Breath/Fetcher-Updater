@@ -95,6 +95,12 @@ try {
     if (-not $manifestPaths.Contains("fetcher-client-protection-policy.json")) {
         throw "Package is missing fetcher-client-protection-policy.json."
     }
+    if (-not $manifestPaths.Contains("Apply-Fetcher-Mod-Compatibility.ps1")) {
+        throw "Package is missing the managed mod compatibility applier."
+    }
+    if (-not $manifestPaths.Contains("fetcher-mod-compatibility-patches.json")) {
+        throw "Package is missing the managed mod compatibility manifest."
+    }
     if (-not $manifestPaths.Contains("fetcher-update-channel.json")) {
         throw "Package is missing fetcher-update-channel.json."
     }
@@ -327,6 +333,113 @@ try {
     }
 
     $compatibilityScriptPath = Join-Path $workRoot "Apply-Fetcher-ZHI-Compatibility.ps1"
+    $managedCompatibilityScriptPath = Join-Path $workRoot "Apply-Fetcher-Mod-Compatibility.ps1"
+    $managedCompatibilityManifestPath = Join-Path $workRoot "fetcher-mod-compatibility-patches.json"
+    $managedCompatibilityManifest = Get-Content -LiteralPath $managedCompatibilityManifestPath -Raw | ConvertFrom-Json
+    if ([int]$managedCompatibilityManifest.formatVersion -ne 1 -or
+        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.04") {
+        throw "Package has an unsupported managed mod compatibility manifest."
+    }
+    $expectedManagedOutputs = [ordered]@{
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua" = "0e67dcc62e9463928cb45e814d224590a8c5398fd662e8bc9f2fdc93ebb7e344"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua" = "b4f6f5bf01dfb01809b1a565e30dcae0f96af5b1bfb0771070d282e9ecd79286"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua" = "fd7b8c08a76bde830fad0ee9fd91c191dee3d823afb26a8affdb2ca93450b6f9"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua" = "62a61e990cf28e3648d70bd33c305f9744b0c4e5a7ade8afb42469da58f769fd"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua" = "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
+        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
+        "Data Files/fetcher-bardcraft/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
+    }
+    if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {
+        throw "Managed mod compatibility manifest does not contain the expected eight Lua patches."
+    }
+    foreach ($record in @($managedCompatibilityManifest.files)) {
+        $relativePath = (ConvertTo-SafeRelativePath -Path ([string]$record.path)).Replace("\", "/")
+        if (-not $expectedManagedOutputs.Contains($relativePath) -or
+            ([string]$record.outputSha256).ToLowerInvariant() -ne $expectedManagedOutputs[$relativePath]) {
+            throw "Managed mod compatibility manifest contains an unexpected output: $relativePath"
+        }
+        if ([string]$record.sourceSha256 -notmatch "^[0-9a-f]{64}$" -or
+            [int64]$record.sourceSize -le 0 -or
+            [int64]$record.outputSize -le 0 -or
+            @($record.operations).Count -eq 0) {
+            throw "Managed mod compatibility record is incomplete: $relativePath"
+        }
+    }
+
+    $managedFixtureRoot = Join-Path $workRoot "managed-compatibility-fixture"
+    $managedFixtureTarget = Join-Path $managedFixtureRoot "Data Files\fixture\script.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $managedFixtureTarget) | Out-Null
+    $managedSourceBytes = [Text.Encoding]::UTF8.GetBytes("before`n")
+    $managedOutputBytes = [Text.Encoding]::UTF8.GetBytes("after`n")
+    [IO.File]::WriteAllBytes($managedFixtureTarget, $managedSourceBytes)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        $managedSourceHash = ([BitConverter]::ToString($sha.ComputeHash($managedSourceBytes))).Replace("-", "").ToLowerInvariant()
+        $managedOutputHash = ([BitConverter]::ToString($sha.ComputeHash($managedOutputBytes))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $sha.Dispose()
+    }
+    $managedFixtureManifestPath = Join-Path $workRoot "managed-compatibility-fixture.json"
+    [ordered]@{
+        formatVersion = 1
+        patchVersion = "fixture"
+        files = @([ordered]@{
+            path = "Data Files/fixture/script.lua"
+            sourceSha256 = $managedSourceHash
+            sourceSize = $managedSourceBytes.Length
+            outputSha256 = $managedOutputHash
+            outputSize = $managedOutputBytes.Length
+            operations = @([ordered]@{ data = [Convert]::ToBase64String($managedOutputBytes) })
+        })
+    } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $managedFixtureManifestPath -Encoding UTF8
+
+    & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
+    if ((Get-FileHash -LiteralPath $managedFixtureTarget -Algorithm SHA256).Hash.ToLowerInvariant() -ne $managedOutputHash) {
+        throw "Managed mod compatibility fixture did not install its verified output."
+    }
+    & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
+    $managedBackupPath = Join-Path $managedFixtureRoot "_fetcher_update\compatibility-backups\fixture\Data Files\fixture\script.lua"
+    if (-not (Test-Path -LiteralPath $managedBackupPath -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $managedBackupPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $managedSourceHash) {
+        throw "Managed mod compatibility fixture did not preserve its verified upstream backup."
+    }
+    [IO.File]::WriteAllBytes($managedFixtureTarget, [Text.Encoding]::UTF8.GetBytes("local edit`n"))
+    $managedRejectedLocalEdit = $false
+    try {
+        & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
+    }
+    catch {
+        $managedRejectedLocalEdit = $true
+    }
+    if (-not $managedRejectedLocalEdit) {
+        throw "Managed mod compatibility fixture did not reject an unknown local edit."
+    }
+
+    $managedUnsafeManifestPath = Join-Path $workRoot "managed-compatibility-unsafe.json"
+    [ordered]@{
+        formatVersion = 1
+        patchVersion = "unsafe-fixture"
+        files = @([ordered]@{
+            path = "../escape.lua"
+            sourceSha256 = $managedSourceHash
+            sourceSize = $managedSourceBytes.Length
+            outputSha256 = $managedOutputHash
+            outputSize = $managedOutputBytes.Length
+            operations = @([ordered]@{ data = [Convert]::ToBase64String($managedOutputBytes) })
+        })
+    } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $managedUnsafeManifestPath -Encoding UTF8
+    $managedRejectedUnsafePath = $false
+    try {
+        & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedUnsafeManifestPath | Out-Null
+    }
+    catch {
+        $managedRejectedUnsafePath = $true
+    }
+    if (-not $managedRejectedUnsafePath) {
+        throw "Managed mod compatibility fixture accepted a target outside the installation root."
+    }
 
     $zhiFixtureRoot = Join-Path $workRoot "zhi-fixture"
     $zhiPlayerPath = Join-Path $zhiFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_player.lua"
