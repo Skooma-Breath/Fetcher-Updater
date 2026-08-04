@@ -80,6 +80,21 @@ function Get-Sha256 {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
+function ConvertTo-DateTimeOffsetPreservingKind {
+    param([Parameter(Mandatory = $true)] $Value)
+
+    if ($Value -is [DateTimeOffset]) {
+        return [DateTimeOffset]$Value
+    }
+    if ($Value -is [DateTime]) {
+        return [DateTimeOffset]([DateTime]$Value)
+    }
+    return [DateTimeOffset]::Parse(
+        [string]$Value,
+        [Globalization.CultureInfo]::InvariantCulture,
+        [Globalization.DateTimeStyles]::RoundtripKind)
+}
+
 function Invoke-WithRetry {
     param(
         [Parameter(Mandatory = $true)][scriptblock] $Action,
@@ -828,10 +843,7 @@ function Get-UmoCheckState {
         if (Test-Path -LiteralPath $legacyStatePath -PathType Leaf) {
             try {
                 $legacyState = Get-Content -LiteralPath $legacyStatePath -Raw | ConvertFrom-Json
-                $legacyCheckedAt = [DateTimeOffset]::Parse(
-                    [string]$legacyState.checkedAtUtc,
-                    [Globalization.CultureInfo]::InvariantCulture,
-                    [Globalization.DateTimeStyles]::RoundtripKind)
+                $legacyCheckedAt = ConvertTo-DateTimeOffsetPreservingKind -Value $legacyState.checkedAtUtc
                 $legacyAge = [DateTimeOffset]::UtcNow - $legacyCheckedAt.ToUniversalTime()
                 $modListWriteTime = [DateTimeOffset](Get-Item -LiteralPath $modListPath).LastWriteTimeUtc
                 if ($legacyAge.TotalHours -le $QuickCheckUmoMaxAgeHours -and
@@ -875,10 +887,7 @@ function Get-UmoCheckState {
             }
         }
 
-        $checkedAt = [DateTimeOffset]::Parse(
-            [string]$state.checkedAtUtc,
-            [Globalization.CultureInfo]::InvariantCulture,
-            [Globalization.DateTimeStyles]::RoundtripKind)
+        $checkedAt = ConvertTo-DateTimeOffsetPreservingKind -Value $state.checkedAtUtc
         $age = [DateTimeOffset]::UtcNow - $checkedAt.ToUniversalTime()
         if ($age.TotalHours -gt $QuickCheckUmoMaxAgeHours -or $age.TotalSeconds -lt -300) {
             return [pscustomobject]@{
