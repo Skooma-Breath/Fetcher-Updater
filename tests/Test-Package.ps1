@@ -26,6 +26,33 @@ function ConvertTo-SafeRelativePath {
     return ($segments -join "/")
 }
 
+function Test-ProtectedPath {
+    param(
+        [Parameter(Mandatory)][string] $RelativePath,
+        [Parameter(Mandatory)] $Policy
+    )
+
+    $path = $RelativePath.Replace("\", "/").TrimStart("/").ToLowerInvariant()
+    $exactPaths = @($Policy.exactPaths | ForEach-Object {
+        ([string]$_).Replace("\", "/").TrimStart("/").ToLowerInvariant()
+    })
+    if ($exactPaths -contains $path) {
+        return $true
+    }
+    foreach ($prefix in @($Policy.prefixes)) {
+        $normalizedPrefix = ([string]$prefix).Replace("\", "/").TrimStart("/").ToLowerInvariant()
+        if ($path.StartsWith($normalizedPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+    foreach ($suffix in @($Policy.suffixes)) {
+        if ($path.EndsWith(([string]$suffix).ToLowerInvariant(), [StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+    return $false
+}
+
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 foreach ($scriptPath in Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "release-root") -Filter *.ps1 -File) {
     [void][ScriptBlock]::Create((Get-Content -LiteralPath $scriptPath.FullName -Raw))
@@ -151,6 +178,14 @@ try {
     }
     if (@($protectionPolicy.exactPaths) -notcontains "fetcher-update-channel.json") {
         throw "Client protection policy does not protect fetcher-update-channel.json."
+    }
+    foreach ($relativePath in @($manifestPaths | ForEach-Object { $_ })) {
+        if (-not (Test-ProtectedPath -RelativePath $relativePath -Policy $protectionPolicy)) {
+            throw "Tester-tools path is not protected from managed-client cleanup: $relativePath"
+        }
+    }
+    if (-not (Test-ProtectedPath -RelativePath "fetcher-tester-tools.json" -Policy $protectionPolicy)) {
+        throw "Client protection policy does not protect fetcher-tester-tools.json."
     }
     foreach ($launcherPath in @(
         "fetcherlauncher.exe",
