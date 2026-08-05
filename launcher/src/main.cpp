@@ -1,4 +1,5 @@
 #include "webview/webview.h"
+#include "resource.h"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -245,6 +246,41 @@ namespace
             return {};
         }
         return fs::path(std::wstring(buffer.data(), length));
+    }
+
+    void SetLauncherWindowIcon(webview::webview& window)
+    {
+        const auto nativeWindow = window.window();
+        if (!nativeWindow.ok())
+        {
+            return;
+        }
+
+        const HWND handle = static_cast<HWND>(nativeWindow.value());
+        const HINSTANCE instance = GetModuleHandleW(nullptr);
+        if (handle == nullptr || instance == nullptr)
+        {
+            return;
+        }
+
+        const auto loadIcon = [instance](int width, int height) {
+            return static_cast<HICON>(LoadImageW(instance,
+                MAKEINTRESOURCEW(IDI_FETCHER_LAUNCHER), IMAGE_ICON,
+                width, height, LR_DEFAULTCOLOR | LR_SHARED));
+        };
+
+        if (const HICON largeIcon = loadIcon(
+                GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON)))
+        {
+            SendMessageW(handle, WM_SETICON, ICON_BIG,
+                reinterpret_cast<LPARAM>(largeIcon));
+        }
+        if (const HICON smallIcon = loadIcon(
+                GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON)))
+        {
+            SendMessageW(handle, WM_SETICON, ICON_SMALL,
+                reinterpret_cast<LPARAM>(smallIcon));
+        }
     }
 
     std::wstring QuoteArgument(const std::wstring& value)
@@ -961,6 +997,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
         LauncherApp app(window, options.installRoot);
 
         window.set_title("Fetcher Simulator Launcher");
+        SetLauncherWindowIcon(window);
         window.set_size(1120, 760, WEBVIEW_HINT_NONE);
         window.set_size(860, 620, WEBVIEW_HINT_MIN);
 

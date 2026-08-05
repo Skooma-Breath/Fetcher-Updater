@@ -1,0 +1,3 @@
+#include "resource.h"
+
+IDI_FETCHER_LAUNCHER ICON "FetcherLauncher.ico"

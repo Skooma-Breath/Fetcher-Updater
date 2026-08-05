@@ -4,7 +4,7 @@ if(POLICY CMP0174)
     cmake_policy(SET CMP0174 NEW)
 endif()
 
-project(FetcherLauncher VERSION 0.1.0 LANGUAGES CXX)
+project(FetcherLauncher VERSION 0.1.0 LANGUAGES CXX RC)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,6 +38,11 @@ FetchContent_MakeAvailable(webview)
 
 add_executable(FetcherLauncher WIN32
     src/main.cpp
+    resources/FetcherLauncher.rc
+)
+
+target_include_directories(FetcherLauncher PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources"
 )
 
 target_compile_definitions(FetcherLauncher PRIVATE

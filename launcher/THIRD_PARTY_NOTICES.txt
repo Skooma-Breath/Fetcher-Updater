@@ -53,3 +53,14 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
+Fetcher Launcher Jupiter icon
+-----------------------------
+"Jupiter Showcases Auroras, Hazes (NIRCam Closeup)"
+Credit: NASA, ESA, Jupiter ERS Team; image processing by Judy Schmidt
+Source: https://esawebb.org/images/jupiter-auroras1/
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+The source image was cropped, resized, and lightly adjusted for contrast and
+sharpness for use as the Fetcher Launcher application icon.
