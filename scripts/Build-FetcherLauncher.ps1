@@ -110,6 +110,7 @@ if ($StatusOnly) {
     exit 0
 }
 Write-Host "Fetcher launcher backend smoke test"
+Write-Warning "Fetcher launcher backend smoke warning"
 [ordered]@{
     installRoot = $InstallRoot
     quickCheck = [bool]$QuickCheck
@@ -136,8 +137,18 @@ exit 0
         throw "Fetcher Launcher passed incorrect arguments to the full PowerShell backend."
     }
     $backendLogText = Get-Content -LiteralPath $backendTestLog -Raw
-    if ($backendLogText -notmatch "Fetcher launcher backend smoke test") {
-        throw "Fetcher Launcher did not capture PowerShell output."
+    if ($backendLogText -notmatch "Fetcher launcher backend smoke test" -or
+        $backendLogText -notmatch "Fetcher launcher backend smoke warning") {
+        throw "Fetcher Launcher did not capture PowerShell host and warning output."
+    }
+    if ($backendLogText -match "#< CLIXML" -or $backendLogText -match "<Objs Version=") {
+        throw "Fetcher Launcher captured serialized PowerShell CLIXML instead of plain text."
+    }
+    $hostMessageCount = ([regex]::Matches(
+        $backendLogText,
+        [regex]::Escape("Fetcher launcher backend smoke test"))).Count
+    if ($hostMessageCount -ne 1) {
+        throw "Fetcher Launcher duplicated PowerShell host output ($hostMessageCount occurrences)."
     }
 
     Remove-Item -LiteralPath $backendTestMarker, $backendTestLog -Force

@@ -8,7 +8,6 @@
 #include <atomic>
 #include <chrono>
 #include <cctype>
-#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -278,49 +277,6 @@ namespace
         return result;
     }
 
-    std::wstring EscapePowerShellLiteral(const std::wstring& value)
-    {
-        std::wstring result;
-        result.reserve(value.size() + 8);
-        for (const wchar_t ch : value)
-        {
-            result.push_back(ch);
-            if (ch == L'\'')
-            {
-                result.push_back(L'\'');
-            }
-        }
-        return result;
-    }
-
-    std::string Base64Encode(const std::uint8_t* data, std::size_t size)
-    {
-        static constexpr char table[] =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        std::string output;
-        output.reserve(((size + 2) / 3) * 4);
-
-        for (std::size_t index = 0; index < size; index += 3)
-        {
-            const std::uint32_t first = data[index];
-            const std::uint32_t second = index + 1 < size ? data[index + 1] : 0;
-            const std::uint32_t third = index + 2 < size ? data[index + 2] : 0;
-            const std::uint32_t value = (first << 16) | (second << 8) | third;
-
-            output.push_back(table[(value >> 18) & 0x3f]);
-            output.push_back(table[(value >> 12) & 0x3f]);
-            output.push_back(index + 1 < size ? table[(value >> 6) & 0x3f] : '=');
-            output.push_back(index + 2 < size ? table[value & 0x3f] : '=');
-        }
-        return output;
-    }
-
-    std::string EncodePowerShellCommand(const std::wstring& command)
-    {
-        const auto* bytes = reinterpret_cast<const std::uint8_t*>(command.data());
-        return Base64Encode(bytes, command.size() * sizeof(wchar_t));
-    }
-
     fs::path GetPowerShellPath()
     {
         std::vector<wchar_t> buffer(32768);
@@ -349,6 +305,7 @@ namespace
     {
         UpdaterProcessResult result;
         fs::path stagedScript;
+        fs::path stagedRunner;
 
         try
         {
@@ -364,6 +321,35 @@ namespace
                 (L"Fetcher-Simulator-Updater-" + std::to_wstring(GetCurrentProcessId()) +
                     L"-" + std::to_wstring(ticks) + L".ps1");
             fs::copy_file(updaterScript, stagedScript, fs::copy_options::overwrite_existing);
+
+            stagedRunner = fs::temp_directory_path() /
+                (L"Fetcher-Simulator-Updater-Runner-" + std::to_wstring(GetCurrentProcessId()) +
+                    L"-" + std::to_wstring(ticks) + L".ps1");
+            std::ofstream runner(stagedRunner, std::ios::binary | std::ios::trunc);
+            runner << R"(param(
+    [Parameter(Mandatory = $true)][string] $UpdaterScript,
+    [Parameter(Mandatory = $true)][string] $InstallRoot,
+    [switch] $QuickCheck,
+    [switch] $StatusOnly
+)
+
+$ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = [Console]::OutputEncoding
+$ProgressPreference = "SilentlyContinue"
+
+$parameters = @{ InstallRoot = $InstallRoot }
+if ($QuickCheck) { $parameters.QuickCheck = $true }
+if ($StatusOnly) { $parameters.StatusOnly = $true }
+
+& $UpdaterScript @parameters
+exit $LASTEXITCODE
+)";
+            runner.close();
+            if (!runner)
+            {
+                throw std::runtime_error("Could not create the updater runner script.");
+            }
 
             SECURITY_ATTRIBUTES security{};
             security.nLength = sizeof(security);
@@ -395,21 +381,20 @@ namespace
             startup.hStdInput = nullInput ? nullInput.get() : GetStdHandle(STD_INPUT_HANDLE);
 
             PROCESS_INFORMATION processInfo{};
-            const std::wstring updaterArgument = statusOnly
-                ? L" -StatusOnly"
-                : (quickCheck ? L" -QuickCheck" : L"");
-            const std::wstring powerShellScript =
-                L"[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); "
-                L"$OutputEncoding = [Console]::OutputEncoding; "
-                L"$ProgressPreference = 'SilentlyContinue'; "
-                L"& '" + EscapePowerShellLiteral(stagedScript.wstring()) +
-                L"' -InstallRoot '" + EscapePowerShellLiteral(installRoot.wstring()) +
-                L"'" + updaterArgument + L"; exit $LASTEXITCODE";
-            const std::string encoded = EncodePowerShellCommand(powerShellScript);
             const fs::path powerShell = GetPowerShellPath();
             std::wstring commandLine = QuoteArgument(powerShell.wstring()) +
-                L" -NoLogo -NoProfile -ExecutionPolicy Bypass -EncodedCommand " +
-                std::wstring(encoded.begin(), encoded.end());
+                L" -NoLogo -NoProfile -ExecutionPolicy Bypass -File " +
+                QuoteArgument(stagedRunner.wstring()) +
+                L" -UpdaterScript " + QuoteArgument(stagedScript.wstring()) +
+                L" -InstallRoot " + QuoteArgument(installRoot.wstring());
+            if (statusOnly)
+            {
+                commandLine += L" -StatusOnly";
+            }
+            else if (quickCheck)
+            {
+                commandLine += L" -QuickCheck";
+            }
             std::vector<wchar_t> mutableCommand(commandLine.begin(), commandLine.end());
             mutableCommand.push_back(L'\0');
 
@@ -455,6 +440,11 @@ namespace
         {
             std::error_code removeError;
             fs::remove(stagedScript, removeError);
+        }
+        if (!stagedRunner.empty())
+        {
+            std::error_code removeError;
+            fs::remove(stagedRunner, removeError);
         }
         return result;
     }
