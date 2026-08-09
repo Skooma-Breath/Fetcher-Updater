@@ -293,6 +293,12 @@ try {
             )
         },
         [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/56583"
+            FileIds = @(1000054106)
+            Plugins = @("ZerkishHotkeysImproved.omwscripts")
+            Pinned = $true
+        },
+        [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/59276"
             FileIds = @(1000065733)
             Plugins = @(
@@ -326,6 +332,10 @@ try {
             if ($actualFileIds -notcontains [int64]$fileId) {
                 throw "$($mod.name) does not pin expected Nexus file id $fileId."
             }
+        }
+        if ($expected.PSObject.Properties.Name -contains "Pinned" -and
+            @($mod.download_info | Where-Object { [bool]$_.pinned }).Count -ne @($expected.FileIds).Count) {
+            throw "$($mod.name) does not mark every required artifact as pinned."
         }
         if ($expected.PSObject.Properties.Name -contains "DataPaths") {
             foreach ($dataPath in @($expected.DataPaths)) {
@@ -517,6 +527,27 @@ local icon = {
 }
 '@
 
+    $zhiBomFixtureRoot = Join-Path $workRoot "zhi-current-bom-fixture"
+    $zhiBomPlayerPath = Join-Path $zhiBomFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_player.lua"
+    $zhiBomHotbarPath = Join-Path $zhiBomFixtureRoot "scripts\ZerkishHotkeysImproved\zhi_hotbarhud.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $zhiBomPlayerPath) | Out-Null
+    $utf8WithBom = [Text.UTF8Encoding]::new($true)
+    [IO.File]::WriteAllText($zhiBomPlayerPath, @'
+local ZHISaveData = {}
+local sDisableFirstTimeNotification = false
+if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- Fetcher multiplayer compatibility: suppress the automatic first-time modal; onboarding still occurs when Quick Keys is opened.
+    openFirstTimePopup()
+end
+'@, $utf8WithBom)
+    [IO.File]::WriteAllText($zhiBomHotbarPath, @'
+local icon = {
+    name = "icon",
+    props = {
+        inheritAlpha = false,
+    },
+}
+'@, $utf8WithBom)
+
     $fduFixtureRoot = Join-Path $workRoot "fdu-fixture"
     $fduActorPath = Join-Path $fduFixtureRoot "scripts\FollowerDetectionUtil\actor.lua"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $fduActorPath) | Out-Null
@@ -656,6 +687,17 @@ end
         throw "Fetcher legacy ZHI compatibility fixture migration was not idempotent."
     }
 
+    $bomCompatibilityParameters = $compatibilityParameters.Clone()
+    $bomCompatibilityParameters["ZhiDataRoot"] = $zhiBomFixtureRoot
+    & $compatibilityScriptPath @bomCompatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher current ZHI UTF-8 BOM normalization fixture failed."
+    }
+    & $compatibilityScriptPath @bomCompatibilityParameters | Out-Null
+    if (-not $?) {
+        throw "Fetcher current ZHI UTF-8 BOM normalization fixture was not idempotent."
+    }
+
     $zhiPlayerSource = Get-Content -LiteralPath $zhiPlayerPath -Raw
     $zhiPopupMarker = "Fetcher multiplayer compatibility: suppress the automatic first-time modal; onboarding still occurs when Quick Keys is opened."
     $zhiPopupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $zhiPopupMarker"
@@ -674,6 +716,14 @@ end
     }
     if (([regex]::Matches($zhiLegacyPlayerSource, [regex]::Escape($zhiPopupReplacement))).Count -ne 1) {
         throw "Zerkish Hotkeys Improved compatibility fix did not migrate the legacy popup suppression exactly once."
+    }
+    foreach ($canonicalZhiPath in @($zhiPlayerPath, $zhiHotbarPath, $zhiLegacyPlayerPath,
+            $zhiLegacyHotbarPath, $zhiBomPlayerPath, $zhiBomHotbarPath)) {
+        $canonicalBytes = [IO.File]::ReadAllBytes($canonicalZhiPath)
+        if ($canonicalBytes.Length -ge 3 -and $canonicalBytes[0] -eq 0xEF -and
+            $canonicalBytes[1] -eq 0xBB -and $canonicalBytes[2] -eq 0xBF) {
+            throw "Zerkish Hotkeys Improved compatibility fix left a UTF-8 BOM in $canonicalZhiPath."
+        }
     }
 
     $fduActorSource = Get-Content -LiteralPath $fduActorPath -Raw

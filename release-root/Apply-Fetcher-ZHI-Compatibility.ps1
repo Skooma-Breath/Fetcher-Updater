@@ -88,10 +88,10 @@ function Write-TextFileAtomically {
         [Parameter(Mandatory = $true)][string] $Text
     )
 
-    $originalBytes = [IO.File]::ReadAllBytes($Path)
-    $hasUtf8Bom = $originalBytes.Length -ge 3 -and
-        $originalBytes[0] -eq 0xEF -and $originalBytes[1] -eq 0xBB -and $originalBytes[2] -eq 0xBF
-    $encoding = [Text.UTF8Encoding]::new($hasUtf8Bom)
+    # Authoritative multiplayer content hashes the exact VFS bytes. Always
+    # emit one canonical encoding so equivalent Lua text cannot diverge only
+    # because one installation inherited a UTF-8 BOM and another did not.
+    $encoding = [Text.UTF8Encoding]::new($false)
     $temporaryPath = "$Path.$([Guid]::NewGuid().ToString('N')).tmp"
     try {
         [IO.File]::WriteAllText($temporaryPath, $Text, $encoding)
@@ -116,6 +116,9 @@ function Apply-ZhiCompatibilityFixes {
     $popupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $popupMarker"
     $legacyPopupReplacement = "if false and not (ZHISaveData.onCloseQuickKeyMenuFirstTimeFlag or sDisableFirstTimeNotification) then -- $legacyPopupMarker"
     $playerSource = [IO.File]::ReadAllText($playerScriptPath)
+    $playerBytes = [IO.File]::ReadAllBytes($playerScriptPath)
+    $playerHasUtf8Bom = $playerBytes.Length -ge 3 -and
+        $playerBytes[0] -eq 0xEF -and $playerBytes[1] -eq 0xBB -and $playerBytes[2] -eq 0xBF
     $playerUpdated = $playerSource
     $popupChangeMessage = "Suppressed the automatic ZHI first-time modal:"
     if ($playerSource.Contains($popupMarker)) {
@@ -139,9 +142,14 @@ function Apply-ZhiCompatibilityFixes {
         }
         $playerUpdated = $playerSource.Replace($popupOriginal, $popupReplacement)
     }
-    if ($playerUpdated -ne $playerSource) {
+    if ($playerUpdated -ne $playerSource -or $playerHasUtf8Bom) {
         Write-TextFileAtomically -Path $playerScriptPath -Text $playerUpdated
-        Write-Host $popupChangeMessage
+        if ($playerUpdated -ne $playerSource) {
+            Write-Host $popupChangeMessage
+        }
+        else {
+            Write-Host "Normalized Zerkish Hotkeys Improved player script to UTF-8 without BOM:"
+        }
         Write-Host "  $playerScriptPath"
     }
     else {
@@ -149,6 +157,9 @@ function Apply-ZhiCompatibilityFixes {
     }
 
     $hotbarSource = [IO.File]::ReadAllText($hotbarScriptPath)
+    $hotbarBytes = [IO.File]::ReadAllBytes($hotbarScriptPath)
+    $hotbarHasUtf8Bom = $hotbarBytes.Length -ge 3 -and
+        $hotbarBytes[0] -eq 0xEF -and $hotbarBytes[1] -eq 0xBB -and $hotbarBytes[2] -eq 0xBF
     $invalidAutoSizePattern = '(?m)(?<prefix>^[ \t]*name[ \t]*=[ \t]*["'']icon["''],\r?\n[ \t]*props[ \t]*=[ \t]*\{\r?\n)[ \t]*autoSize[ \t]*=[ \t]*true,\r?\n(?=[ \t]*inheritAlpha[ \t]*=[ \t]*false,)'
     $invalidAutoSizeRegex = [regex]::new($invalidAutoSizePattern, [Text.RegularExpressions.RegexOptions]::Multiline)
     $hotbarMatches = $invalidAutoSizeRegex.Matches($hotbarSource)
@@ -159,6 +170,11 @@ function Apply-ZhiCompatibilityFixes {
         $hotbarUpdated = $invalidAutoSizeRegex.Replace($hotbarSource, '${prefix}', 1)
         Write-TextFileAtomically -Path $hotbarScriptPath -Text $hotbarUpdated
         Write-Host "Removed the invalid ZHI hotbar icon autoSize property:"
+        Write-Host "  $hotbarScriptPath"
+    }
+    elseif ($hotbarHasUtf8Bom) {
+        Write-TextFileAtomically -Path $hotbarScriptPath -Text $hotbarSource
+        Write-Host "Normalized Zerkish Hotkeys Improved hotbar script to UTF-8 without BOM:"
         Write-Host "  $hotbarScriptPath"
     }
     else {

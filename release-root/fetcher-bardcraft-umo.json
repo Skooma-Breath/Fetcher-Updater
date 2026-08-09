@@ -841,8 +841,8 @@
         "direct_download": null,
         "file_name": "Hotkeys Improved Main File",
         "extract_to": "ZerkishHotkeysImproved",
-        "nexus_file_id": null,
-        "pinned": false,
+        "nexus_file_id": 1000054106,
+        "pinned": true,
         "actions": []
       }
     ],
