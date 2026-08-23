@@ -122,6 +122,9 @@ try {
     if (-not $manifestPaths.Contains("fetcher-client-protection-policy.json")) {
         throw "Package is missing fetcher-client-protection-policy.json."
     }
+    if (-not $manifestPaths.Contains("fetcher-canonical-fallbacks.cfg")) {
+        throw "Package is missing fetcher-canonical-fallbacks.cfg."
+    }
     if (-not $manifestPaths.Contains("Apply-Fetcher-Mod-Compatibility.ps1")) {
         throw "Package is missing the managed mod compatibility applier."
     }
@@ -178,6 +181,9 @@ try {
     }
     if (@($protectionPolicy.exactPaths) -notcontains "fetcher-update-channel.json") {
         throw "Client protection policy does not protect fetcher-update-channel.json."
+    }
+    if (@($protectionPolicy.exactPaths) -notcontains "fetcher-canonical-fallbacks.cfg") {
+        throw "Client protection policy does not protect fetcher-canonical-fallbacks.cfg."
     }
     foreach ($relativePath in @($manifestPaths | ForEach-Object { $_ })) {
         if (-not (Test-ProtectedPath -RelativePath $relativePath -Policy $protectionPolicy)) {
@@ -358,6 +364,69 @@ try {
     }
 
     $configScriptPath = Join-Path $workRoot "Apply-Fetcher-Public-Test-Config.ps1"
+    $canonicalFallbackPath = Join-Path $workRoot "fetcher-canonical-fallbacks.cfg"
+    $canonicalFallbackLines = @(Get-Content -LiteralPath $canonicalFallbackPath |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        ForEach-Object { $_.Trim() })
+    $canonicalFallbackUnique = @($canonicalFallbackLines | Sort-Object -Unique)
+    if ($canonicalFallbackLines.Count -ne 655 -or $canonicalFallbackUnique.Count -ne 655) {
+        throw "Canonical fallback template must contain exactly 655 unique entries."
+    }
+    if (@($canonicalFallbackLines | Where-Object { $_ -notmatch '^fallback\s*=' }).Count -ne 0) {
+        throw "Canonical fallback template contains a non-fallback line."
+    }
+    $canonicalFallbackText = [string]::Join([Environment]::NewLine, $canonicalFallbackLines)
+    $canonicalFallbackSha = [Security.Cryptography.SHA256]::Create()
+    try {
+        $canonicalFallbackHash = ([BitConverter]::ToString($canonicalFallbackSha.ComputeHash(
+            [Text.Encoding]::UTF8.GetBytes($canonicalFallbackText)))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $canonicalFallbackSha.Dispose()
+    }
+    if ($canonicalFallbackHash -ne "405faafd00d23f32c57d96ed5b6289c8d3810b84ec238042a870ce6acc166153") {
+        throw "Canonical fallback template hash is not the expected Fetcher authority hash."
+    }
+
+    $configFixtureRoot = Join-Path $workRoot "config-canonicalization-fixture"
+    New-Item -ItemType Directory -Force -Path $configFixtureRoot | Out-Null
+    Copy-Item -LiteralPath $configScriptPath -Destination (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1")
+    Copy-Item -LiteralPath $canonicalFallbackPath -Destination (Join-Path $configFixtureRoot "fetcher-canonical-fallbacks.cfg")
+    $legacyFallbacks = @($canonicalFallbackLines | Select-Object -First 492)
+    $fixtureConfigLines = @(
+        'data="./resources/vfs-mw"',
+        'data="./Data Files"'
+    ) + $legacyFallbacks + @(
+        'fallback=Fetcher_Test_NonCanonical,1',
+        'content=OldNonCanonicalPlugin.esp'
+    )
+    $fixtureConfigPath = Join-Path $configFixtureRoot "openmw.cfg"
+    Set-Content -LiteralPath $fixtureConfigPath -Value $fixtureConfigLines -Encoding ASCII
+    & (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1") 6>$null
+    $repairedConfigLines = @(Get-Content -LiteralPath $fixtureConfigPath)
+    $repairedFallbackLines = @($repairedConfigLines |
+        Where-Object { $_ -match '^\s*fallback\s*=' } |
+        ForEach-Object { $_.Trim() })
+    $repairedFallbackText = [string]::Join([Environment]::NewLine, $repairedFallbackLines)
+    $repairedFallbackSha = [Security.Cryptography.SHA256]::Create()
+    try {
+        $repairedFallbackHash = ([BitConverter]::ToString($repairedFallbackSha.ComputeHash(
+            [Text.Encoding]::UTF8.GetBytes($repairedFallbackText)))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $repairedFallbackSha.Dispose()
+    }
+    if ($repairedFallbackLines.Count -ne 655 -or $repairedFallbackHash -ne $canonicalFallbackHash) {
+        throw "Public-test config repair did not replace a 492-line fallback block with the canonical 655-line block."
+    }
+    if ($repairedConfigLines -contains 'fallback=Fetcher_Test_NonCanonical,1') {
+        throw "Public-test config repair preserved an unmanaged fallback entry."
+    }
+    if (@($repairedConfigLines | Where-Object { $_ -eq '# BEGIN Fetcher Simulator canonical fallbacks' }).Count -ne 1 -or
+        @($repairedConfigLines | Where-Object { $_ -eq '# END Fetcher Simulator canonical fallbacks' }).Count -ne 1) {
+        throw "Public-test config repair did not emit exactly one bounded canonical fallback block."
+    }
+
     $configScript = Get-Content -LiteralPath $configScriptPath -Raw
     $fduPosition = $configScript.IndexOf('"FollowerDetectionUtil.omwscripts"', [StringComparison]::Ordinal)
     $bffPosition = $configScript.IndexOf('"BestFriendsForever.omwscripts"', [StringComparison]::Ordinal)

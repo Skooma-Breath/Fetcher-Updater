@@ -5,6 +5,9 @@ $cfgPath = Join-Path $root "openmw.cfg"
 $umoModListName = "fetcher-bardcraft"
 $umoModListPath = Join-Path $root "fetcher-bardcraft-umo.json"
 $patchCatalogPath = Join-Path $root "fetcher-client-patches.json"
+$fallbackTemplatePath = Join-Path $root "fetcher-canonical-fallbacks.cfg"
+$expectedFallbackCount = 655
+$expectedFallbackHash = "405faafd00d23f32c57d96ed5b6289c8d3810b84ec238042a870ce6acc166153"
 
 $baseContent = @(
     "Morrowind.esm",
@@ -132,20 +135,63 @@ $requiredContent = @($requiredContentList)
 if (-not (Test-Path -LiteralPath $cfgPath)) {
     throw "Could not find openmw.cfg next to this script: $cfgPath"
 }
+if (-not (Test-Path -LiteralPath $fallbackTemplatePath -PathType Leaf)) {
+    throw "Could not find canonical Fetcher fallback template: $fallbackTemplatePath"
+}
+
+$canonicalFallbackLines = @(Get-Content -LiteralPath $fallbackTemplatePath |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object { $_.Trim() })
+if (@($canonicalFallbackLines | Where-Object { $_ -notmatch '^fallback\s*=' }).Count -ne 0) {
+    throw "Canonical Fetcher fallback template contains a non-fallback line: $fallbackTemplatePath"
+}
+$canonicalFallbackUnique = @($canonicalFallbackLines | Sort-Object -Unique)
+if ($canonicalFallbackLines.Count -ne $expectedFallbackCount -or $canonicalFallbackUnique.Count -ne $expectedFallbackCount) {
+    throw "Canonical Fetcher fallback template must contain exactly $expectedFallbackCount unique fallback entries; found $($canonicalFallbackLines.Count) total / $($canonicalFallbackUnique.Count) unique."
+}
+$canonicalFallbackText = [string]::Join([Environment]::NewLine, $canonicalFallbackLines)
+$canonicalFallbackBytes = [Text.Encoding]::UTF8.GetBytes($canonicalFallbackText)
+$canonicalFallbackSha = [Security.Cryptography.SHA256]::Create()
+try {
+    $canonicalFallbackHash = ([BitConverter]::ToString($canonicalFallbackSha.ComputeHash($canonicalFallbackBytes))).Replace('-', '').ToLowerInvariant()
+}
+finally {
+    $canonicalFallbackSha.Dispose()
+}
+if ($canonicalFallbackHash -ne $expectedFallbackHash) {
+    throw "Canonical Fetcher fallback template hash mismatch. Expected $expectedFallbackHash, got $canonicalFallbackHash."
+}
 
 $existingLines = @(Get-Content -LiteralPath $cfgPath)
 $backupPath = Join-Path $root ("openmw.cfg.before-fetcher-public-test-{0}.bak" -f (Get-Date -Format "yyyyMMdd-HHmmss"))
 
+$fallbackBeginMarker = "# BEGIN Fetcher Simulator canonical fallbacks"
+$fallbackEndMarker = "# END Fetcher Simulator canonical fallbacks"
 $dataBeginMarker = "# BEGIN Fetcher Simulator UMO data paths"
 $dataEndMarker = "# END Fetcher Simulator UMO data paths"
 $beginMarker = "# BEGIN Fetcher Simulator public test load order"
 $endMarker = "# END Fetcher Simulator public test load order"
 $filteredLines = New-Object System.Collections.Generic.List[string]
+$insideFetcherFallbackBlock = $false
 $insideFetcherBlock = $false
 $insideFetcherDataBlock = $false
 
 foreach ($line in $existingLines) {
     $trimmed = $line.Trim()
+    if ($trimmed -eq $fallbackBeginMarker) {
+        $insideFetcherFallbackBlock = $true
+        continue
+    }
+    if ($trimmed -eq $fallbackEndMarker) {
+        $insideFetcherFallbackBlock = $false
+        continue
+    }
+    if ($insideFetcherFallbackBlock) {
+        continue
+    }
+    if ($trimmed -match "^fallback\s*=") {
+        continue
+    }
     if ($trimmed -eq $dataBeginMarker) {
         $insideFetcherDataBlock = $true
         continue
@@ -258,6 +304,10 @@ $existingManagedDataEntries = @(@($umoDataEntries) + @($patchDataEntries) |
 
 $newLines = New-Object System.Collections.Generic.List[string]
 $newLines.AddRange([string[]]$filteredLines)
+$newLines.Add("")
+$newLines.Add($fallbackBeginMarker)
+$newLines.AddRange([string[]]$canonicalFallbackLines)
+$newLines.Add($fallbackEndMarker)
 if ($existingManagedDataEntries.Count -gt 0) {
     $newLines.Add("")
     $newLines.Add($dataBeginMarker)
@@ -276,6 +326,22 @@ foreach ($content in $requiredContent) {
 }
 $newLines.Add($endMarker)
 $newLines.Add("")
+
+$generatedFallbackLines = @($newLines |
+    Where-Object { $_ -match '^\s*fallback\s*=' } |
+    ForEach-Object { $_.Trim() })
+$generatedFallbackText = [string]::Join([Environment]::NewLine, $generatedFallbackLines)
+$generatedFallbackBytes = [Text.Encoding]::UTF8.GetBytes($generatedFallbackText)
+$generatedFallbackSha = [Security.Cryptography.SHA256]::Create()
+try {
+    $generatedFallbackHash = ([BitConverter]::ToString($generatedFallbackSha.ComputeHash($generatedFallbackBytes))).Replace('-', '').ToLowerInvariant()
+}
+finally {
+    $generatedFallbackSha.Dispose()
+}
+if ($generatedFallbackLines.Count -ne $expectedFallbackCount -or $generatedFallbackHash -ne $expectedFallbackHash) {
+    throw "Generated openmw.cfg fallback block failed canonical verification. Expected $expectedFallbackCount / $expectedFallbackHash, got $($generatedFallbackLines.Count) / $generatedFallbackHash."
+}
 
 $stagedCfgPath = Join-Path $root (".openmw.cfg.fetcher-{0}.tmp" -f [Guid]::NewGuid().ToString("N"))
 try {
@@ -343,6 +409,7 @@ foreach ($content in $requiredContent) {
 
 Write-Host "Updated: $cfgPath"
 Write-Host "Backup:  $backupPath"
+Write-Host "Canonical fallbacks: $expectedFallbackCount entries ($expectedFallbackHash)"
 Write-Host ""
 if ($existingManagedDataEntries.Count -gt 0) {
     Write-Host "Fetcher-managed data paths added:"

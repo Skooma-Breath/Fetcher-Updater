@@ -26,6 +26,7 @@ if ([string]::IsNullOrWhiteSpace($SourceCommit)) {
 $releaseRootFiles = @(
     "Apply-Fetcher-Public-Test-Config.bat",
     "Apply-Fetcher-Public-Test-Config.ps1",
+    "fetcher-canonical-fallbacks.cfg",
     "Apply-Fetcher-Mod-Compatibility.ps1",
     "Apply-Fetcher-ZHI-Compatibility.ps1",
     "fetcher-bardcraft-umo.json",
