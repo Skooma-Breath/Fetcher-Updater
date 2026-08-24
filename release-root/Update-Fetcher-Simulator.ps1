@@ -795,6 +795,153 @@ function Install-ClientModPatch {
     }
 }
 
+function Get-UmoModInstallProblems {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][string] $Root)
+
+    $modListPath = Join-Path $Root "fetcher-bardcraft-umo.json"
+    if (-not (Test-Path -LiteralPath $modListPath -PathType Leaf)) {
+        return
+    }
+
+    try {
+        $parsedMods = Get-Content -LiteralPath $modListPath -Raw | ConvertFrom-Json
+    }
+    catch {
+        throw "Could not parse UMO modlist while validating installed content: $($_.Exception.Message)"
+    }
+
+    $mods = if ($parsedMods -is [System.Array]) {
+        @($parsedMods | ForEach-Object { $_ })
+    }
+    else {
+        @($parsedMods)
+    }
+    $listRoot = Join-Path (Join-Path $Root "Data Files") "fetcher-bardcraft"
+
+    foreach ($mod in $mods) {
+        $modName = if ([string]::IsNullOrWhiteSpace([string]$mod.name)) { "<unnamed mod>" } else { [string]$mod.name }
+        $dataRoots = New-Object 'System.Collections.Generic.List[string]'
+
+        foreach ($dataPath in @($mod.data_paths)) {
+            if ([string]::IsNullOrWhiteSpace([string]$dataPath)) {
+                continue
+            }
+            $candidate = Join-Path (Join-Path $listRoot ([string]$mod.category)) ([string]$dataPath)
+            if (Test-Path -LiteralPath $candidate -PathType Container) {
+                $dataRoots.Add($candidate)
+            }
+            else {
+                [pscustomobject]@{
+                    Mod = $mod
+                    ModName = $modName
+                    Kind = "data path"
+                    Expected = $candidate
+                }
+            }
+        }
+
+        foreach ($plugin in @($mod.plugins)) {
+            if ([string]::IsNullOrWhiteSpace([string]$plugin)) {
+                continue
+            }
+            $pluginFound = $false
+            foreach ($dataRoot in $dataRoots) {
+                if (Test-Path -LiteralPath (Join-Path $dataRoot ([string]$plugin)) -PathType Leaf) {
+                    $pluginFound = $true
+                    break
+                }
+            }
+            if (-not $pluginFound) {
+                [pscustomobject]@{
+                    Mod = $mod
+                    ModName = $modName
+                    Kind = "plugin"
+                    Expected = [string]$plugin
+                }
+            }
+        }
+    }
+}
+
+function Move-IncompleteUmoModRootsToStaging {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string] $Root,
+        [Parameter(Mandatory = $true)][object[]] $Problems
+    )
+
+    $listRootPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $Root "Data Files") "fetcher-bardcraft"))
+    $separator = [IO.Path]::DirectorySeparatorChar
+    $listRootPrefix = $listRootPath.TrimEnd($separator) + $separator
+    $stagingRoot = Join-Path (Join-Path $Root "_fetcher_update") ("umo-repair-{0}" -f [Guid]::NewGuid().ToString("N"))
+    $moves = New-Object 'System.Collections.Generic.List[object]'
+    $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($problem in $Problems) {
+        $mod = $problem.Mod
+        if ($null -eq $mod) {
+            continue
+        }
+
+        $relativeRoots = New-Object 'System.Collections.Generic.List[string]'
+        if (-not [string]::IsNullOrWhiteSpace([string]$mod.dir)) {
+            $relativeRoots.Add((Join-Path ([string]$mod.category) ([string]$mod.dir)))
+        }
+        foreach ($download in @($mod.download_info)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$download.extract_to)) {
+                $relativeRoots.Add((Join-Path ([string]$mod.category) ([string]$download.extract_to)))
+            }
+        }
+
+        foreach ($relativeRoot in $relativeRoots) {
+            $modRoot = [IO.Path]::GetFullPath((Join-Path $listRootPath $relativeRoot))
+            if (-not $modRoot.StartsWith($listRootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+                throw "UMO repair path escapes the managed mod root: $modRoot"
+            }
+            if (-not $seen.Add($modRoot) -or -not (Test-Path -LiteralPath $modRoot -PathType Container)) {
+                continue
+            }
+
+            New-Item -ItemType Directory -Force -Path $stagingRoot | Out-Null
+            $backupPath = Join-Path $stagingRoot ("mod-{0:D3}" -f $moves.Count)
+            Write-Warning "Incomplete UMO install detected for $($problem.ModName). Moving stale mod root aside so UMO must reinstall it: $modRoot"
+            Move-Item -LiteralPath $modRoot -Destination $backupPath
+            $moves.Add([pscustomobject]@{
+                Original = $modRoot
+                Backup = $backupPath
+            })
+        }
+    }
+
+    return [pscustomobject]@{
+        StagingRoot = $stagingRoot
+        Moves = @($moves | ForEach-Object { $_ })
+    }
+}
+
+function Restore-UmoRepairStaging {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)] $Repair)
+
+    $moves = @($Repair.Moves)
+    for ($index = $moves.Count - 1; $index -ge 0; $index--) {
+        $move = $moves[$index]
+        if (Test-Path -LiteralPath $move.Original) {
+            Remove-Item -LiteralPath $move.Original -Recurse -Force
+        }
+        if (Test-Path -LiteralPath $move.Backup) {
+            $parent = Split-Path -Parent $move.Original
+            New-Item -ItemType Directory -Force -Path $parent | Out-Null
+            Move-Item -LiteralPath $move.Backup -Destination $move.Original
+        }
+    }
+
+    if (Test-Path -LiteralPath $Repair.StagingRoot -PathType Container) {
+        Remove-Item -LiteralPath $Repair.StagingRoot -Recurse -Force
+    }
+}
+
 function Install-UmoModList {
     param([Parameter(Mandatory = $true)][string] $Root)
 
@@ -807,16 +954,48 @@ function Install-UmoModList {
     }
 
     Assert-OpenMwStopped -Root $Root
-    Write-Host "Checking required Fetcher mods and dependencies through UMO..."
-    & $installer `
-        -UmoBasePath (Join-Path $Root "Data Files") `
-        -TesterToolsRepository $TesterToolsRepository `
-        -TesterToolsReleaseTag $TesterToolsReleaseTag `
-        -GitHubDownloadBaseUrl $GitHubDownloadBaseUrl `
-        -ApplyBardcraftMultiplayerPatch $false `
-        -ApplyPublicTestConfig $true
-    if (-not $?) {
-        throw "Fetcher UMO mod installation failed."
+
+    $preInstallProblems = @(Get-UmoModInstallProblems -Root $Root)
+    $repair = $null
+    if ($preInstallProblems.Count -gt 0) {
+        Write-Warning "Detected $($preInstallProblems.Count) missing declared UMO data path/plugin entr$(if ($preInstallProblems.Count -eq 1) { 'y' } else { 'ies' }). Preparing a forced repair."
+        $repair = Move-IncompleteUmoModRootsToStaging -Root $Root -Problems $preInstallProblems
+    }
+
+    try {
+        Write-Host "Checking required Fetcher mods and dependencies through UMO..."
+        & $installer `
+            -UmoBasePath (Join-Path $Root "Data Files") `
+            -TesterToolsRepository $TesterToolsRepository `
+            -TesterToolsReleaseTag $TesterToolsReleaseTag `
+            -GitHubDownloadBaseUrl $GitHubDownloadBaseUrl `
+            -ApplyBardcraftMultiplayerPatch $false `
+            -ApplyPublicTestConfig $true
+        if (-not $?) {
+            throw "Fetcher UMO mod installation failed."
+        }
+
+        $remainingProblems = @(Get-UmoModInstallProblems -Root $Root)
+        if ($remainingProblems.Count -gt 0) {
+            $details = @($remainingProblems | Select-Object -First 12 | ForEach-Object {
+                " - $($_.ModName): missing $($_.Kind) '$($_.Expected)'"
+            })
+            if ($remainingProblems.Count -gt $details.Count) {
+                $details += " - ...and $($remainingProblems.Count - $details.Count) more"
+            }
+            throw "UMO completed, but declared mod content is still incomplete:`n$($details -join "`n")"
+        }
+
+        if ($null -ne $repair -and (Test-Path -LiteralPath $repair.StagingRoot -PathType Container)) {
+            Remove-Item -LiteralPath $repair.StagingRoot -Recurse -Force
+        }
+    }
+    catch {
+        if ($null -ne $repair) {
+            Write-Warning "UMO repair failed. Restoring the previous mod directories before returning the error."
+            Restore-UmoRepairStaging -Repair $repair
+        }
+        throw
     }
 }
 
@@ -838,6 +1017,29 @@ function Get-UmoCheckState {
     }
 
     $modListSha256 = Get-Sha256 -Path $modListPath
+    try {
+        $installProblems = @(Get-UmoModInstallProblems -Root $Root)
+    }
+    catch {
+        return [pscustomobject]@{
+            IsCurrent = $false
+            Reason = "installed UMO mod content could not be validated: $($_.Exception.Message)"
+            ModListPath = $modListPath
+            ModListSha256 = $modListSha256
+            CheckedAtUtc = $null
+        }
+    }
+    if ($installProblems.Count -gt 0) {
+        $firstProblem = $installProblems[0]
+        return [pscustomobject]@{
+            IsCurrent = $false
+            Reason = "installed UMO mod content is incomplete ($($installProblems.Count) missing declared path/plugin entries; first: $($firstProblem.ModName) $($firstProblem.Kind))"
+            ModListPath = $modListPath
+            ModListSha256 = $modListSha256
+            CheckedAtUtc = $null
+        }
+    }
+
     if (-not (Test-Path -LiteralPath $StatePath -PathType Leaf)) {
         $legacyStatePath = Join-Path $Root "fetcher-update-state.json"
         if (Test-Path -LiteralPath $legacyStatePath -PathType Leaf) {

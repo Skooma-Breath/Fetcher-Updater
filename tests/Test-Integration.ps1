@@ -422,8 +422,37 @@ try {
         -Message "Quick client-mod check unnecessarily replaced an installed bundle file."
 
     # Quick launcher checks cache the expensive UMO scan only after a successful
-    # run. The cache is invalidated by a changed modlist, while full repair always
-    # invokes UMO regardless of cache age.
+    # run. The cache is invalidated by a changed modlist or missing declared
+    # mod content, while full repair always invokes UMO regardless of cache age.
+    # This probe deliberately starts with an old-layout mod root (00 Core) while
+    # the current manifest expects 00 Data Files. The updater must move the stale
+    # root aside before invoking UMO so UMO cannot falsely report it as installed.
+    $umoCountPath = Join-Path $freshRoot "_fetcher_update\umo-probe-count.txt"
+    $umoStatePath = Join-Path $freshRoot "_fetcher_update\umo-check-state.json"
+    $umoModListPath = Join-Path $freshRoot "fetcher-bardcraft-umo.json"
+    $originalUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
+    @(
+        [ordered]@{
+            name = "Integration UMO Probe"
+            url = "https://example.invalid/umo-probe"
+            category = "Test"
+            dir = "ProbeMod"
+            download_info = @(
+                [ordered]@{
+                    file_name = "probe.archive"
+                    extract_to = "ProbeMod"
+                }
+            )
+            data_paths = @("ProbeMod/00 Data Files")
+            plugins = @("Probe.esp")
+        }
+    ) | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $umoModListPath -Encoding UTF8
+    $testUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
+
+    $staleProbeRoot = Join-Path $freshRoot "Data Files\fetcher-bardcraft\Test\ProbeMod"
+    New-Item -ItemType Directory -Force -Path (Join-Path $staleProbeRoot "00 Core") | Out-Null
+    Set-Content -LiteralPath (Join-Path $staleProbeRoot "00 Core\Probe.esp") -Value "old layout" -Encoding ASCII
+
     $umoProbeInstaller = Join-Path $workRoot "fake-umo-installer.ps1"
     @'
 param(
@@ -437,15 +466,17 @@ param(
 $installRoot = Split-Path -Parent $UmoBasePath
 $countPath = Join-Path $installRoot "_fetcher_update\umo-probe-count.txt"
 $count = if (Test-Path -LiteralPath $countPath) { [int](Get-Content -LiteralPath $countPath -Raw) } else { 0 }
+$modRoot = Join-Path $UmoBasePath "fetcher-bardcraft\Test\ProbeMod"
+if ($count -eq 0 -and (Test-Path -LiteralPath $modRoot -PathType Container)) {
+    throw "Updater did not move the stale UMO mod root before repair."
+}
+$expectedDataRoot = Join-Path $modRoot "00 Data Files"
+New-Item -ItemType Directory -Force -Path $expectedDataRoot | Out-Null
+Set-Content -LiteralPath (Join-Path $expectedDataRoot "Probe.esp") -Value "current layout" -Encoding ASCII
 $count++
 Set-Content -LiteralPath $countPath -Value $count -Encoding ASCII
 Write-Host "Fake UMO invocation $count"
 '@ | Set-Content -LiteralPath $umoProbeInstaller -Encoding UTF8
-
-    $umoCountPath = Join-Path $freshRoot "_fetcher_update\umo-probe-count.txt"
-    $umoStatePath = Join-Path $freshRoot "_fetcher_update\umo-check-state.json"
-    $umoModListPath = Join-Path $freshRoot "fetcher-bardcraft-umo.json"
-    $originalUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
     $quickUpdateParameters = @{
         InstallRoot = $freshRoot
         UmoInstallerPath = $umoProbeInstaller
@@ -461,6 +492,12 @@ Write-Host "Fake UMO invocation $count"
         -Message "First quick update did not invoke UMO."
     Assert-True -Condition ($firstQuickOutput -match "Running the full UMO scan because") `
         -Message "First quick update did not explain why UMO was required."
+    Assert-True -Condition ($firstQuickOutput -match "installed UMO mod content is incomplete") `
+        -Message "Missing declared UMO content did not invalidate the quick-check cache."
+    Assert-True -Condition (Test-Path -LiteralPath (Join-Path $staleProbeRoot "00 Data Files\Probe.esp") -PathType Leaf) `
+        -Message "Forced UMO repair did not install the manifest-declared replacement layout."
+    Assert-True -Condition (-not (Test-Path -LiteralPath (Join-Path $staleProbeRoot "00 Core") -PathType Container)) `
+        -Message "Forced UMO repair left the stale old-layout data path in place."
 
     $secondQuickOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
         @quickUpdateParameters 6>&1 | Out-String
@@ -477,7 +514,7 @@ Write-Host "Fake UMO invocation $count"
     Assert-True -Condition ($changedModListOutput -match "modlist changed") `
         -Message "Changed UMO modlist did not report its cache invalidation reason."
 
-    [IO.File]::WriteAllBytes($umoModListPath, $originalUmoModListBytes)
+    [IO.File]::WriteAllBytes($umoModListPath, $testUmoModListBytes)
     $fullUpdateOutput = & (Join-Path $freshRoot "Update-Fetcher-Simulator.ps1") `
         -InstallRoot $freshRoot -UmoInstallerPath $umoProbeInstaller `
         -SkipClientUpdate -SkipTesterToolsUpdate -SkipModPatches 6>&1 | Out-String
@@ -496,6 +533,7 @@ Write-Host "Fake UMO invocation $count"
     Assert-True -Condition (Test-Path -LiteralPath $umoStatePath -PathType Leaf) `
         -Message "Legacy updater state migration did not create the dedicated UMO cache state."
 
+    [IO.File]::WriteAllBytes($umoModListPath, $originalUmoModListBytes)
     Remove-Item -LiteralPath $umoCountPath, $umoStatePath -Force -ErrorAction SilentlyContinue
 
     # The .bat launcher stages only the updater script in TEMP. The staged script must
