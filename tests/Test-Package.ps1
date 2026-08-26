@@ -401,6 +401,7 @@ try {
 
     $configFixtureRoot = Join-Path $workRoot "config-canonicalization-fixture"
     New-Item -ItemType Directory -Force -Path $configFixtureRoot | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $configFixtureRoot "resources\vfs-mw") | Out-Null
     Copy-Item -LiteralPath $configScriptPath -Destination (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1")
     Copy-Item -LiteralPath $canonicalFallbackPath -Destination (Join-Path $configFixtureRoot "fetcher-canonical-fallbacks.cfg")
     $legacyFallbacks = @($canonicalFallbackLines | Select-Object -First 492)
@@ -421,7 +422,7 @@ try {
         Set-Content -LiteralPath (Join-Path $fixtureDataRoot $fixtureContent) -Value "fixture" -Encoding ASCII
     }
     $fixtureConfigLines = @(
-        'data="./resources/vfs-mw"'
+        'resources="./resources"'
     ) + $legacyFallbacks + @(
         'fallback=Fetcher_Test_NonCanonical,1',
         'content=OldNonCanonicalPlugin.esp'
@@ -455,6 +456,27 @@ try {
     if (@($repairedConfigLines | Where-Object { $_ -eq 'data=./Data Files' }).Count -ne 1) {
         throw "Public-test config repair did not restore the Fetcher client mod bundle data path."
     }
+    if (@($repairedConfigLines | Where-Object { $_ -eq 'data=./resources/vfs-mw' }).Count -ne 1) {
+        throw "Public-test config repair did not restore exactly one canonical OpenMW base VFS data path."
+    }
+    $baseVfsIndex = [Array]::IndexOf([string[]]$repairedConfigLines, 'data=./resources/vfs-mw')
+    $clientDataIndex = [Array]::IndexOf([string[]]$repairedConfigLines, 'data=./Data Files')
+    if ($baseVfsIndex -lt 0 -or $clientDataIndex -lt 0 -or $baseVfsIndex -ge $clientDataIndex) {
+        throw "Public-test config repair did not place the OpenMW base VFS before Fetcher mod data paths."
+    }
+
+    $legacyBaseVfsLines = @(
+        'data=".\resources\vfs-mw\"',
+        ('data="{0}"' -f [IO.Path]::Combine([IO.Path]::GetPathRoot($configFixtureRoot), 'retired-fetcher-install', 'resources', 'vfs-mw'))
+    )
+    Set-Content -LiteralPath $fixtureConfigPath -Value @($legacyBaseVfsLines + $repairedConfigLines) -Encoding ASCII
+    & (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1") 6>$null
+    $canonicalizedConfigLines = @(Get-Content -LiteralPath $fixtureConfigPath)
+    if (@($canonicalizedConfigLines | Where-Object { $_ -match '(?i)^\s*data\s*=.*resources[\\/]vfs-mw' }).Count -ne 1 -or
+        @($canonicalizedConfigLines | Where-Object { $_ -eq 'data=./resources/vfs-mw' }).Count -ne 1) {
+        throw "Public-test config repair did not canonicalize legacy or duplicate OpenMW base VFS data paths."
+    }
+
     Remove-Item -LiteralPath (Join-Path $fixtureDataRoot "FetcherVehicles.omwaddon") -Force
     $strictConfigRejectedMissingContent = $false
     try {

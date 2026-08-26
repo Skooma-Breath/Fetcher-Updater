@@ -13,6 +13,8 @@ $patchCatalogPath = Join-Path $root "fetcher-client-patches.json"
 $fallbackTemplatePath = Join-Path $root "fetcher-canonical-fallbacks.cfg"
 $expectedFallbackCount = 655
 $expectedFallbackHash = "405faafd00d23f32c57d96ed5b6289c8d3810b84ec238042a870ce6acc166153"
+$baseVfsConfigPath = "./resources/vfs-mw"
+$baseVfsAbsolutePath = [IO.Path]::GetFullPath((Join-Path $root "resources\vfs-mw"))
 
 $baseContent = @(
     "Morrowind.esm",
@@ -69,6 +71,55 @@ function Get-OptionalPropertyValues {
             $value
         }
     }
+}
+
+function Convert-ToDataPath {
+    param([string] $Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $null
+    }
+    $path = $Value.Trim()
+    if (($path.StartsWith('"') -and $path.EndsWith('"')) -or ($path.StartsWith("'") -and $path.EndsWith("'"))) {
+        $path = $path.Substring(1, $path.Length - 2)
+    }
+    $path = [Environment]::ExpandEnvironmentVariables($path)
+    try {
+        if (-not [IO.Path]::IsPathRooted($path)) {
+            $path = Join-Path $root $path
+        }
+        return [IO.Path]::GetFullPath($path)
+    }
+    catch {
+        return $null
+    }
+}
+
+function Test-IsBaseVfsDataLine {
+    param([string] $Line)
+
+    if ($Line -notmatch "^\s*data\s*=\s*(.+?)\s*$") {
+        return $false
+    }
+    $configuredPath = $Matches[1].Trim()
+    if (($configuredPath.StartsWith('"') -and $configuredPath.EndsWith('"')) -or
+        ($configuredPath.StartsWith("'") -and $configuredPath.EndsWith("'"))) {
+        $configuredPath = $configuredPath.Substring(1, $configuredPath.Length - 2)
+    }
+    $normalizedConfiguredPath = [Environment]::ExpandEnvironmentVariables($configuredPath).Replace("\", "/").TrimEnd("/")
+    if ($normalizedConfiguredPath.Equals("resources/vfs-mw", [StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedConfiguredPath.Equals("./resources/vfs-mw", [StringComparison]::OrdinalIgnoreCase) -or
+        $normalizedConfiguredPath.EndsWith("/resources/vfs-mw", [StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    $resolvedPath = Convert-ToDataPath $configuredPath
+    if ([string]::IsNullOrWhiteSpace($resolvedPath)) {
+        return $false
+    }
+    $normalizedResolvedPath = $resolvedPath.TrimEnd([char[]]"\/")
+    $normalizedBaseVfsPath = $baseVfsAbsolutePath.TrimEnd([char[]]"\/")
+    return [string]::Equals($normalizedResolvedPath, $normalizedBaseVfsPath, [StringComparison]::OrdinalIgnoreCase)
 }
 
 $umoMods = @()
@@ -142,6 +193,9 @@ if (-not (Test-Path -LiteralPath $cfgPath)) {
 }
 if (-not (Test-Path -LiteralPath $fallbackTemplatePath -PathType Leaf)) {
     throw "Could not find canonical Fetcher fallback template: $fallbackTemplatePath"
+}
+if (-not (Test-Path -LiteralPath $baseVfsAbsolutePath -PathType Container)) {
+    throw "Required OpenMW base VFS directory is missing: $baseVfsAbsolutePath. Run the Fetcher client repair, then try again."
 }
 
 $canonicalFallbackLines = @(Get-Content -LiteralPath $fallbackTemplatePath |
@@ -217,6 +271,9 @@ foreach ($line in $existingLines) {
         continue
     }
     if ($insideFetcherBlock) {
+        continue
+    }
+    if (Test-IsBaseVfsDataLine -Line $line) {
         continue
     }
     if ($trimmed -match "^content\s*=") {
@@ -317,7 +374,20 @@ $existingManagedDataEntries = @(@($clientBundleDataEntries) + @($umoDataEntries)
     Where-Object { Test-Path -LiteralPath $_.AbsolutePath })
 
 $newLines = New-Object System.Collections.Generic.List[string]
-$newLines.AddRange([string[]]$filteredLines)
+$baseVfsInserted = $false
+foreach ($line in $filteredLines) {
+    if (-not $baseVfsInserted -and $line.Trim() -match "^data\s*=") {
+        $newLines.Add("data=$baseVfsConfigPath")
+        $baseVfsInserted = $true
+    }
+    $newLines.Add($line)
+}
+if (-not $baseVfsInserted) {
+    if ($newLines.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($newLines[$newLines.Count - 1])) {
+        $newLines.Add("")
+    }
+    $newLines.Add("data=$baseVfsConfigPath")
+}
 $newLines.Add("")
 $newLines.Add($fallbackBeginMarker)
 $newLines.AddRange([string[]]$canonicalFallbackLines)
@@ -381,20 +451,6 @@ finally {
     if (Test-Path -LiteralPath $stagedCfgPath) {
         Remove-Item -LiteralPath $stagedCfgPath -Force
     }
-}
-
-function Convert-ToDataPath {
-    param([string] $Value)
-
-    $path = $Value.Trim()
-    if (($path.StartsWith('"') -and $path.EndsWith('"')) -or ($path.StartsWith("'") -and $path.EndsWith("'"))) {
-        $path = $path.Substring(1, $path.Length - 2)
-    }
-    $path = [Environment]::ExpandEnvironmentVariables($path)
-    if ([System.IO.Path]::IsPathRooted($path)) {
-        return $path
-    }
-    return (Join-Path $root $path)
 }
 
 $dataDirs = New-Object System.Collections.Generic.List[string]
