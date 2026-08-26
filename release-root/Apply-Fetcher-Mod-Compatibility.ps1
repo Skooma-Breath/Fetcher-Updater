@@ -44,6 +44,74 @@ function Resolve-TargetPath {
     return $candidate
 }
 
+function Get-OptionalBoolean {
+    param(
+        [Parameter(Mandatory = $true)] $Object,
+        [Parameter(Mandatory = $true)][string] $Name
+    )
+
+    $property = $Object.PSObject.Properties[$Name]
+    return $null -ne $property -and [bool]$property.Value
+}
+
+function Update-ClientInventoryRecords {
+    param(
+        [Parameter(Mandatory = $true)][string] $Root,
+        [Parameter(Mandatory = $true)] $Updates
+    )
+
+    if ($Updates.Count -eq 0) {
+        return
+    }
+    $inventoryPath = Join-Path $Root "fetcher-client-files.json"
+    if (-not (Test-Path -LiteralPath $inventoryPath -PathType Leaf)) {
+        Write-Warning "Client inventory was not found; compatibility files are patched but a future client update may replace them."
+        return
+    }
+
+    $inventory = Get-Content -LiteralPath $inventoryPath -Raw | ConvertFrom-Json
+    if ([int]$inventory.schemaVersion -ne 1 -or
+        $null -eq $inventory.PSObject.Properties["files"]) {
+        throw "Unsupported Fetcher client inventory: $inventoryPath"
+    }
+
+    $changed = $false
+    foreach ($update in $Updates) {
+        $relativePath = $update.RelativePath.Replace("\", "/")
+        $matches = @($inventory.files | Where-Object {
+            ([string]$_.path).Replace("\", "/").Equals($relativePath, [StringComparison]::OrdinalIgnoreCase)
+        })
+        if ($matches.Count -ne 1) {
+            throw "Expected one client inventory record for $relativePath, found $($matches.Count)."
+        }
+        $record = $matches[0]
+        $recordHash = ([string]$record.sha256).ToLowerInvariant()
+        if ($recordHash -ne $update.SourceHash -and $recordHash -ne $update.OutputHash) {
+            throw "Client inventory contains an unsupported hash for ${relativePath}: $recordHash"
+        }
+        if ($recordHash -ne $update.OutputHash -or [int64]$record.size -ne $update.OutputSize) {
+            $record.sha256 = $update.OutputHash
+            $record.size = $update.OutputSize
+            $changed = $true
+        }
+    }
+
+    if ($changed) {
+        $temporaryPath = "$inventoryPath.$([Guid]::NewGuid().ToString('N')).tmp"
+        try {
+            $json = $inventory | ConvertTo-Json -Depth 8
+            [IO.File]::WriteAllText($temporaryPath, $json + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+            Move-Item -LiteralPath $temporaryPath -Destination $inventoryPath -Force
+        }
+        finally {
+            if (Test-Path -LiteralPath $temporaryPath -PathType Leaf) {
+                Remove-Item -LiteralPath $temporaryPath -Force
+            }
+        }
+        Write-Output "Updated client inventory for compatibility-patched files."
+    }
+}
+
 function Write-ReconstructedFile {
     param(
         [Parameter(Mandatory = $true)] $Record,
@@ -101,6 +169,7 @@ $workRoot = Join-Path $stateRoot ("compatibility-work-" + [Guid]::NewGuid().ToSt
 $stageRoot = Join-Path $workRoot "stage"
 $backupRoot = Join-Path $stateRoot ("compatibility-backups\" + $safeVersion)
 $pending = New-Object System.Collections.Generic.List[object]
+$inventoryUpdates = New-Object System.Collections.Generic.List[object]
 $seen = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
 
 try {
@@ -128,9 +197,21 @@ try {
         $currentHash = Get-Sha256 -Path $targetPath
         if ($currentHash -eq $outputHash) {
             Write-Output "Already patched: $($record.path)"
+            if (Get-OptionalBoolean -Object $record -Name "updateClientInventory") {
+                $inventoryUpdates.Add([pscustomobject]@{
+                    RelativePath = $relativePath
+                    SourceHash = $sourceHash
+                    OutputHash = $outputHash
+                    OutputSize = [int64]$record.outputSize
+                })
+            }
             continue
         }
         if ($currentHash -ne $sourceHash) {
+            if (Get-OptionalBoolean -Object $record -Name "allowUnknownSource") {
+                Write-Output "Compatibility patch does not apply to this file version; skipping: $($record.path)"
+                continue
+            }
             throw "Unsupported or locally modified mod file: $($record.path) (sha256=$currentHash)"
         }
 
@@ -149,6 +230,9 @@ try {
             TargetPath = $targetPath
             StagedPath = $stagedPath
             OutputHash = $outputHash
+            SourceHash = $sourceHash
+            OutputSize = [int64]$record.outputSize
+            UpdateClientInventory = Get-OptionalBoolean -Object $record -Name "updateClientInventory"
         })
     }
 
@@ -175,6 +259,14 @@ try {
                     throw "Installed compatibility output failed verification: $($item.RelativePath)"
                 }
                 Write-Output "Applied compatibility patch: $($item.RelativePath)"
+                if ($item.UpdateClientInventory) {
+                    $inventoryUpdates.Add([pscustomobject]@{
+                        RelativePath = $item.RelativePath
+                        SourceHash = $item.SourceHash
+                        OutputHash = $item.OutputHash
+                        OutputSize = $item.OutputSize
+                    })
+                }
             }
         }
         catch {
@@ -187,6 +279,8 @@ try {
             throw
         }
     }
+
+    Update-ClientInventoryRecords -Root $root -Updates $inventoryUpdates
 
     Write-Output "Fetcher mod compatibility patch $($manifest.patchVersion) completed successfully."
 }

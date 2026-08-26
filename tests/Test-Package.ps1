@@ -404,9 +404,24 @@ try {
     Copy-Item -LiteralPath $configScriptPath -Destination (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1")
     Copy-Item -LiteralPath $canonicalFallbackPath -Destination (Join-Path $configFixtureRoot "fetcher-canonical-fallbacks.cfg")
     $legacyFallbacks = @($canonicalFallbackLines | Select-Object -First 492)
+    $fixtureDataRoot = Join-Path $configFixtureRoot "Data Files"
+    New-Item -ItemType Directory -Force -Path $fixtureDataRoot | Out-Null
+    foreach ($fixtureContent in @(
+        "Morrowind.esm",
+        "Tribunal.esm",
+        "Bloodmoon.esm",
+        "surf_mesa_mw.omwaddon",
+        "surf_utopia_mw.omwaddon",
+        "surf_kitsune.omwaddon",
+        "surf_kitsune.omwscripts",
+        "surf_kitsune2.omwaddon",
+        "mp_phase7_test.omwscripts",
+        "FetcherVehicles.omwaddon"
+    )) {
+        Set-Content -LiteralPath (Join-Path $fixtureDataRoot $fixtureContent) -Value "fixture" -Encoding ASCII
+    }
     $fixtureConfigLines = @(
-        'data="./resources/vfs-mw"',
-        'data="./Data Files"'
+        'data="./resources/vfs-mw"'
     ) + $legacyFallbacks + @(
         'fallback=Fetcher_Test_NonCanonical,1',
         'content=OldNonCanonicalPlugin.esp'
@@ -437,6 +452,20 @@ try {
         @($repairedConfigLines | Where-Object { $_ -eq '# END Fetcher Simulator canonical fallbacks' }).Count -ne 1) {
         throw "Public-test config repair did not emit exactly one bounded canonical fallback block."
     }
+    if (@($repairedConfigLines | Where-Object { $_ -eq 'data=./Data Files' }).Count -ne 1) {
+        throw "Public-test config repair did not restore the Fetcher client mod bundle data path."
+    }
+    Remove-Item -LiteralPath (Join-Path $fixtureDataRoot "FetcherVehicles.omwaddon") -Force
+    $strictConfigRejectedMissingContent = $false
+    try {
+        & (Join-Path $configFixtureRoot "Apply-Fetcher-Public-Test-Config.ps1") 6>$null
+    }
+    catch {
+        $strictConfigRejectedMissingContent = $true
+    }
+    if (-not $strictConfigRejectedMissingContent) {
+        throw "Strict public-test config repair reported success with required content missing."
+    }
 
     $configScript = Get-Content -LiteralPath $configScriptPath -Raw
     $fduPosition = $configScript.IndexOf('"FollowerDetectionUtil.omwscripts"', [StringComparison]::Ordinal)
@@ -462,7 +491,7 @@ try {
     $managedCompatibilityManifestPath = Join-Path $workRoot "fetcher-mod-compatibility-patches.json"
     $managedCompatibilityManifest = Get-Content -LiteralPath $managedCompatibilityManifestPath -Raw | ConvertFrom-Json
     if ([int]$managedCompatibilityManifest.formatVersion -ne 1 -or
-        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.04") {
+        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.25") {
         throw "Package has an unsupported managed mod compatibility manifest."
     }
     $expectedManagedOutputs = [ordered]@{
@@ -474,9 +503,10 @@ try {
         "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
         "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
         "Data Files/fetcher-bardcraft/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
+        "resources/vfs/scripts/omw/input/playercontrols.lua" = "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989"
     }
     if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {
-        throw "Managed mod compatibility manifest does not contain the expected eight Lua patches."
+        throw "Managed compatibility manifest does not contain the expected nine Lua patches."
     }
     foreach ($record in @($managedCompatibilityManifest.files)) {
         $relativePath = (ConvertTo-SafeRelativePath -Path ([string]$record.path)).Replace("\", "/")
@@ -490,6 +520,15 @@ try {
             @($record.operations).Count -eq 0) {
             throw "Managed mod compatibility record is incomplete: $relativePath"
         }
+    }
+    $playerControlsCompatibility = @($managedCompatibilityManifest.files | Where-Object {
+        ([string]$_.path).Replace("\", "/") -eq "resources/vfs/scripts/omw/input/playercontrols.lua"
+    })[0]
+    if ([string]$playerControlsCompatibility.sourceSha256 -ne "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa" -or
+        [int64]$playerControlsCompatibility.sourceSize -ne 10384 -or
+        -not [bool]$playerControlsCompatibility.allowUnknownSource -or
+        -not [bool]$playerControlsCompatibility.updateClientInventory) {
+        throw "Player-controls compatibility patch is not safely scoped to the released 25564 client mismatch."
     }
 
     $managedFixtureRoot = Join-Path $workRoot "managed-compatibility-fixture"
@@ -508,6 +547,18 @@ try {
     }
     $managedFixtureManifestPath = Join-Path $workRoot "managed-compatibility-fixture.json"
     [ordered]@{
+        schemaVersion = 1
+        protectionPolicyVersion = 1
+        clientCommit = ("a" * 40)
+        generatedAtUtc = [DateTime]::UtcNow.ToString("o")
+        files = @([ordered]@{
+            path = "Data Files/fixture/script.lua"
+            size = $managedSourceBytes.Length
+            sha256 = $managedSourceHash
+        })
+    } | ConvertTo-Json -Depth 8 |
+        Set-Content -LiteralPath (Join-Path $managedFixtureRoot "fetcher-client-files.json") -Encoding UTF8
+    [ordered]@{
         formatVersion = 1
         patchVersion = "fixture"
         files = @([ordered]@{
@@ -516,6 +567,7 @@ try {
             sourceSize = $managedSourceBytes.Length
             outputSha256 = $managedOutputHash
             outputSize = $managedOutputBytes.Length
+            updateClientInventory = $true
             operations = @([ordered]@{ data = [Convert]::ToBase64String($managedOutputBytes) })
         })
     } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $managedFixtureManifestPath -Encoding UTF8
@@ -523,6 +575,12 @@ try {
     & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
     if ((Get-FileHash -LiteralPath $managedFixtureTarget -Algorithm SHA256).Hash.ToLowerInvariant() -ne $managedOutputHash) {
         throw "Managed mod compatibility fixture did not install its verified output."
+    }
+    $managedFixtureInventoryRecord = @(Get-Content -LiteralPath (Join-Path $managedFixtureRoot "fetcher-client-files.json") -Raw |
+        ConvertFrom-Json | Select-Object -ExpandProperty files)[0]
+    if ([string]$managedFixtureInventoryRecord.sha256 -ne $managedOutputHash -or
+        [int64]$managedFixtureInventoryRecord.size -ne $managedOutputBytes.Length) {
+        throw "Managed compatibility fixture did not update the client inventory for its patched output."
     }
     & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
     $managedBackupPath = Join-Path $managedFixtureRoot "_fetcher_update\compatibility-backups\fixture\Data Files\fixture\script.lua"
@@ -541,6 +599,11 @@ try {
     if (-not $managedRejectedLocalEdit) {
         throw "Managed mod compatibility fixture did not reject an unknown local edit."
     }
+    $managedForwardCompatibleManifest = Get-Content -LiteralPath $managedFixtureManifestPath -Raw | ConvertFrom-Json
+    $managedForwardCompatibleManifest.files[0] | Add-Member -NotePropertyName allowUnknownSource -NotePropertyValue $true
+    $managedForwardCompatibleManifest | ConvertTo-Json -Depth 8 |
+        Set-Content -LiteralPath $managedFixtureManifestPath -Encoding UTF8
+    & $managedCompatibilityScriptPath -InstallRoot $managedFixtureRoot -ManifestPath $managedFixtureManifestPath | Out-Null
 
     $managedUnsafeManifestPath = Join-Path $workRoot "managed-compatibility-unsafe.json"
     [ordered]@{

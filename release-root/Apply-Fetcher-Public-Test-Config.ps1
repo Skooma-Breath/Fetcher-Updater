@@ -1,3 +1,8 @@
+[CmdletBinding()]
+param(
+    [switch] $AllowMissingContent
+)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -299,7 +304,16 @@ foreach ($line in $filteredLines) {
 
 $umoDataEntries = @(Get-UmoDataPathEntries)
 $patchDataEntries = @(Get-PatchDataPathEntries)
-$existingManagedDataEntries = @(@($umoDataEntries) + @($patchDataEntries) |
+$clientBundleDataEntries = @()
+$clientBundleDataRoot = Join-Path $root "Data Files"
+if (Test-Path -LiteralPath $clientBundleDataRoot -PathType Container) {
+    $clientBundleDataEntries = @([pscustomobject]@{
+        ModName = "Fetcher client mod bundle"
+        ConfigPath = "./Data Files"
+        AbsolutePath = $clientBundleDataRoot
+    })
+}
+$existingManagedDataEntries = @(@($clientBundleDataEntries) + @($umoDataEntries) + @($patchDataEntries) |
     Where-Object { Test-Path -LiteralPath $_.AbsolutePath })
 
 $newLines = New-Object System.Collections.Generic.List[string]
@@ -431,6 +445,9 @@ if ($missing.Count -gt 0) {
     }
     Write-Host ""
     Write-Host "Install the missing mods or add the correct data= folders to openmw.cfg, then run this BAT again."
+    if (-not $AllowMissingContent) {
+        throw "Required Fetcher content is unresolved in openmw.cfg: $($missing -join ', ')"
+    }
 } else {
     Write-Host ""
     Write-Host "All required content files were found in configured data= folders."

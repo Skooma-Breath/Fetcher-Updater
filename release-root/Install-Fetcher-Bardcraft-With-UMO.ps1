@@ -720,7 +720,7 @@ if ($ApplyPublicTestConfig) {
     if (Test-Path -LiteralPath $applyConfig) {
         Write-Host ""
         Write-Host "Applying Fetcher public test OpenMW load order..."
-        & $applyConfig
+        & $applyConfig -AllowMissingContent
     }
     else {
         Write-Warning "Could not find Apply-Fetcher-Public-Test-Config.ps1. Run Apply-Fetcher-Public-Test-Config.bat manually after installing mods."

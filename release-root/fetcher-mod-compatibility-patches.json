@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "patchVersion": "2026.08.04",
+  "patchVersion": "2026.08.25",
   "files": [
     {
       "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",
@@ -670,6 +670,49 @@
         },
         {
           "data": "fQ0K"
+        }
+      ]
+    },
+    {
+      "path": "resources/vfs/scripts/omw/input/playercontrols.lua",
+      "sourceSha256": "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa",
+      "sourceSize": 10384,
+      "outputSha256": "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989",
+      "outputSize": 10380,
+      "allowUnknownSource": true,
+      "updateClientInventory": true,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 2237
+        },
+        {
+          "data": "Cg=="
+        },
+        {
+          "copyOffset": 2239,
+          "copyLength": 2198
+        },
+        {
+          "data": "Cg=="
+        },
+        {
+          "copyOffset": 4439,
+          "copyLength": 4131
+        },
+        {
+          "data": "Cg=="
+        },
+        {
+          "copyOffset": 8572,
+          "copyLength": 3
+        },
+        {
+          "data": "Cg=="
+        },
+        {
+          "copyOffset": 8577,
+          "copyLength": 1807
         }
       ]
     }
