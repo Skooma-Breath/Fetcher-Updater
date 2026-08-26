@@ -230,6 +230,17 @@ try {
     }
 
     $requiredUmoMods = @(
+        # Tamriel Data 25.05 is intentionally pinned. Nexus reuses the
+        # "Tamriel Data (Vanilla)" display name for old releases, and an
+        # unpinned name-only lookup can resolve to v8.0's incompatible
+        # "00 Core" layout instead of the required "00 Data Files" layout.
+        [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/44537"
+            FileIds = @(1000052327)
+            DataPaths = @("TamrielData/00 Data Files")
+            Plugins = @("Tamriel_Data.esm", "Tamriel_Data.omwscripts")
+            Pinned = $true
+        },
         [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/58053"
             FileIds = @(1000067256)

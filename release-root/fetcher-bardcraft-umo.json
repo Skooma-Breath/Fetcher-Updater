@@ -17,8 +17,8 @@
         "direct_download": null,
         "file_name": "Tamriel Data (Vanilla)",
         "extract_to": "TamrielData",
-        "nexus_file_id": null,
-        "pinned": false,
+        "nexus_file_id": 1000052327,
+        "pinned": true,
         "actions": []
       }
     ],
