@@ -441,6 +441,46 @@ function Invoke-Checked {
     }
 }
 
+function ConvertTo-UmoCacheKey {
+    param([Parameter(Mandatory = $true)][string] $Value)
+    $result = $Value
+    foreach ($token in @(' ', '-', '_', '(', ')', "'", '.', ':')) { $result = $result.Replace($token, '') }
+    return $result
+}
+
+function Repair-UmoPinnedInstalledDescriptorsAfterSync {
+    param(
+        [Parameter(Mandatory = $true)][string] $UmoExecutable,
+        [Parameter(Mandatory = $true)][string] $ListPath,
+        [Parameter(Mandatory = $true)][string] $ListName
+    )
+    $mods = @(Get-Content -Raw -LiteralPath $ListPath | ConvertFrom-Json)
+    $listKey = $ListName
+    $repaired = 0
+    foreach ($mod in $mods) {
+        $modKey = ConvertTo-UmoCacheKey -Value ([string] $mod.name)
+        foreach ($download in @($mod.download_info)) {
+            if ($null -eq $download -or -not [bool] $download.pinned) { continue }
+            $fileName = [string] $download.file_name
+            $nexusFileId = [string] $download.nexus_file_id
+            if ([string]::IsNullOrWhiteSpace($fileName) -or [string]::IsNullOrWhiteSpace($nexusFileId)) { continue }
+            $archiveKey = ConvertTo-UmoCacheKey -Value $fileName
+            $entryPath = "$listKey.$modKey.$archiveKey"
+            $existing = (& $UmoExecutable cache query installed "$entryPath.mod_data" 2>$null | Out-String).Trim()
+            if ($LASTEXITCODE -ne 0) { throw "Could not query UMO installed cache for '$fileName'." }
+            if ([string]::IsNullOrWhiteSpace($existing) -or $existing -eq 'null') { continue }
+            & $UmoExecutable cache patch installed "$entryPath.mod_data.pinned" 'true' | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Could not restore UMO pinned state for '$fileName'." }
+            $id = 0L
+            if (-not [long]::TryParse($nexusFileId, [ref] $id)) { throw "Pinned UMO archive '$fileName' has invalid nexus_file_id '$nexusFileId'." }
+            & $UmoExecutable cache patch installed "$entryPath.mod_data.nexus_file_id" $id.ToString([Globalization.CultureInfo]::InvariantCulture) | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Could not restore UMO Nexus file id for '$fileName'." }
+            $repaired++
+        }
+    }
+    if ($repaired -gt 0) { Write-Host "Restored $repaired pinned UMO installed-cache descriptor(s) after metadata sync." }
+}
+
 function Test-UmoNxmHandler {
     param([Parameter(Mandatory = $true)][string] $UmoExecutable)
 
@@ -698,6 +738,8 @@ Write-Host "Syncing UMO mod metadata..."
 Invoke-Checked -Description "umo sync $ModListName" -Command {
     & $umo sync $ModListName --skip-momw
 }
+
+Repair-UmoPinnedInstalledDescriptorsAfterSync -UmoExecutable $umo -ListPath $ModListFile -ListName $ModListName
 
 Write-Host ""
 Write-Host "Installing UMO modlist. Non-premium Nexus users may need to click the Nexus download pages that UMO opens."

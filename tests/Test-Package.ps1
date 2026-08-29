@@ -336,6 +336,19 @@ try {
         }
     )
 
+    $umoInstallerPath = Join-Path $workRoot "Install-Fetcher-Bardcraft-With-UMO.ps1"
+    $umoInstallerSource = Get-Content -LiteralPath $umoInstallerPath -Raw
+    $syncIndex = $umoInstallerSource.IndexOf('& $umo sync $ModListName --skip-momw', [StringComparison]::Ordinal)
+    $repairIndex = $umoInstallerSource.IndexOf('Repair-UmoPinnedInstalledDescriptorsAfterSync -UmoExecutable $umo', [StringComparison]::Ordinal)
+    $installIndex = $umoInstallerSource.IndexOf('& $umo install $ModListName', [StringComparison]::Ordinal)
+    if ($syncIndex -lt 0 -or $repairIndex -le $syncIndex -or $installIndex -le $repairIndex) {
+        throw "UMO pinned-cache workaround is not ordered as sync -> repair -> install."
+    }
+    if (-not $umoInstallerSource.Contains('cache query installed "$entryPath.mod_data"') -or
+        -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.pinned"') -or
+        -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.nexus_file_id"')) {
+        throw "UMO pinned-cache workaround is missing required installed-cache repair operations."
+    }
     foreach ($expected in $requiredUmoMods) {
         $matches = @($umoMods | Where-Object { [string]$_.url -eq [string]$expected.Url })
         if ($matches.Count -ne 1) {
