@@ -338,24 +338,21 @@ try {
 
     $umoInstallerPath = Join-Path $workRoot "Install-Fetcher-Bardcraft-With-UMO.ps1"
     $umoInstallerSource = Get-Content -LiteralPath $umoInstallerPath -Raw
+    $checkIndex = $umoInstallerSource.IndexOf('Invoke-Checked -Description "umo check"', [StringComparison]::Ordinal)
+    $patchIndex = $umoInstallerSource.IndexOf('Apply-UmoInstalledDescriptorComparisonPatch -UmoExecutable $umo', [StringComparison]::Ordinal)
     $syncIndex = $umoInstallerSource.IndexOf('& $umo sync $ModListName --skip-momw', [StringComparison]::Ordinal)
-    $repairIndex = $umoInstallerSource.IndexOf('Repair-UmoPinnedInstalledDescriptorsAfterSync -UmoExecutable $umo', [StringComparison]::Ordinal)
     $installIndex = $umoInstallerSource.IndexOf('& $umo install $ModListName', [StringComparison]::Ordinal)
-    if ($syncIndex -lt 0 -or $repairIndex -le $syncIndex -or $installIndex -le $repairIndex) {
-        throw "UMO pinned-cache workaround is not ordered as sync -> repair -> install."
+    if ($checkIndex -lt 0 -or $patchIndex -le $checkIndex -or $syncIndex -le $patchIndex -or $installIndex -le $syncIndex) {
+        throw "UMO installed-descriptor fix is not ordered as check -> patch -> sync -> install."
     }
-    if (-not $umoInstallerSource.Contains('$parsedMods -is [System.Array]') -or
-        -not $umoInstallerSource.Contains('@($parsedMods | ForEach-Object { $_ })')) {
-        throw "UMO pinned-cache workaround does not explicitly enumerate array modlists."
+    if (-not $umoInstallerSource.Contains('imod_data = copy.deepcopy(installed.get("mod_data"))') -or
+        -not $umoInstallerSource.Contains('import copy$newline') -or
+        -not $umoInstallerSource.Contains('"umo\handlers.py"')) {
+        throw "UMO installed-descriptor fix is missing the required deep-copy source patch."
     }
-    $expectedQuotedListKey = '$listKey = ''"'' + $ListName + ''"'''
-    if (-not $umoInstallerSource.Contains($expectedQuotedListKey)) {
-        throw "UMO pinned-cache workaround does not JSONPath-quote the hyphenated modlist cache key."
-    }
-    if (-not $umoInstallerSource.Contains('cache query installed "$entryPath.mod_data"') -or
-        -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.pinned"') -or
-        -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.nexus_file_id"')) {
-        throw "UMO pinned-cache workaround is missing required installed-cache repair operations."
+    if ($umoInstallerSource.Contains('Repair-UmoPinnedInstalledDescriptorsAfterSync') -or
+        $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.pinned"')) {
+        throw "Legacy UMO cache-repair workaround is still present."
     }
     foreach ($expected in $requiredUmoMods) {
         $matches = @($umoMods | Where-Object { [string]$_.url -eq [string]$expected.Url })
