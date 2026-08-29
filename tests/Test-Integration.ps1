@@ -301,6 +301,9 @@ function Start-TestServer {
                     else {
                         $route = $property.Value
                         $context.Response.ContentType = [string]$route.contentType
+                        if ($null -ne $route.PSObject.Properties["statusCode"]) {
+                            $context.Response.StatusCode = [int]$route.statusCode
+                        }
                         if ($null -ne $route.PSObject.Properties["file"]) {
                             $bytes = [IO.File]::ReadAllBytes([string]$route.file)
                         }
@@ -596,6 +599,38 @@ Write-Host "Fake UMO invocation $count"
     Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
     Set-TestRoutes -Path $routesPath -Routes @{}
     $server = Start-TestServer -RoutesPath $routesPath -LogPath $logPath
+
+    # GitHub's unauthenticated API can return 403 when a shared IP exhausts its
+    # rate limit. Existing verified tester tools and client-mod payloads must
+    # remain usable instead of making Full Mod Check / Repair fail outright.
+    $rateLimitBody = (@{
+        message = "API rate limit exceeded for integration-test IP."
+        documentation_url = "https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"
+    } | ConvertTo-Json -Compress)
+    $rateLimitRoutes = @{
+        "/repos/Skooma-Breath/Fetcher-Updater/releases/tags/fetcher-tester-tools" = @{
+            contentType = "application/json"
+            statusCode = 403
+            body = $rateLimitBody
+        }
+        "/repos/Skooma-Breath/Fetcher-Updater/releases/tags/openmw-client-mods-mp-clients" = @{
+            contentType = "application/json"
+            statusCode = 403
+            body = $rateLimitBody
+        }
+    }
+    Set-TestRoutes -Path $routesPath -Routes $rateLimitRoutes
+    $rateLimitedToolsOutput = & (Join-Path $releaseRoot "Install-Fetcher-Tester-Tools.ps1") `
+        -InstallRoot $freshRoot -GitHubApiBaseUrl $server.Prefix `
+        -GitHubDownloadBaseUrl $server.Prefix -SkipClientModBundle -SkipUpdater 3>&1 6>&1 | Out-String
+    Assert-True -Condition ($rateLimitedToolsOutput -match "Reusing the locally verified tester tools") `
+        -Message "Rate-limited tester-tools refresh did not reuse the verified local package."
+    $rateLimitedBundleOutput = & $clientModInstaller -InstallRoot $freshRoot `
+        -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
+        -SkipIfCurrent 3>&1 6>&1 | Out-String
+    Assert-True -Condition ($rateLimitedBundleOutput -match "Keeping the locally verified client mod bundle") `
+        -Message "Rate-limited client-mod refresh did not reuse the verified local receipt."
+    Set-TestRoutes -Path $routesPath -Routes @{}
 
     # Existing installations can keep passing legacy -Repository for the client;
     # the bridge updater still resolves tester tools against Fetcher-Updater.

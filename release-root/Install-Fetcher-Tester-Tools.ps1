@@ -60,6 +60,87 @@ function ConvertTo-SafeRelativePath {
     return ($segments -join "/")
 }
 
+function Test-GitHubApiRateLimitFailure {
+    param([Parameter(Mandatory = $true)] $ErrorRecord)
+
+    $text = ($ErrorRecord | Out-String)
+    if ($text -match "(?i)API rate limit exceeded" -or $text -match "(?i)rate limit exceeded") {
+        return $true
+    }
+    try {
+        $statusCode = [int]$ErrorRecord.Exception.Response.StatusCode
+        if ($statusCode -eq 403 -or $statusCode -eq 429) {
+            return $true
+        }
+    }
+    catch {
+    }
+    return $false
+}
+
+function Test-InstalledTesterToolsManifest {
+    param([Parameter(Mandatory = $true)][string] $Root)
+
+    $manifestPath = Join-Path $Root "fetcher-tester-tools.json"
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        return $false
+    }
+
+    try {
+        $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+        if ([int]$manifest.schemaVersion -ne 1 -or
+            [string]$manifest.channel -ne "fetcher-simulator-test" -or
+            [string]$manifest.sourceCommit -notmatch "^[0-9a-fA-F]{40}$" -or
+            $null -eq $manifest.PSObject.Properties["files"] -or
+            @($manifest.files).Count -eq 0) {
+            return $false
+        }
+
+        foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
+            $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
+            if ($relativePath.Equals("fetcher-tester-tools.json", [StringComparison]::OrdinalIgnoreCase) -or
+                [int64]$record.size -lt 0 -or
+                [string]$record.sha256 -notmatch "^[0-9a-fA-F]{64}$") {
+                return $false
+            }
+
+            $installedPath = Join-Path $Root $relativePath.Replace("/", "\")
+            if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf) -or
+                (Get-Item -LiteralPath $installedPath).Length -ne [int64]$record.size -or
+                (Get-FileHash -LiteralPath $installedPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne ([string]$record.sha256).ToLowerInvariant()) {
+                return $false
+            }
+        }
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+function New-VerifiedInstalledTesterToolsArchive {
+    param(
+        [Parameter(Mandatory = $true)][string] $Root,
+        [Parameter(Mandatory = $true)][string] $DestinationPath,
+        [Parameter(Mandatory = $true)][string] $StageRoot
+    )
+
+    $manifestPath = Join-Path $Root "fetcher-tester-tools.json"
+    $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+    New-Item -ItemType Directory -Force -Path $StageRoot | Out-Null
+    Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $StageRoot "fetcher-tester-tools.json") -Force
+
+    foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
+        $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
+        $source = Join-Path $Root $relativePath.Replace("/", "\")
+        $destination = Join-Path $StageRoot $relativePath.Replace("/", "\")
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+        Copy-Item -LiteralPath $source -Destination $destination -Force
+    }
+
+    Compress-Archive -Path (Join-Path $StageRoot "*") -DestinationPath $DestinationPath -CompressionLevel Optimal
+}
+
 $root = Select-InstallRoot
 if (-not (Test-Path -LiteralPath (Join-Path $root "openmw.exe") -PathType Leaf)) {
     throw "The selected folder does not contain openmw.exe: $root"
@@ -76,7 +157,18 @@ try {
     else {
         $encodedTag = [Uri]::EscapeDataString($ReleaseTag)
         $releaseUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$TesterToolsRepository/releases/tags/$encodedTag"
-        $release = Invoke-RestMethod -UseBasicParsing -Uri $releaseUrl -Headers $headers
+        $release = $null
+        try {
+            $release = Invoke-RestMethod -UseBasicParsing -Uri $releaseUrl -Headers $headers
+        }
+        catch {
+            if ((Test-GitHubApiRateLimitFailure -ErrorRecord $_) -and (Test-InstalledTesterToolsManifest -Root $root)) {
+                Write-Warning "GitHub API rate limit reached while checking tester tools. Reusing the locally verified tester tools and deferring the remote freshness check."
+                New-VerifiedInstalledTesterToolsArchive -Root $root -DestinationPath $archivePath -StageRoot (Join-Path $workRoot "installed-tools")
+            }
+            else { throw }
+        }
+        if ($null -ne $release) {
         $asset = @($release.assets | Where-Object { [string]$_.name -eq $AssetName })
         if ($asset.Count -ne 1 -or [string]$asset[0].digest -notmatch "^sha256:([0-9a-fA-F]{64})$") {
             throw "The $ReleaseTag release does not contain one digest-backed $AssetName asset."
@@ -87,6 +179,7 @@ try {
         $actualHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
         if ($actualHash -ne $expectedHash) {
             throw "Tester tools checksum mismatch. Expected $expectedHash, got $actualHash."
+        }
         }
     }
 

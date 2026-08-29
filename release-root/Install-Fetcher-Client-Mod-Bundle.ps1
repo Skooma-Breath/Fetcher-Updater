@@ -43,6 +43,24 @@ function ConvertTo-SafeRelativePath {
     return ($segments -join "/")
 }
 
+function Test-GitHubApiRateLimitFailure {
+    param([Parameter(Mandatory = $true)] $ErrorRecord)
+
+    $text = ($ErrorRecord | Out-String)
+    if ($text -match "(?i)API rate limit exceeded" -or $text -match "(?i)rate limit exceeded") {
+        return $true
+    }
+    try {
+        $statusCode = [int]$ErrorRecord.Exception.Response.StatusCode
+        if ($statusCode -eq 403 -or $statusCode -eq 429) {
+            return $true
+        }
+    }
+    catch {
+    }
+    return $false
+}
+
 function Test-InstalledBundleReceipt {
     param(
         [Parameter(Mandatory = $true)][string] $Root,
@@ -117,7 +135,22 @@ try {
     else {
         $encodedTag = [Uri]::EscapeDataString($ReleaseTag)
         $releaseUrl = "$($GitHubApiBaseUrl.TrimEnd('/'))/repos/$Repository/releases/tags/$encodedTag"
-        $release = Invoke-RestMethod -UseBasicParsing -Uri $releaseUrl -Headers $headers
+        try {
+            $release = Invoke-RestMethod -UseBasicParsing -Uri $releaseUrl -Headers $headers
+        }
+        catch {
+            if (Test-GitHubApiRateLimitFailure -ErrorRecord $_) {
+                try {
+                    $recordedReceipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
+                    $recordedDigest = [string]$recordedReceipt.assetDigest
+                    if ($recordedDigest -match "^sha256:[0-9a-fA-F]{64}$" -and (Test-InstalledBundleReceipt -Root $root -ReceiptPath $receiptPath -ExpectedDigest $recordedDigest)) {
+                        Write-Warning "GitHub API rate limit reached while checking Fetcher client mods. Keeping the locally verified client mod bundle and deferring the remote freshness check."
+                        return
+                    }
+                } catch {}
+            }
+            throw
+        }
         $assets = @($release.assets | Where-Object { [string]$_.name -eq $AssetName })
         if ($assets.Count -ne 1 -or [string]$assets[0].digest -notmatch "^sha256:([0-9a-fA-F]{64})$") {
             throw "The $ReleaseTag release does not contain one digest-backed $AssetName asset."

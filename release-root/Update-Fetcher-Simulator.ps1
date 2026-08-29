@@ -95,6 +95,24 @@ function ConvertTo-DateTimeOffsetPreservingKind {
         [Globalization.DateTimeStyles]::RoundtripKind)
 }
 
+function Test-GitHubApiRateLimitFailure {
+    param([Parameter(Mandatory = $true)] $ErrorRecord)
+
+    $text = ($ErrorRecord | Out-String)
+    if ($text -match "(?i)API rate limit exceeded" -or $text -match "(?i)rate limit exceeded") {
+        return $true
+    }
+    try {
+        $statusCode = [int]$ErrorRecord.Exception.Response.StatusCode
+        if ($statusCode -eq 403 -or $statusCode -eq 429) {
+            return $true
+        }
+    }
+    catch {
+    }
+    return $false
+}
+
 function Invoke-WithRetry {
     param(
         [Parameter(Mandatory = $true)][scriptblock] $Action,
@@ -107,6 +125,7 @@ function Invoke-WithRetry {
             return & $Action
         }
         catch {
+            if (Test-GitHubApiRateLimitFailure -ErrorRecord $_) { throw }
             if ($attempt -eq $Attempts) {
                 throw
             }
@@ -648,7 +667,7 @@ function Test-ClientModPatchCurrent {
         [Parameter(Mandatory = $true)][string] $Root,
         [Parameter(Mandatory = $true)] $Patch,
         [Parameter(Mandatory = $true)][string] $TargetRoot,
-        [Parameter(Mandatory = $true)] $Asset,
+        $Asset = $null,
         [Parameter(Mandatory = $true)][hashtable] $PatchStates
     )
 
@@ -658,7 +677,8 @@ function Test-ClientModPatchCurrent {
     }
     $state = $PatchStates[$patchId]
     $knownDigest = Get-OptionalStringProperty -Object $state -Name "assetDigest"
-    if ([string]::IsNullOrWhiteSpace($knownDigest) -or
+    if ($knownDigest -notmatch "^sha256:[0-9a-fA-F]{64}$") { return $false }
+    if ($null -ne $Asset -and
         -not $knownDigest.Equals([string]$Asset.Digest, [StringComparison]::OrdinalIgnoreCase)) {
         return $false
     }
@@ -729,9 +749,21 @@ function Install-ClientModPatch {
         throw "Patch $($Patch.id) does not declare its release repository."
     }
 
-    $release = Get-GitHubRelease -Tag ([string]$Patch.releaseTag) -ReleaseRepository $patchRepository
-    $asset = Get-ReleaseAsset -Release $release -AssetName ([string]$Patch.assetName) `
-        -ReleaseTag ([string]$Patch.releaseTag) -ReleaseRepository $patchRepository
+    $asset = $null
+    try {
+        $release = Get-GitHubRelease -Tag ([string]$Patch.releaseTag) -ReleaseRepository $patchRepository
+        $asset = Get-ReleaseAsset -Release $release -AssetName ([string]$Patch.assetName) `
+            -ReleaseTag ([string]$Patch.releaseTag) -ReleaseRepository $patchRepository
+    }
+    catch {
+        if ((Test-GitHubApiRateLimitFailure -ErrorRecord $_) -and
+            (Test-ClientModPatchCurrent -Root $Root -Patch $Patch -TargetRoot $targetRoot -PatchStates $PatchStates)) {
+            $currentState = $PatchStates[[string]$Patch.id]
+            Write-Warning "GitHub API rate limit reached while checking $($Patch.name). Keeping the locally verified patch $(Get-OptionalStringProperty -Object $currentState -Name 'patchVersion') and deferring the remote freshness check."
+            return
+        }
+        throw
+    }
     if (Test-ClientModPatchCurrent -Root $Root -Patch $Patch -TargetRoot $targetRoot `
         -Asset $asset -PatchStates $PatchStates) {
         $currentState = $PatchStates[[string]$Patch.id]
@@ -1475,11 +1507,28 @@ try {
 
     if (-not $SkipClientUpdate) {
         Write-Host "Checking Fetcher Simulator client release..."
-        $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag -ReleaseRepository $ClientRepository
-        $clientAsset = Get-ReleaseAsset -Release $clientRelease -AssetName $ClientAssetName `
-            -ReleaseTag $ClientReleaseTag -ReleaseRepository $ClientRepository
-        $remoteCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag `
-            -ReleaseRepository $ClientRepository
+        $clientRemoteVerified = $true
+        try {
+            $clientRelease = Get-GitHubRelease -Tag $ClientReleaseTag -ReleaseRepository $ClientRepository
+            $clientAsset = Get-ReleaseAsset -Release $clientRelease -AssetName $ClientAssetName `
+                -ReleaseTag $ClientReleaseTag -ReleaseRepository $ClientRepository
+            $remoteCommit = Resolve-ReleaseCommit -Release $clientRelease -Tag $ClientReleaseTag `
+                -ReleaseRepository $ClientRepository
+        }
+        catch {
+            if (Test-GitHubApiRateLimitFailure -ErrorRecord $_) {
+                $cachedCommit = if ($clientState.Contains("commit")) { [string]$clientState["commit"] } else { "" }
+                $cachedDigest = if ($clientState.Contains("assetDigest")) { [string]$clientState["assetDigest"] } else { "" }
+                $cachedTag = if ($clientState.Contains("releaseTag")) { [string]$clientState["releaseTag"] } else { "" }
+                $cachedAsset = if ($clientState.Contains("assetName")) { [string]$clientState["assetName"] } else { "" }
+                if ($cachedCommit -match "^[0-9a-fA-F]{40}$" -and $cachedDigest -match "^sha256:[0-9a-fA-F]{64}$" -and $cachedTag -eq $ClientReleaseTag -and $cachedAsset -eq $ClientAssetName -and (Get-InstalledClientCommit -Root $root) -eq $cachedCommit -and (Get-InstalledClientInventoryCommit -Root $root) -eq $cachedCommit) {
+                    $remoteCommit = $cachedCommit
+                    $clientAsset = [pscustomobject]@{ Digest = $cachedDigest }
+                    $clientRemoteVerified = $false
+                    Write-Warning "GitHub API rate limit reached while checking the client. Installed commit $cachedCommit matches the last verified release state; deferring the remote freshness check."
+                } else { throw }
+            } else { throw }
+        }
         $localCommit = Get-InstalledClientCommit -Root $root
         $installedInventoryCommit = Get-InstalledClientInventoryCommit -Root $root
         $knownAssetDigest = if ($clientState.Contains("assetDigest")) { [string]$clientState["assetDigest"] } else { "" }
@@ -1497,7 +1546,7 @@ try {
             releaseTag = $ClientReleaseTag
             assetName = $ClientAssetName
             assetDigest = $clientAsset.Digest
-            checkedAtUtc = [DateTime]::UtcNow.ToString("o")
+            checkedAtUtc = if ($clientRemoteVerified) { [DateTime]::UtcNow.ToString("o") } elseif ($clientState.Contains("checkedAtUtc")) { [string]$clientState["checkedAtUtc"] } else { "" }
         }
     }
 
