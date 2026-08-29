@@ -454,8 +454,16 @@ function Repair-UmoPinnedInstalledDescriptorsAfterSync {
         [Parameter(Mandatory = $true)][string] $ListPath,
         [Parameter(Mandatory = $true)][string] $ListName
     )
-    $mods = @(Get-Content -Raw -LiteralPath $ListPath | ConvertFrom-Json)
-    $listKey = $ListName
+    $parsedMods = Get-Content -Raw -LiteralPath $ListPath | ConvertFrom-Json
+    $mods = if ($parsedMods -is [System.Array]) {
+        @($parsedMods | ForEach-Object { $_ })
+    }
+    else {
+        @($parsedMods)
+    }
+    # UMO cache paths use JSONPath. Modlist names such as fetcher-bardcraft contain a hyphen,
+    # so the root key must be quoted or UMO returns null and the repair silently skips it.
+    $listKey = '"' + $ListName + '"'
     $repaired = 0
     foreach ($mod in $mods) {
         $modKey = ConvertTo-UmoCacheKey -Value ([string] $mod.name)

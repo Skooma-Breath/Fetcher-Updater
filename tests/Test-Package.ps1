@@ -344,6 +344,14 @@ try {
     if ($syncIndex -lt 0 -or $repairIndex -le $syncIndex -or $installIndex -le $repairIndex) {
         throw "UMO pinned-cache workaround is not ordered as sync -> repair -> install."
     }
+    if (-not $umoInstallerSource.Contains('$parsedMods -is [System.Array]') -or
+        -not $umoInstallerSource.Contains('@($parsedMods | ForEach-Object { $_ })')) {
+        throw "UMO pinned-cache workaround does not explicitly enumerate array modlists."
+    }
+    $expectedQuotedListKey = '$listKey = ''"'' + $ListName + ''"'''
+    if (-not $umoInstallerSource.Contains($expectedQuotedListKey)) {
+        throw "UMO pinned-cache workaround does not JSONPath-quote the hyphenated modlist cache key."
+    }
     if (-not $umoInstallerSource.Contains('cache query installed "$entryPath.mod_data"') -or
         -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.pinned"') -or
         -not $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.nexus_file_id"')) {
