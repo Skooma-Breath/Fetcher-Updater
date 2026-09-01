@@ -733,7 +733,7 @@ try {
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
         "Data Files/fetcher-simulator/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
-        "resources/vfs/scripts/omw/input/playercontrols.lua" = "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989"
+        "resources/vfs/scripts/omw/input/playercontrols.lua" = "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa"
     }
     if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {
         throw "Managed compatibility manifest does not contain the expected nine Lua patches."
@@ -754,11 +754,24 @@ try {
     $playerControlsCompatibility = @($managedCompatibilityManifest.files | Where-Object {
         ([string]$_.path).Replace("\", "/") -eq "resources/vfs/scripts/omw/input/playercontrols.lua"
     })[0]
-    if ([string]$playerControlsCompatibility.sourceSha256 -ne "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa" -or
-        [int64]$playerControlsCompatibility.sourceSize -ne 10384 -or
+    if ([string]$playerControlsCompatibility.sourceSha256 -ne "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989" -or
+        [int64]$playerControlsCompatibility.sourceSize -ne 10380 -or
         -not [bool]$playerControlsCompatibility.allowUnknownSource -or
         -not [bool]$playerControlsCompatibility.updateClientInventory) {
-        throw "Player-controls compatibility patch is not safely scoped to the released 25564 client mismatch."
+        throw "Player-controls compatibility repair is not safely scoped to the legacy line-ending mismatch."
+    }
+    $playerControlOps = @($playerControlsCompatibility.operations)
+    if ($playerControlOps.Count -ne 9 -or
+        [int]$playerControlOps[0].copyOffset -ne 0 -or [int]$playerControlOps[0].copyLength -ne 2237 -or
+        [string]$playerControlOps[1].data -ne "DQo=" -or
+        [int]$playerControlOps[2].copyOffset -ne 2238 -or [int]$playerControlOps[2].copyLength -ne 2198 -or
+        [string]$playerControlOps[3].data -ne "DQo=" -or
+        [int]$playerControlOps[4].copyOffset -ne 4437 -or [int]$playerControlOps[4].copyLength -ne 4131 -or
+        [string]$playerControlOps[5].data -ne "DQo=" -or
+        [int]$playerControlOps[6].copyOffset -ne 8569 -or [int]$playerControlOps[6].copyLength -ne 3 -or
+        [string]$playerControlOps[7].data -ne "DQo=" -or
+        [int]$playerControlOps[8].copyOffset -ne 8573 -or [int]$playerControlOps[8].copyLength -ne 1807) {
+        throw "Player-controls compatibility repair does not reconstruct the canonical CRLF bytes exactly."
     }
 
     $managedFixtureRoot = Join-Path $workRoot "managed-compatibility-fixture"

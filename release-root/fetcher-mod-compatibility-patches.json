@@ -675,10 +675,10 @@
     },
     {
       "path": "resources/vfs/scripts/omw/input/playercontrols.lua",
-      "sourceSha256": "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa",
-      "sourceSize": 10384,
-      "outputSha256": "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989",
-      "outputSize": 10380,
+      "sourceSha256": "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989",
+      "sourceSize": 10380,
+      "outputSha256": "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa",
+      "outputSize": 10384,
       "allowUnknownSource": true,
       "updateClientInventory": true,
       "operations": [
@@ -687,31 +687,31 @@
           "copyLength": 2237
         },
         {
-          "data": "Cg=="
+          "data": "DQo="
         },
         {
-          "copyOffset": 2239,
+          "copyOffset": 2238,
           "copyLength": 2198
         },
         {
-          "data": "Cg=="
+          "data": "DQo="
         },
         {
-          "copyOffset": 4439,
+          "copyOffset": 4437,
           "copyLength": 4131
         },
         {
-          "data": "Cg=="
+          "data": "DQo="
         },
         {
-          "copyOffset": 8572,
+          "copyOffset": 8569,
           "copyLength": 3
         },
         {
-          "data": "Cg=="
+          "data": "DQo="
         },
         {
-          "copyOffset": 8577,
+          "copyOffset": 8573,
           "copyLength": 1807
         }
       ]
