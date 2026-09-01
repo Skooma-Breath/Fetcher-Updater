@@ -523,7 +523,7 @@ function Find-OpenMwPluginDataRoot {
 
     $candidates = New-Object System.Collections.Generic.List[string]
     $seen = New-Object System.Collections.Generic.HashSet[string]([StringComparer]::OrdinalIgnoreCase)
-    $managedRoot = [IO.Path]::GetFullPath((Join-Path $Root "Data Files\fetcher-bardcraft")).TrimEnd("\", "/") + "\"
+    $managedRoot = [IO.Path]::GetFullPath((Join-Path $Root "Data Files\fetcher-simulator")).TrimEnd("\", "/") + "\"
 
     function Select-ManagedCandidate {
         param([Parameter(Mandatory = $true)] $Paths)
@@ -831,7 +831,7 @@ function Get-UmoModInstallProblems {
     [CmdletBinding()]
     param([Parameter(Mandatory = $true)][string] $Root)
 
-    $modListPath = Join-Path $Root "fetcher-bardcraft-umo.json"
+    $modListPath = Join-Path $Root "fetcher-simulator-umo.json"
     if (-not (Test-Path -LiteralPath $modListPath -PathType Leaf)) {
         return
     }
@@ -849,7 +849,7 @@ function Get-UmoModInstallProblems {
     else {
         @($parsedMods)
     }
-    $listRoot = Join-Path (Join-Path $Root "Data Files") "fetcher-bardcraft"
+    $listRoot = Join-Path (Join-Path $Root "Data Files") "fetcher-simulator"
 
     foreach ($mod in $mods) {
         $modName = if ([string]::IsNullOrWhiteSpace([string]$mod.name)) { "<unnamed mod>" } else { [string]$mod.name }
@@ -903,7 +903,7 @@ function Move-IncompleteUmoModRootsToStaging {
         [Parameter(Mandatory = $true)][object[]] $Problems
     )
 
-    $listRootPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $Root "Data Files") "fetcher-bardcraft"))
+    $listRootPath = [IO.Path]::GetFullPath((Join-Path (Join-Path $Root "Data Files") "fetcher-simulator"))
     $separator = [IO.Path]::DirectorySeparatorChar
     $listRootPrefix = $listRootPath.TrimEnd($separator) + $separator
     $stagingRoot = Join-Path (Join-Path $Root "_fetcher_update") ("umo-repair-{0}" -f [Guid]::NewGuid().ToString("N"))
@@ -1037,7 +1037,7 @@ function Get-UmoCheckState {
         [Parameter(Mandatory = $true)][string] $StatePath
     )
 
-    $modListPath = Join-Path $Root "fetcher-bardcraft-umo.json"
+    $modListPath = Join-Path $Root "fetcher-simulator-umo.json"
     if (-not (Test-Path -LiteralPath $modListPath -PathType Leaf)) {
         return [pscustomobject]@{
             IsCurrent = $false
@@ -1569,7 +1569,7 @@ try {
             Install-UmoModList -Root $root
             $completedUmoState = Get-UmoCheckState -Root $root -StatePath $umoStatePath
             $modListSha256 = if ([string]::IsNullOrWhiteSpace([string]$completedUmoState.ModListSha256)) {
-                Get-Sha256 -Path (Join-Path $root "fetcher-bardcraft-umo.json")
+                Get-Sha256 -Path (Join-Path $root "fetcher-simulator-umo.json")
             }
             else {
                 [string]$completedUmoState.ModListSha256

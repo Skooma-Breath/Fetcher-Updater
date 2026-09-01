@@ -29,7 +29,7 @@ $releaseRootFiles = @(
     "fetcher-canonical-fallbacks.cfg",
     "Apply-Fetcher-Mod-Compatibility.ps1",
     "Apply-Fetcher-ZHI-Compatibility.ps1",
-    "fetcher-bardcraft-umo.json",
+    "fetcher-simulator-umo.json",
     "fetcher-client-patches.json",
     "fetcher-client-protection-policy.json",
     "fetcher-mod-compatibility-patches.json",
@@ -127,8 +127,8 @@ try {
         -Destination (Join-Path $outputPath "Install-Fetcher-Tester-Tools.ps1") -Force
     Copy-Item -LiteralPath (Join-Path $SourceDir "Setup-Fetcher-Updater.bat") `
         -Destination (Join-Path $outputPath "Setup-Fetcher-Updater.bat") -Force
-    Copy-Item -LiteralPath (Join-Path $SourceDir "fetcher-bardcraft-umo.json") `
-        -Destination (Join-Path $outputPath "fetcher-bardcraft-umo.json") -Force
+    Copy-Item -LiteralPath (Join-Path $SourceDir "fetcher-simulator-umo.json") `
+        -Destination (Join-Path $outputPath "fetcher-simulator-umo.json") -Force
 }
 finally {
     if (Test-Path -LiteralPath $stage -PathType Container) {

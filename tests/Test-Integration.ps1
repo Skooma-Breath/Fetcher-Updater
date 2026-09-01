@@ -432,7 +432,7 @@ try {
     # root aside before invoking UMO so UMO cannot falsely report it as installed.
     $umoCountPath = Join-Path $freshRoot "_fetcher_update\umo-probe-count.txt"
     $umoStatePath = Join-Path $freshRoot "_fetcher_update\umo-check-state.json"
-    $umoModListPath = Join-Path $freshRoot "fetcher-bardcraft-umo.json"
+    $umoModListPath = Join-Path $freshRoot "fetcher-simulator-umo.json"
     $originalUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
     @(
         [ordered]@{
@@ -452,7 +452,7 @@ try {
     ) | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $umoModListPath -Encoding UTF8
     $testUmoModListBytes = [IO.File]::ReadAllBytes($umoModListPath)
 
-    $staleProbeRoot = Join-Path $freshRoot "Data Files\fetcher-bardcraft\Test\ProbeMod"
+    $staleProbeRoot = Join-Path $freshRoot "Data Files\fetcher-simulator\Test\ProbeMod"
     New-Item -ItemType Directory -Force -Path (Join-Path $staleProbeRoot "00 Core") | Out-Null
     Set-Content -LiteralPath (Join-Path $staleProbeRoot "00 Core\Probe.esp") -Value "old layout" -Encoding ASCII
 
@@ -469,7 +469,7 @@ param(
 $installRoot = Split-Path -Parent $UmoBasePath
 $countPath = Join-Path $installRoot "_fetcher_update\umo-probe-count.txt"
 $count = if (Test-Path -LiteralPath $countPath) { [int](Get-Content -LiteralPath $countPath -Raw) } else { 0 }
-$modRoot = Join-Path $UmoBasePath "fetcher-bardcraft\Test\ProbeMod"
+$modRoot = Join-Path $UmoBasePath "fetcher-simulator\Test\ProbeMod"
 if ($count -eq 0 -and (Test-Path -LiteralPath $modRoot -PathType Container)) {
     throw "Updater did not move the stale UMO mod root before repair."
 }

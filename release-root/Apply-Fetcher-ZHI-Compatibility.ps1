@@ -550,7 +550,7 @@ $zhiRequiredFiles = @(
     "scripts\ZerkishHotkeysImproved\zhi_hotbarhud.lua"
 )
 $zhiRoot = Resolve-ModDataRoot -Root $root -DisplayName "Zerkish Hotkeys Improved" `
-    -ManagedRelativeRoot "Data Files\fetcher-bardcraft\UserInterface\ZerkishHotkeysImproved\ZerkishHotkeysImproved" `
+    -ManagedRelativeRoot "Data Files\fetcher-simulator\UserInterface\ZerkishHotkeysImproved\ZerkishHotkeysImproved" `
     -PrimaryRelativeFile $zhiRequiredFiles[0] -RequiredFiles $zhiRequiredFiles -ExplicitDataRoot $ZhiDataRoot
 if ($null -eq $zhiRoot) {
     Write-Host "Zerkish Hotkeys Improved is not installed; skipping its compatibility fixes."
@@ -561,7 +561,7 @@ else {
 
 $hookshotRequiredFiles = @("scripts\OpenMWHookshot\player.lua")
 $hookshotRoot = Resolve-ModDataRoot -Root $root -DisplayName "OpenMWHookshot" `
-    -ManagedRelativeRoot "Data Files\fetcher-bardcraft\Gameplay\OpenMWHookshot\OpenMWHookshot" `
+    -ManagedRelativeRoot "Data Files\fetcher-simulator\Gameplay\OpenMWHookshot\OpenMWHookshot" `
     -PrimaryRelativeFile $hookshotRequiredFiles[0] -RequiredFiles $hookshotRequiredFiles `
     -ExplicitDataRoot $HookshotDataRoot
 if ($null -eq $hookshotRoot) {
@@ -573,7 +573,7 @@ else {
 
 $fduRequiredFiles = @("scripts\FollowerDetectionUtil\actor.lua")
 $fduRoot = Resolve-ModDataRoot -Root $root -DisplayName "Follower Detection Util" `
-    -ManagedRelativeRoot "Data Files\fetcher-bardcraft\ModdingResources\FollowerDetectionUtil" `
+    -ManagedRelativeRoot "Data Files\fetcher-simulator\ModdingResources\FollowerDetectionUtil" `
     -PrimaryRelativeFile $fduRequiredFiles[0] -RequiredFiles $fduRequiredFiles `
     -ExplicitDataRoot $FollowerDetectionUtilDataRoot
 if ($null -eq $fduRoot) {
@@ -585,7 +585,7 @@ else {
 
 $bffRequiredFiles = @("scripts\BestFriendsForever\settingsPlayer.lua")
 $bffRoot = Resolve-ModDataRoot -Root $root -DisplayName "Best Friends Forever" `
-    -ManagedRelativeRoot "Data Files\fetcher-bardcraft\Gameplay\BestFriendsForever" `
+    -ManagedRelativeRoot "Data Files\fetcher-simulator\Gameplay\BestFriendsForever" `
     -PrimaryRelativeFile $bffRequiredFiles[0] -RequiredFiles $bffRequiredFiles `
     -ExplicitDataRoot $BestFriendsForeverDataRoot
 if ($null -eq $bffRoot) {
@@ -597,7 +597,7 @@ else {
 
 $takeControlRequiredFiles = @("Scripts\TakeControl\Player.lua")
 $takeControlRoot = Resolve-ModDataRoot -Root $root -DisplayName "Take Control" `
-    -ManagedRelativeRoot "Data Files\fetcher-bardcraft\Gameplay\TakeControl\TakeControl\Data_Files" `
+    -ManagedRelativeRoot "Data Files\fetcher-simulator\Gameplay\TakeControl\TakeControl\Data_Files" `
     -PrimaryRelativeFile $takeControlRequiredFiles[0] -RequiredFiles $takeControlRequiredFiles `
     -ExplicitDataRoot $TakeControlDataRoot
 if ($null -eq $takeControlRoot) {

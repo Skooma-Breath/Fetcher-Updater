@@ -3,7 +3,7 @@
   "patchVersion": "2026.08.25",
   "files": [
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",
       "sourceSha256": "a8c8d5a01bb78993ac3b4dd88e1ff94067e0046f1c7fc7049b00a6bf1715eccf",
       "sourceSize": 4340,
       "outputSha256": "0e67dcc62e9463928cb45e814d224590a8c5398fd662e8bc9f2fdc93ebb7e344",
@@ -76,7 +76,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua",
       "sourceSha256": "7573a20a450664d3fbdc693c2b220b46819fd45577b527f7a35beadc6833c850",
       "sourceSize": 3815,
       "outputSha256": "b4f6f5bf01dfb01809b1a565e30dcae0f96af5b1bfb0771070d282e9ecd79286",
@@ -149,7 +149,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua",
       "sourceSha256": "c5f7ba3665a8890d6c345b2c788798d4627bfeaf6c170c8b24d5ab0488d1bddc",
       "sourceSize": 3491,
       "outputSha256": "fd7b8c08a76bde830fad0ee9fd91c191dee3d823afb26a8affdb2ca93450b6f9",
@@ -222,7 +222,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua",
       "sourceSha256": "d3c454573177b12b54dc12e38b17dbe2f5ec27583919540da135cec71d07632e",
       "sourceSize": 3032,
       "outputSha256": "62a61e990cf28e3648d70bd33c305f9744b0c4e5a7ade8afb42469da58f769fd",
@@ -295,7 +295,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua",
       "sourceSha256": "77250f631cd616f8e6205d12b993503b285fb7b9c0a4c378415da822d6d77e46",
       "sourceSize": 3391,
       "outputSha256": "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9",
@@ -368,7 +368,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua",
       "sourceSha256": "b740101be8131df080c507b700125adbe1ea42deb676cc91871a067884fbc1b7",
       "sourceSize": 3757,
       "outputSha256": "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb",
@@ -441,7 +441,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua",
+      "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua",
       "sourceSha256": "d84d5db61171e989fbe4b77446a0e26a0db7388ca722eb7f4b29ddcb93875261",
       "sourceSize": 3608,
       "outputSha256": "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb",
@@ -514,7 +514,7 @@
       ]
     },
     {
-      "path": "Data Files/fetcher-bardcraft/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua",
+      "path": "Data Files/fetcher-simulator/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua",
       "sourceSha256": "33bcb752a60800346c016f53fcb1bbe182f88a61c9c515520a3188713bc514a3",
       "sourceSize": 19984,
       "outputSha256": "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175",

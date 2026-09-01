@@ -31,7 +31,7 @@ The build preserves these public release artifacts:
 - archive: `fetcher-tester-tools.zip`
 - bootstrap: `Setup-Fetcher-Updater.bat`
 - installer: `Install-Fetcher-Tester-Tools.ps1`
-- UMO list: `fetcher-bardcraft-umo.json`
+- UMO list: `fetcher-simulator-umo.json`
 
 Publishing is intentionally performed only by the GitHub Actions workflow or by an operator who provides `GH_TOKEN`. Local validation does not push tags or create releases.
 
@@ -53,6 +53,12 @@ Legacy updater calls that pass `-Repository` still work: it is an alias for `Cli
 The updater validates `fetcher-client-files.json` to recognize a managed client installation. A missing or invalid inventory forces one complete client refresh. Tester tools, mods, and compatibility patches remain protected overlays managed here.
 
 Every GitHub download requires the SHA-256 digest supplied by the release API. The installer also rejects unsafe or duplicate archive paths, unsupported manifests, unmanifested payloads, and file hash or size mismatches. The updater preserves mutex locking, receipt/marker verification, and atomic state replacement.
+
+## Hosting a multiplayer server
+
+The Fetcher Simulator client/server releases themselves ship `Build-OpenMWServerAuthority.py` plus `server-setup-guide.md`; these are not dependent on the Fetcher updater. The Python builder is generic to this OpenMW multiplayer server branch: it reads a known-good client's `openmw.cfg`, resolves the effective VFS, and builds the portable `content-authority/` input that `ServerContentRegistry` hashes at server startup.
+
+The canonical source and guide live in the Fetcher Simulator repository under `files/server/`. The full guide covers UDP port forwarding, host firewalls, `server.cfg`, public listing, authority generation/deployment, updates, and hash-mismatch troubleshooting.
 
 ## Windows launcher prototype
 
@@ -84,7 +90,7 @@ Build a candidate bundle by overlaying the redistributable vehicle runtime files
 ```powershell
 .\scripts\Build-FetcherClientModBundle.ps1 `
   -BaseArchivePath .\release-assets\client-mod-base\openmw-client-mods.zip `
-  -VehicleDataRoot "C:\serena_workspaces_directory\fetcher-simulator\Data Files\fetcher-bardcraft\Gameplay\FetcherVehicles" `
+  -VehicleDataRoot "C:\serena_workspaces_directory\fetcher-simulator\Data Files\fetcher-simulator\Gameplay\FetcherVehicles" `
   -OutputPath .\release-assets\openmw-client-mods.zip
 ```
 

@@ -108,7 +108,7 @@ Fast path:
 The helper downloads umo.exe and tes3cmd.exe if they are not already present.
 It also downloads a portable copy of the official 7-Zip command-line tools when
 7-Zip is unavailable. Nothing is installed system-wide. The helper then uses the
-included fetcher-bardcraft-umo.json modlist. If that file is missing, it tries to
+included fetcher-simulator-umo.json modlist. If that file is missing, it tries to
 download it from the Fetcher Simulator GitHub prerelease.
 
 The updater also applies its own hash-gated Lua compatibility deltas after UMO
@@ -124,7 +124,7 @@ reported as an error.
 
 The helper tells UMO to install the mods inside this package under:
 
-   Data Files\fetcher-bardcraft
+   Data Files\fetcher-simulator
 
 On first run, UMO may open a Nexus login page in your browser. Finish that login
 and return to the console. The helper also registers its portable umo.exe as the
@@ -221,6 +221,46 @@ community and install its loose .mid/.midi files under:
 
 OpenMW cannot discover songs that remain inside a ZIP/7Z archive. Do not rename
 another MIDI file to match; Bardcraft validates the actual song content hash.
+
+Hosting your own multiplayer server
+----------------------------------
+
+The Fetcher Simulator client/server release itself includes:
+
+   Build-OpenMWServerAuthority.py
+   server-setup-guide.md
+
+These files ship with the OpenMW release and do not depend on the Fetcher updater.
+The authority builder is generic to this OpenMW multiplayer server branch; it
+does not contain a hard-coded Fetcher mod list. It reads a known-good client's
+openmw.cfg, resolves that client's effective data= stack, and creates the
+portable content-authority directory consumed by openmw-server.
+
+Before building server authority, fully update the client that will be used as
+the reference and make sure its load order is correct. Then, from this folder,
+for example:
+
+   python .\Build-OpenMWServerAuthority.py --client-root . --output C:\OpenMW-Server\content-authority
+
+To inspect the reference client without creating files:
+
+   python .\Build-OpenMWServerAuthority.py --client-root . --plan-only
+
+The builder copies authoritative files byte-for-byte. It does not normalize Lua
+encoding, UTF-8 BOMs, or CRLF/LF line endings. The server hashes those exact VFS
+bytes at startup, so byte-identical client/server content is required.
+
+The generated bundle contains content-authority\openmw.cfg,
+content-authority\content-data, and bundle-manifest.json. The JSON file is an
+audit report; openmw-server does not load it as the handshake manifest. Instead,
+the server reads [content] openmw_cfg from server.cfg, loads that OpenMW content
+configuration, and generates its real content/Lua SHA-256 manifest in memory.
+
+For the complete setup process, including UDP port forwarding, Windows/Linux
+firewall rules, server.cfg, public listing, content-authority generation,
+production deployment, updates, and mismatch troubleshooting, read:
+
+   server-setup-guide.md
 
 Troubleshooting
 ---------------

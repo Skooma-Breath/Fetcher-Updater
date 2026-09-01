@@ -54,5 +54,5 @@ jobs:
               "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
               "${{ github.workspace }}\release-assets\Install-Fetcher-Tester-Tools.ps1"
               "${{ github.workspace }}\release-assets\Setup-Fetcher-Updater.bat"
-              "${{ github.workspace }}\release-assets\fetcher-bardcraft-umo.json"
+              "${{ github.workspace }}\release-assets\fetcher-simulator-umo.json"
             )

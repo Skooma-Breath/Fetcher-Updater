@@ -206,9 +206,9 @@ try {
         }
     }
 
-    $umoListPath = Join-Path $workRoot "fetcher-bardcraft-umo.json"
+    $umoListPath = Join-Path $workRoot "fetcher-simulator-umo.json"
     if (-not (Test-Path -LiteralPath $umoListPath -PathType Leaf)) {
-        throw "Package is missing fetcher-bardcraft-umo.json."
+        throw "Package is missing fetcher-simulator-umo.json."
     }
     $parsedUmoMods = Get-Content -LiteralPath $umoListPath -Raw | ConvertFrom-Json
     $umoMods = @($parsedUmoMods | ForEach-Object { $_ })
@@ -223,10 +223,142 @@ try {
         if (-not $seenUmoSlugs.Add([string]$mod.slug)) {
             throw "UMO modlist contains duplicate slug: $($mod.slug)"
         }
-        if (@($mod.download_info).Count -eq 0 -or @($mod.data_paths).Count -eq 0 -or
-            -not (@($mod.on_lists) -contains "fetcher-bardcraft")) {
+        $reviewRequired = @($mod.tags) -contains "fetcher-review-required"
+        if (@($mod.download_info).Count -eq 0 -or
+            (-not $reviewRequired -and @($mod.data_paths).Count -eq 0) -or
+            -not (@($mod.on_lists) -contains "fetcher-simulator")) {
             throw "UMO mod entry is incomplete: $($mod.name)"
         }
+    }
+
+    $groundcoverFixture = Join-Path $workRoot "groundcover-fixture"
+    New-Item -ItemType Directory -Force -Path $groundcoverFixture | Out-Null
+    foreach ($fixtureFile in @(
+        "Apply-Fetcher-Public-Test-Config.ps1",
+        "fetcher-canonical-fallbacks.cfg",
+        "fetcher-client-patches.json"
+    )) {
+        Copy-Item -LiteralPath (Join-Path $workRoot $fixtureFile) -Destination (Join-Path $groundcoverFixture $fixtureFile) -Force
+    }
+    New-Item -ItemType Directory -Force -Path (Join-Path $groundcoverFixture "resources\vfs-mw") | Out-Null
+    $groundcoverDataRoot = Join-Path $groundcoverFixture "Data Files\fetcher-simulator\Groundcover\Probe"
+    New-Item -ItemType Directory -Force -Path $groundcoverDataRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $groundcoverDataRoot "ProbeGrass.esp") -Value "groundcover fixture" -Encoding ASCII
+    $starwindCompatOverlayRoot = Join-Path $groundcoverFixture "Data Files\fetcher-starwind-compat\Starwind Vanilla Compat"
+    $starwindCompatDataRoot = Join-Path $groundcoverFixture "Data Files\fetcher-starwind-compat\Data Files"
+    $rawStarwindDataRoot = Join-Path $groundcoverFixture "Data Files\raw-starwind"
+    New-Item -ItemType Directory -Force -Path $starwindCompatOverlayRoot, $starwindCompatDataRoot, $rawStarwindDataRoot | Out-Null
+    $projectAtlasTextureRoot = Join-Path $groundcoverFixture "Data Files\fetcher-simulator\Performance\ProjectAtlas\01 Textures - Vanilla\Textures\atl"
+    $glassDomesFixtureRoot = Join-Path $groundcoverFixture "Data Files\fetcher-simulator\ModelsAndTextures\GlassDomesofVivec"
+    New-Item -ItemType Directory -Force -Path $projectAtlasTextureRoot, $glassDomesFixtureRoot | Out-Null
+    Set-Content -LiteralPath (Join-Path $projectAtlasTextureRoot "atlas_velothi_01.dds") -Value "legacy atlas fixture" -Encoding ASCII
+    @(
+        [ordered]@{
+            name = "Groundcover Array Sentinel"
+            url = "https://example.invalid/groundcover-sentinel"
+            category = "Groundcover"
+            dir = "Probe"
+            slug = "groundcover-array-sentinel"
+            download_info = @([ordered]@{ file_name = "sentinel.7z"; extract_to = "Probe" })
+            tags = @()
+            on_lists = @("fetcher-simulator")
+            data_paths = @("Probe")
+            plugins = @()
+        },
+        [ordered]@{
+            name = "Groundcover Probe"
+            url = "https://example.invalid/groundcover-probe"
+            category = "Groundcover"
+            dir = "Probe"
+            slug = "groundcover-probe"
+            download_info = @([ordered]@{ file_name = "probe.7z"; extract_to = "Probe" })
+            tags = @()
+            on_lists = @("fetcher-simulator")
+            data_paths = @("Probe")
+            plugins = @()
+            groundcover = @("ProbeGrass.esp")
+        },
+        [ordered]@{
+            name = "Link Override Ordering Probe"
+            url = "https://example.invalid/link-order-probe"
+            category = "Gameplay"
+            dir = "LinkOrder"
+            slug = "link-order-probe"
+            download_info = @()
+            tags = @()
+            on_lists = @("fetcher-simulator")
+            data_paths = @()
+            plugins = @("fargoth.esp", "Link_(Fixed).esp")
+        },
+        [ordered]@{
+            name = "MWZ Ordering Probe"
+            url = "https://example.invalid/mwz-order-probe"
+            category = "Gameplay"
+            dir = "MWZOrder"
+            slug = "mwz-order-probe"
+            download_info = @()
+            tags = @()
+            on_lists = @("fetcher-simulator")
+            data_paths = @()
+            plugins = @("MWZ 2.26 Hardcore Mode.ESP", "Jw_Survival_Container_Module.esp")
+        }
+    ) | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $groundcoverFixture "fetcher-simulator-umo.json") -Encoding UTF8
+    @(
+        "data=./Data Files",
+        'data="./Data Files/fetcher-starwind-compat/Starwind Vanilla Compat"',
+        'data="./Data Files/fetcher-starwind-compat/Data Files"',
+        "data=./Data Files/raw-starwind",
+        "data=./Data Files/fetcher-bardcraft/Groundcover/Probe",
+        'data="./Data Files/fetcher-bardcraft/Groundcover/Probe"'
+    ) | Set-Content -LiteralPath (Join-Path $groundcoverFixture "openmw.cfg") -Encoding ASCII
+    $groundcoverApply = Join-Path $groundcoverFixture "Apply-Fetcher-Public-Test-Config.ps1"
+    & $groundcoverApply -AllowMissingContent | Out-Null
+    & $groundcoverApply -AllowMissingContent | Out-Null
+    $legacyVelothiTexture = Join-Path $projectAtlasTextureRoot "atlas_velothi.dds"
+    if (-not (Test-Path -LiteralPath $legacyVelothiTexture -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $legacyVelothiTexture -Algorithm SHA256).Hash -ne
+        (Get-FileHash -LiteralPath (Join-Path $projectAtlasTextureRoot "atlas_velothi_01.dds") -Algorithm SHA256).Hash) {
+        throw "Public-test config did not reconstruct the legacy Project Atlas Velothi texture required by Glass Domes."
+    }
+    $groundcoverCfg = @(Get-Content -LiteralPath (Join-Path $groundcoverFixture "openmw.cfg"))
+    if (@($groundcoverCfg | Where-Object { $_ -match 'fetcher-bardcraft' }).Count -ne 0) {
+        throw "Public-test config left legacy fetcher-bardcraft data paths in openmw.cfg."
+    }
+    $starwindCompatOverlayLine = "data=./Data Files/fetcher-starwind-compat/Starwind Vanilla Compat"
+    $starwindCompatDataLine = "data=./Data Files/fetcher-starwind-compat/Data Files"
+    if (@($groundcoverCfg | Where-Object { $_.Trim() -eq $starwindCompatOverlayLine }).Count -ne 1 -or
+        @($groundcoverCfg | Where-Object { $_.Trim() -eq $starwindCompatDataLine }).Count -ne 1) {
+        throw "Public-test config did not canonicalize stale Fetcher-Starwind data paths exactly once."
+    }
+    $rawStarwindIndex = [Array]::IndexOf([string[]]$groundcoverCfg, "data=./Data Files/raw-starwind")
+    $starwindCompatOverlayIndex = [Array]::IndexOf([string[]]$groundcoverCfg, $starwindCompatOverlayLine)
+    $starwindCompatDataIndex = [Array]::IndexOf([string[]]$groundcoverCfg, $starwindCompatDataLine)
+    if ($rawStarwindIndex -lt 0 -or $starwindCompatOverlayIndex -le $rawStarwindIndex -or $starwindCompatDataIndex -le $rawStarwindIndex) {
+        throw "Public-test config did not move Fetcher-Starwind compatibility data paths after raw Starwind data."
+    }
+    if (@($groundcoverCfg | Where-Object { $_.Trim() -eq "data=./Data Files/fetcher-simulator/Groundcover/Probe" }).Count -ne 1) {
+        throw "Public-test config did not deduplicate the canonical managed data path."
+    }
+    if (@($groundcoverCfg | Where-Object { $_.Trim() -eq "groundcover=ProbeGrass.esp" }).Count -ne 1) {
+        throw "Public-test config did not write exactly one managed groundcover entry."
+    }
+    if (@($groundcoverCfg | Where-Object { $_.Trim() -eq "content=ProbeGrass.esp" }).Count -ne 0) {
+        throw "Public-test config incorrectly activated groundcover as normal content."
+    }
+    $mwzIndex = [Array]::IndexOf([string[]]$groundcoverCfg, "content=MWZ 2.26 Hardcore Mode.ESP")
+    $fargothIndex = [Array]::IndexOf([string[]]$groundcoverCfg, "content=fargoth.esp")
+    $linkIndex = [Array]::IndexOf([string[]]$groundcoverCfg, "content=Link_(Fixed).esp")
+    $survivalContainerIndex = [Array]::IndexOf([string[]]$groundcoverCfg, "content=Jw_Survival_Container_Module.esp")
+    if ($mwzIndex -lt 0 -or $fargothIndex -ne ($mwzIndex + 1) -or
+        $linkIndex -ne ($fargothIndex + 1) -or $survivalContainerIndex -le $linkIndex) {
+        throw "Public-test config did not preserve the tested MWZ -> fargoth -> Link override order."
+    }
+    $groundcoverSettings = @(Get-Content -LiteralPath (Join-Path $groundcoverFixture "settings.cfg"))
+    if (@($groundcoverSettings | Where-Object { $_.Trim() -eq "[Groundcover]" }).Count -ne 1 -or
+        @($groundcoverSettings | Where-Object { $_.Trim() -eq "enabled = true" }).Count -ne 1 -or
+        @($groundcoverSettings | Where-Object { $_.Trim() -eq "stomp mode = 2" }).Count -ne 1 -or
+        @($groundcoverSettings | Where-Object { $_.Trim() -eq "stomp intensity = 1" }).Count -ne 1) {
+        throw "Public-test config did not create the required OpenMW Groundcover settings exactly once."
     }
 
     $requiredUmoMods = @(
@@ -535,14 +667,14 @@ try {
         throw "Package has an unsupported managed mod compatibility manifest."
     }
     $expectedManagedOutputs = [ordered]@{
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua" = "0e67dcc62e9463928cb45e814d224590a8c5398fd662e8bc9f2fdc93ebb7e344"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua" = "b4f6f5bf01dfb01809b1a565e30dcae0f96af5b1bfb0771070d282e9ecd79286"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua" = "fd7b8c08a76bde830fad0ee9fd91c191dee3d823afb26a8affdb2ca93450b6f9"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua" = "62a61e990cf28e3648d70bd33c305f9744b0c4e5a7ade8afb42469da58f769fd"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua" = "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
-        "Data Files/fetcher-bardcraft/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
-        "Data Files/fetcher-bardcraft/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua" = "0e67dcc62e9463928cb45e814d224590a8c5398fd662e8bc9f2fdc93ebb7e344"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_earrings/npc_earrings.lua" = "b4f6f5bf01dfb01809b1a565e30dcae0f96af5b1bfb0771070d282e9ecd79286"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_glasses/npc_glasses.lua" = "fd7b8c08a76bde830fad0ee9fd91c191dee3d823afb26a8affdb2ca93450b6f9"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_horns/npc_horny.lua" = "62a61e990cf28e3648d70bd33c305f9744b0c4e5a7ade8afb42469da58f769fd"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua" = "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
+        "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
+        "Data Files/fetcher-simulator/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
         "resources/vfs/scripts/omw/input/playercontrols.lua" = "6337b3799a6e6fa5b192bc47a504fb77bbe4ad9eacd08f4ed9f1985914d03989"
     }
     if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {

@@ -17,7 +17,7 @@
     "apply-fetcher-public-test-config.ps1",
     "fetcher-canonical-fallbacks.cfg",
     "apply-fetcher-zhi-compatibility.ps1",
-    "fetcher-bardcraft-umo.json",
+    "fetcher-simulator-umo.json",
     "fetcher-client-patches.json",
     "fetcher-client-protection-policy.json",
     "fetcher-mod-compatibility-patches.json",

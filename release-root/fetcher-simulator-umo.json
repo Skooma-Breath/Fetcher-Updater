@@ -1,4 +1,4 @@
-[
+﻿[
   {
     "name": "Tamriel Data",
     "author": "<a href=\"https://next.nexusmods.com/profile/CrossProjectCoordination/about-me\">Cross-Project Coordination</a>",
@@ -29,7 +29,7 @@
       "tamriel-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TamrielData/00 Data Files"
@@ -66,7 +66,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "SkillFrameworkOpenMW"
@@ -102,7 +102,7 @@
       "oaab-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "OAABData/00 Core"
@@ -139,7 +139,7 @@
       "tamriel-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TamrielRebuilt/00 Core",
@@ -178,7 +178,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "StatsWindowExtenderOpenMW"
@@ -216,7 +216,7 @@
       "bardcraft"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "BardcraftOpenMW"
@@ -251,7 +251,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "PlayableCreatureRacePack/Data Files"
@@ -286,7 +286,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "MarioRace/Data Files"
@@ -320,7 +320,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "NifTestLevel"
@@ -358,7 +358,7 @@
       "tamriel-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "DevilishTouchOfMadness"
@@ -395,7 +395,7 @@
       "openmw-shaders"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "RafaelsShaderPack/RafaelsShaderPack"
@@ -429,7 +429,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "OpenMWHookshot/OpenMWHookshot"
@@ -463,7 +463,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "MoonSugarPlantation"
@@ -499,7 +499,7 @@
       "tes3mp-graphics"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "MorrowindOptimizationPatch/00 Core"
@@ -534,7 +534,7 @@
       "tes3mp-graphics"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "ProjectAtlas/00 Core",
@@ -575,7 +575,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "CharacterSoundOverhaul",
@@ -610,7 +610,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "OpenMWFootsteps"
@@ -644,7 +644,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "ZerkishModUtils/ZModUtils"
@@ -678,7 +678,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "HaloEnergySword/halo energy sword"
@@ -712,7 +712,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "HaloGravityHammer/h3gravityhammer"
@@ -746,7 +746,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "RedTower"
@@ -780,7 +780,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "MasterChiefArmor/Data Files"
@@ -814,7 +814,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "McDagoths/McDagoths"
@@ -850,7 +850,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "ZerkishHotkeysImproved/ZerkishHotkeysImproved"
@@ -884,7 +884,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "BalmoraUnderworld/Balmora Underworld V1.1"
@@ -918,7 +918,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "ImperialBilliards"
@@ -954,7 +954,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "NiftySpellPack"
@@ -988,7 +988,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "GliderAndShieldSurfing/ErnGlider-main/00 Core",
@@ -1024,7 +1024,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "YulMarshee/00 Core"
@@ -1060,7 +1060,7 @@
       "openmw-lua"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "YulMarsheeOpenMWPatch"
@@ -1097,7 +1097,7 @@
       "tamriel-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "ProjectCyrodiil/00 Core"
@@ -1134,7 +1134,7 @@
       "total-conversion"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "Starwindv3AStarWarsConversion/Starwind3.1/Data Files"
@@ -1169,7 +1169,7 @@
     ],
     "tags": [],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "WestlyRaceBundle/00 Core",
@@ -1228,7 +1228,7 @@
       "tamriel-data"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TamrielDataRacesPlayableContinued"
@@ -1264,7 +1264,7 @@
       "openmw-shaders"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "OpenMWVolumetricClouds"
@@ -1300,7 +1300,7 @@
       "textures"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TinyTransparentSkiesForVolumetricClouds/BlankSkiesForVolumetricClouds"
@@ -1335,7 +1335,7 @@
       "framework"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "FollowerDetectionUtil"
@@ -1372,7 +1372,7 @@
       "followers"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "BestFriendsForever"
@@ -1409,7 +1409,7 @@
       "weapons"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "Scribhammer/Gitshiver Scrib Hammer"
@@ -1445,7 +1445,7 @@
       "race"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "LegendOfZeldaBeta/Data Files"
@@ -1499,7 +1499,7 @@
       "race"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "SecundaTermina",
@@ -1539,7 +1539,7 @@
       "models"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "FaceTheMoon/FaceTheMoon/Data"
@@ -1574,7 +1574,7 @@
       "skeleton"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "USkele/Data Files"
@@ -1611,7 +1611,7 @@
       "skeleton"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "DaggerfallSkeletonSounds/Data Files"
@@ -1646,7 +1646,7 @@
       "lighting"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "HeldLightBoost/Held Light Boost"
@@ -1683,7 +1683,7 @@
       "modding-resource"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "WaresUltimate/00 Core"
@@ -1721,7 +1721,7 @@
       "wares"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "AdventurersBackpacks"
@@ -1759,7 +1759,7 @@
       "accessories"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "FashionwindExpanded"
@@ -1800,7 +1800,7 @@
       "experimental"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TakeControl/TakeControl/Data_Files"
@@ -1845,13 +1845,1533 @@
       "final-fantasy"
     ],
     "on_lists": [
-      "fetcher-bardcraft"
+      "fetcher-simulator"
     ],
     "data_paths": [
       "TsurugiResource"
     ],
     "plugins": [
       "FF7 Tsurugi Resource.esp"
+    ]
+  },
+  {
+    "name": "Graht Morrowind Swamp Trees",
+    "author": "Melchior Dahrk",
+    "description": "Asset dependency required by Aetherwind; only the core files are enabled.",
+    "url": "https://www.nexusmods.com/morrowind/mods/49771",
+    "category": "Trees",
+    "dl_url": "",
+    "usage_notes": "Aetherwind asset dependency only; Graht world-edit plugins intentionally disabled.",
+    "compat": 4,
+    "dir": "GrahtMorrowindSwampTrees",
+    "slug": "graht-morrowind-swamp-trees-fetcher-dependency",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Graht Morrowind Swamp Trees",
+        "extract_to": "GrahtMorrowindSwampTrees",
+        "nexus_file_id": 1000054059,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "fetcher-auto-dependency"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "GrahtMorrowindSwampTrees/00 Core"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "Glass Domes of Vivec - Performance-friendly Open-ish Cantons",
+    "author": "Sade1212",
+    "description": "Required original asset base for Glass Domes of Vivec - Moonrain Edition.",
+    "url": "https://www.nexusmods.com/morrowind/mods/48935",
+    "category": "ModelsAndTextures",
+    "dl_url": "",
+    "usage_notes": "Original Glass Domes runtime required by Moonrain Edition.",
+    "compat": 4,
+    "dir": "GlassDomesofVivec",
+    "slug": "nexus-48935-fetcher-dependency",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Glass Domes of Vivec",
+        "extract_to": "GlassDomesofVivec",
+        "nexus_file_id": 1000021312,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "fetcher-auto-dependency"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "GlassDomesofVivec"
+    ],
+    "plugins": [
+      "Glass Domes of Vivec.esp"
+    ]
+  },
+  {
+    "name": "Skyrim: Home Of The Nords",
+    "author": "<a href=\"https://next.nexusmods.com/profile/ProjectTamriel/about-me\">Project Tamriel Team</a>",
+    "description": "A massive project that aims to bring the province of Skyrim to Morrowind.",
+    "url": "https://www.nexusmods.com/morrowind/mods/44921",
+    "category": "Landmasses",
+    "dl_url": "",
+    "usage_notes": "Grass ESP is not normal content; Fantasia supplies the selected SHOTN groundcover instead.",
+    "compat": 4,
+    "dir": "SkyrimHomeOfTheNords",
+    "slug": "skyrim-home-of-the-nords",
+    "date_added": "2018-04-12T02:00:00+00:00",
+    "date_updated": "2024-12-24T22:05:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Sky_Main",
+        "extract_to": "SkyrimHomeOfTheNords",
+        "nexus_file_id": 1000052495,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "grass",
+      "tamriel-data"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SkyrimHomeOfTheNords/00 Core"
+    ],
+    "plugins": [
+      "Sky_Main.esm"
+    ]
+  },
+  {
+    "name": "The Doors of Oblivion",
+    "author": "<a href=\"https://next.nexusmods.com/profile/RealAshstaar/about-me\">Ashstaar</a>",
+    "description": "Journey through the realms of Oblivion. New quests items, characters, creatures, etc.",
+    "url": "https://www.nexusmods.com/morrowind/mods/44398",
+    "category": "Quests",
+    "dl_url": "",
+    "usage_notes": "Masque of Clavicus Vile optional folder disabled.",
+    "compat": 4,
+    "dir": "TheDoorsofOblivion",
+    "slug": "the-doors-of-oblivion",
+    "date_added": "2023-10-29T22:01:00+00:00",
+    "date_updated": "2023-10-29T22:01:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "The Doors of Oblivion 1.4",
+        "extract_to": "TheDoorsofOblivion",
+        "nexus_file_id": 1000010485,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "TheDoorsofOblivion/The Doors of Oblivion 1.4/Data Files"
+    ],
+    "plugins": [
+      "The Doors of Oblivion 1.4.esp"
+    ]
+  },
+  {
+    "name": "More Doors to Oblivion",
+    "author": "NotFuji",
+    "description": "The Doors of Oblivion, alternate access",
+    "url": "https://www.nexusmods.com/morrowind/mods/58937",
+    "category": "Quests",
+    "dl_url": "",
+    "usage_notes": "Ordered after The Doors of Oblivion, which it requires.",
+    "compat": 0,
+    "dir": "MoreDoorstoOblivion",
+    "slug": "nexus-58937",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "More Doors",
+        "extract_to": "MoreDoorstoOblivion",
+        "nexus_file_id": 1000064364,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "MoreDoorstoOblivion"
+    ],
+    "plugins": [
+      "moredoors.esp"
+    ]
+  },
+  {
+    "name": "Perk Framework (OpenMW)",
+    "author": "Erin and TyrusDalet",
+    "description": "OpenMW mod that adds a perk framework.",
+    "url": "https://www.nexusmods.com/morrowind/mods/57615",
+    "category": "ModdingResources",
+    "dl_url": "",
+    "usage_notes": "Framework only; bundled example perk plugins intentionally disabled.",
+    "compat": 0,
+    "dir": "PerkFrameworkOpenMW",
+    "slug": "nexus-57615",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "ErnPerkFramework - Expanded (Overhaul BETA)",
+        "extract_to": "PerkFrameworkOpenMW",
+        "nexus_file_id": 1000068136,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "PerkFrameworkOpenMW/ErnPerkFramework---Tyrus-Revision-TyrusPatch-BetaTest"
+    ],
+    "plugins": [
+      "OverhaulErnPerkFramework.omwscripts"
+    ]
+  },
+  {
+    "name": "SkillPerks (OpenMW)",
+    "author": "TyrusDalet",
+    "description": "Continuation of FactionPerks project, adds 270 perks to Morrowind, 10 for each Skill!",
+    "url": "https://www.nexusmods.com/morrowind/mods/59676",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "SkillPerksOpenMW",
+    "slug": "nexus-59676",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "SkillPerks Core 0 - Required",
+        "extract_to": "SkillPerksOpenMW",
+        "nexus_file_id": 1000068125,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "SkillPerks Core 1 - Combat",
+        "extract_to": "SkillPerksOpenMW",
+        "nexus_file_id": 1000068127,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "SkillPerks Core 2 - Stealth",
+        "extract_to": "SkillPerksOpenMW",
+        "nexus_file_id": 1000068126,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "SkillPerks Core 3 - Magic",
+        "extract_to": "SkillPerksOpenMW",
+        "nexus_file_id": 1000068052,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SkillPerksOpenMW/SkillPerks-Core/Core 0 - Main files",
+      "SkillPerksOpenMW/SkillPerks-Combat/Core 1 - Combat",
+      "SkillPerksOpenMW/SkillPerks-Stealth/Core 2 - Stealth",
+      "SkillPerksOpenMW/SkillPerks-Magic/Core 3 - Magic"
+    ],
+    "plugins": [
+      "SPerks.ESP",
+      "Core 0 SkillPerks.omwscripts",
+      "Core 1 SkillPerks.omwscripts",
+      "Core 2 SkillPerks.omwscripts",
+      "Core 3 SkillPerks.omwscripts"
+    ]
+  },
+  {
+    "name": "Glass Domes of Vivec - Moonrain Edition",
+    "author": "MMC - see Credits",
+    "description": "Community expansion to Glass Domes of Vivec - visual fixes, new region mechanics, and more.",
+    "url": "https://www.nexusmods.com/morrowind/mods/48946",
+    "category": "ModelsAndTextures",
+    "dl_url": "",
+    "usage_notes": "Visual-only Moonrain core; MWSE weather mechanics and optional arena/plugin replacers disabled.",
+    "compat": 0,
+    "dir": "GlassDomesofVivecMoonrainEdition",
+    "slug": "nexus-48946",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Glass Domes of Vivec - Moonrain Edition 1.2.8",
+        "extract_to": "GlassDomesofVivecMoonrainEdition",
+        "nexus_file_id": 1000023084,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "GlassDomesofVivecMoonrainEdition/00 Core Visual Assets"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "Roaring Arena - Betting and Bloodletting",
+    "author": "<a href=\"https://next.nexusmods.com/profile/GrumblingVomit/about-me\">GrumblingVomit</a> and <a href=\"https://next.nexusmods.com/profile/vonwolfe/about-me\">Von Djangos</a>",
+    "description": "Fight in the arena and rise up the ranks. Over 130 unique fighters to fight. Can also watch and bet on fights between NPCs. Also adds voiced speeches and crowds to vanilla quest duels.",
+    "url": "https://www.nexusmods.com/morrowind/mods/50954",
+    "category": "Quests",
+    "dl_url": "",
+    "usage_notes": "OpenMW/TES3MP test profile: Glass Domes Moonrain default arena branch + installed OAAB/Project Cyrodiil/SHOTN/Bloodmoon integrations. MWSE and unrelated optional armor/NPC branches disabled.",
+    "compat": 4,
+    "dir": "RoaringArenaBettingandBloodletting",
+    "slug": "roaring-arena-betting-and-bloodletting",
+    "date_added": "2024-02-07T15:42:14+00:00",
+    "date_updated": "2024-03-30T14:33:06+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Roaring Arena",
+        "extract_to": "RoaringArenaBettingandBloodletting",
+        "nexus_file_id": 1000054110,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "Missing Assets Hotfix",
+        "extract_to": "RoaringArenaBettingandBloodletting",
+        "nexus_file_id": 1000054301,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "RoaringArenaBettingandBloodletting/00 Core",
+      "RoaringArenaBettingandBloodletting/Data Files",
+      "RoaringArenaBettingandBloodletting/06 Glass Domes of Vivec - Moonrain/01 Default",
+      "RoaringArenaBettingandBloodletting/07 Optional Plugins",
+      "RoaringArenaBettingandBloodletting/07 Optional Plugins/BloodmoonOptions/01 Bloodmoon"
+    ],
+    "plugins": [
+      "RoaringArena.esm",
+      "RoaringArena.ESP",
+      "RoaringArena_OAAB.ESP",
+      "RoaringArena_ProjectCyrodiil.ESP",
+      "RoaringArena_SkyrimHomeOfTheNords.ESP",
+      "RoaringArena_Solstheim.ESP"
+    ]
+  },
+  {
+    "name": "Aetherwind",
+    "author": "Billyfighter and the Airship Team",
+    "description": "The ultimate verticality mod! Aetherwind introduces several floating islands in many different regions. Suspended by the mysterious Aetherveil, a force of energy different factions wish to preserve or reshape for their own ambitions. Explore these islands on new flyable airships.",
+    "url": "https://www.nexusmods.com/morrowind/mods/56459",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "Aetherwind",
+    "slug": "nexus-56459",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Aetherwind",
+        "extract_to": "Aetherwind",
+        "nexus_file_id": 1000066959,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "Aetherwind"
+    ],
+    "plugins": [
+      "Aetherwind.esp",
+      "Aetherwind.omwscripts"
+    ]
+  },
+  {
+    "name": "Ashlander Architect",
+    "author": "<a href=\"https://next.nexusmods.com/profile/SkyHasACat/about-me\">DaisyHasaCat</a>",
+    "description": "Ashlander Architect adds a building system with lua scripting in OpenMW. It allows you to place objects, and pick up any object.",
+    "url": "https://www.nexusmods.com/morrowind/mods/52879",
+    "category": "CitiesTowns",
+    "dl_url": "",
+    "usage_notes": "ErothIsland.ESP is a bundled extra and is intentionally not enabled.",
+    "compat": 4,
+    "dir": "AshlanderArchitect",
+    "slug": "ashlander-architect",
+    "date_added": "2023-11-17T00:42:00+00:00",
+    "date_updated": "2023-11-17T00:42:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Ashlander Architect",
+        "extract_to": "AshlanderArchitect",
+        "nexus_file_id": 1000057053,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "AshlanderArchitect"
+    ],
+    "plugins": [
+      "AshlanderArchitect.omwaddon",
+      "AshlanderArchitect.omwscripts"
+    ]
+  },
+  {
+    "name": "Ben's Skyships (OpenMW)",
+    "author": "skribjelly",
+    "description": "Fly and customize your own skyship. Fly across the sky of Vvardenfell in your mobile home.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58245",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "BensSkyshipsOpenMW",
+    "slug": "nexus-58245",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Ben's Skyships",
+        "extract_to": "BensSkyshipsOpenMW",
+        "nexus_file_id": 1000061033,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "BensSkyshipsOpenMW/BensMods_Skyships"
+    ],
+    "plugins": [
+      "Skyships.esp",
+      "Skyships.omwscripts"
+    ]
+  },
+  {
+    "name": "Iaijutsu (1.4) - Akaviri-Samurai Drawing Blade Technique (OpenMW 0.51)",
+    "author": "Devilymoon",
+    "description": "Bring the lightning-fast, lethal art of Iaijutsu into Vvardenfell! This mod adds a fluid, high-stakes combat mechanic for OpenMW, allowing you to charge up while keeping your long blade sheathed, and instantly unleash a devastating, high-speed dash attack that pierces right through your enemies.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59717",
+    "category": "Combat",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "Iaijutsu14AkaviriSamuraiDrawingBladeTechniqueOpenMW051",
+    "slug": "nexus-59717",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Iaijutsu",
+        "extract_to": "Iaijutsu14AkaviriSamuraiDrawingBladeTechniqueOpenMW051",
+        "nexus_file_id": 1000068266,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "Iaijutsu14AkaviriSamuraiDrawingBladeTechniqueOpenMW051/Iaijutsu"
+    ],
+    "plugins": [
+      "Iaijutsu Sounds.omwaddon",
+      "Iaijutsu.omwscripts"
+    ]
+  },
+  {
+    "name": "Morrowind Zombie Apocalypse V2.25 - Hardcore Survival Crafting Edition (OpenMW )",
+    "author": "Jawohlca",
+    "description": "This total conversion mod aims to convert most existing NPCs in Vvardenfell with levelled custom corprus beasts, making it an apocalyptic scenario if the nerevarine fails to stop Dagoth Ur.",
+    "url": "https://www.nexusmods.com/morrowind/mods/50579",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Main Hardcore Survival Crafting archive; all packaged runtime modules enabled in master-first order.",
+    "compat": 0,
+    "dir": "MorrowindZombieApocalypseV225HardcoreSurvivalCraftingEditionOpenMW",
+    "slug": "nexus-50579",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "MWZ 2.26 Hardcore Survival crafting",
+        "extract_to": "MorrowindZombieApocalypseV225HardcoreSurvivalCraftingEditionOpenMW",
+        "nexus_file_id": 1000049818,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "MorrowindZombieApocalypseV225HardcoreSurvivalCraftingEditionOpenMW"
+    ],
+    "plugins": [
+      "JW_Survival_Crafting.esm",
+      "MoreZombies_2.3.ESP",
+      "MWZ 2.26 Hardcore Mode.ESP",
+      "Jw_Survival_Container_Module.esp",
+      "MWZ D2Items Module.ESP"
+    ]
+  },
+  {
+    "name": "Set Bonus",
+    "author": "StaticNation",
+    "description": "Armour set bonuses for Morrowind \u2014 wear matched sets for scaling, lore-themed effects. 130+ sets, Tamriel Rebuilt/OAAB/NOD/AATL support, no ESP. MWSE and OpenMW versions.",
+    "url": "https://www.nexusmods.com/morrowind/mods/52911",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "OpenMW runtime only; example, flags companion, and rebalance packages disabled.",
+    "compat": 0,
+    "dir": "SetBonus",
+    "slug": "nexus-52911",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "OpenMW Set Bonus",
+        "extract_to": "SetBonus",
+        "nexus_file_id": 1000069194,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SetBonus/OpenMW_SetBonus"
+    ],
+    "plugins": [
+      "setbonus.omwscripts"
+    ]
+  },
+  {
+    "name": "SPELL FRAMEWORK PLUS ( OpenMW )",
+    "author": "skrow42",
+    "description": "OpenMW gap of custom spells has been closed. Generate custom spells as you wish with using this interface. Modders resource. Uses OpenMW Spell Api as a base.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58652",
+    "category": "ModdingResources",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "SPELLFRAMEWORKPLUSOpenMW",
+    "slug": "nexus-58652",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Spell Framework Plus (OpenMW)",
+        "extract_to": "SPELLFRAMEWORKPLUSOpenMW",
+        "nexus_file_id": 1000069004,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SPELLFRAMEWORKPLUSOpenMW/Spell Framework Plus 3.11"
+    ],
+    "plugins": [
+      "SPELL_FRAMEWORK_PLUS.omwscripts"
+    ]
+  },
+  {
+    "name": "(OpenMW) Consuming Animated",
+    "author": "<a href=\"https://next.nexusmods.com/profile/Foxunder/about-me\">Foxunder</a>",
+    "description": "Plays an animation when you drink or eat something or NPCs drink potions. Special animations for Telvanni Bug Musk, moon sugar + skooma pipes, hackle-lo/tanna + smoking pipes, and cigars.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59069",
+    "category": "Camera",
+    "dl_url": "",
+    "usage_notes": "",
+    "compat": 4,
+    "dir": "OpenMWConsumingAnimated",
+    "slug": "openmw-consuming-animated",
+    "date_added": "2026-08-19T20:16:00+00:00",
+    "date_updated": "2026-08-19T20:16:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Consuming Animated",
+        "extract_to": "OpenMWConsumingAnimated",
+        "nexus_file_id": 1000068732,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "OpenMWConsumingAnimated"
+    ],
+    "plugins": [
+      "Consuming Animated.omwscripts"
+    ]
+  },
+  {
+    "name": "100 Level Dungeon Randomly Generated",
+    "author": "osiris1333",
+    "description": "A randomly generated dungeon made with genmod that has 100 rooms that slowly get harder as you progress. Just something to do if you're bored.",
+    "url": "https://www.nexusmods.com/morrowind/mods/52556",
+    "category": "Locations",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "100LevelDungeonRandomlyGenerated",
+    "slug": "nexus-52556",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "100 Level Dungeon",
+        "extract_to": "100LevelDungeonRandomlyGenerated",
+        "nexus_file_id": 1000036741,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "100LevelDungeonRandomlyGenerated/100LevelDungeon"
+    ],
+    "plugins": [
+      "100LevelDungeon.esp"
+    ]
+  },
+  {
+    "name": "Arrow Stick (OpenMW)",
+    "author": "<a href=\"https://next.nexusmods.com/profile/SosnoviyBor/about-me\">SosnoviyBor</a> and <a href=\"https://next.nexusmods.com/profile/SkyHasACat/about-me\">DaisyHasaCat</a>",
+    "description": "Makes arrows stick into terrain and objects.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58299",
+    "category": "Combat",
+    "dl_url": "",
+    "usage_notes": "",
+    "compat": 4,
+    "dir": "ArrowStickOpenMW",
+    "slug": "arrow-stick-openmw",
+    "date_added": "2026-08-19T19:49:00+00:00",
+    "date_updated": "2026-08-19T19:49:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Arrow Stick",
+        "extract_to": "ArrowStickOpenMW",
+        "nexus_file_id": 1000069297,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "ArrowStickOpenMW"
+    ],
+    "plugins": [
+      "ArrowStick.omwscripts"
+    ]
+  },
+  {
+    "name": "Athena's Hideout - A Pirate's Cove",
+    "author": "Tel Shadow",
+    "description": "Discover the hidden hideout of the pirate legends! From what remains in its tavern made from the bones of fellow ships that once sailed in its very cave and laid to rest, this mod adds a pirate shipwreck cave along with a player home, a shipwreck tavern, a personal trader, your own ship master, along with a few other things.",
+    "url": "https://www.nexusmods.com/morrowind/mods/54092",
+    "category": "Locations",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "AthenasHideoutAPiratesCove",
+    "slug": "nexus-54092",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Athena's Hideout 3.0",
+        "extract_to": "AthenasHideoutAPiratesCove",
+        "nexus_file_id": 1000042531,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "AthenasHideoutAPiratesCove/Athena's Hideout"
+    ],
+    "plugins": [
+      "Athena's Hideout.ESP"
+    ]
+  },
+  {
+    "name": "BeamFX",
+    "author": "slowchu",
+    "description": "Beam Shader Framework for OpenMW 0.51+",
+    "url": "https://www.nexusmods.com/morrowind/mods/59636",
+    "category": "ModdingResources",
+    "dl_url": "",
+    "usage_notes": "BeamFX visual gallery example intentionally disabled.",
+    "compat": 0,
+    "dir": "BeamFX",
+    "slug": "nexus-59636",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "BeamFX 0.1.0-alpha.7",
+        "extract_to": "BeamFX",
+        "nexus_file_id": 1000067670,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "BeamFX/BeamFX"
+    ],
+    "plugins": [
+      "beamfx.omwscripts"
+    ]
+  },
+  {
+    "name": "Caldera Priory and the Depths of Blood and Bone",
+    "author": "<a href=\"https://next.nexusmods.com/profile/seelof/about-me\">seelof</a>",
+    "description": "Caldera Priory has been overrun by the Undead. Do you have the courage and the will to venture into the Depths of Blood and Bone and vanquish the ancient Evil that has taken hold of the lands above?",
+    "url": "https://www.nexusmods.com/morrowind/mods/52898",
+    "category": "Quests",
+    "dl_url": "",
+    "usage_notes": "Optional Rocky West Gash/BCOM/other groundcover patches disabled because those dependencies are not selected.",
+    "compat": 4,
+    "dir": "CalderaPrioryandtheDepthsofBloodandBone",
+    "slug": "caldera-priory-and-the-depths-of-blood-and-bone",
+    "date_added": "2023-10-19T20:50:00+00:00",
+    "date_updated": "2023-10-19T20:50:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Caldera Priory and the Depths of Blood and Bone",
+        "extract_to": "CalderaPrioryandtheDepthsofBloodandBone",
+        "nexus_file_id": 1000052274,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "oaab-data",
+      "tamriel-data"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "CalderaPrioryandtheDepthsofBloodandBone/00 Core"
+    ],
+    "plugins": [
+      "Caldera Priory.ESP"
+    ]
+  },
+  {
+    "name": "Greymarch Dawn - Whispers of Jyggalag",
+    "author": "Team Veloth's Virtuosos: <a href=\"https://next.nexusmods.com/profile/globemallow/about-me\">globemallow</a>, <a href=\"https://next.nexusmods.com/profile/HurdraxCustos/about-me\">Hurdrax Custos</a>, Lord Zircon, <a href=\"https://next.nexusmods.com/profile/Damius/about-me\">Markond</a>, and <a href=\"https://next.nexusmods.com/profile/MelchiorDahrk/about-me\">Melchior Dahrk</a>",
+    "description": "Plunge into an engaging prequel to the events of the TES4:Shivering Isles expansion as the world shivers with Whispers of Jyggalag. The familiar sights of sewers and Thieves Guild operatives quickly unravel as you find yourself caught between two opposing forces while traversing the deepest parts of Vvardenfell.",
+    "url": "https://www.nexusmods.com/morrowind/mods/53679",
+    "category": "Quests",
+    "dl_url": "",
+    "usage_notes": "MWSE and White Suran optional branches intentionally disabled.",
+    "compat": 4,
+    "dir": "GreymarchDawnWhispersofJyggalag",
+    "slug": "greymarch-dawn-whispers-of-jyggalag",
+    "date_added": "2023-11-08T19:16:00+00:00",
+    "date_updated": "2023-11-08T19:16:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Greymarch Dawn - Whispers of Jyggalag",
+        "extract_to": "GreymarchDawnWhispersofJyggalag",
+        "nexus_file_id": 1000065065,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "oaab-data",
+      "tamriel-data"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "GreymarchDawnWhispersofJyggalag/00 Core",
+      "GreymarchDawnWhispersofJyggalag/01 HD Textures",
+      "GreymarchDawnWhispersofJyggalag/06 OpenMW Normal Maps",
+      "GreymarchDawnWhispersofJyggalag/07 OpenMW HD Icons"
+    ],
+    "plugins": [
+      "GreymarchDawn.esp"
+    ]
+  },
+  {
+    "name": "Hackle-Lo Pipe",
+    "author": "WanderVanaheimr - InkDrops",
+    "description": "Adds several Hackle-Lo pipes that you can smoke to Vvardenfells pubs and Ashlander camps.",
+    "url": "https://www.nexusmods.com/morrowind/mods/56939",
+    "category": "Items",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "HackleLoPipe",
+    "slug": "nexus-56939",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Hackle-Lo Pipes",
+        "extract_to": "HackleLoPipe",
+        "nexus_file_id": 1000064599,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "HackleLoPipe"
+    ],
+    "plugins": [
+      "Hackle-Lo Pipe.esp"
+    ]
+  },
+  {
+    "name": "Jim's Living Bestiary",
+    "author": "Th3ShadowDragon007",
+    "description": "A full creature bestiary for OpenMW with 98 entries, encounter-based discovery, unlockable lore and combat information, creature portraits, categories, kill tracking, and its own configurable Morrowind-style menu.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59711",
+    "category": "UserInterface",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "JimsLivingBestiary",
+    "slug": "nexus-59711",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Jims Living Bestiary V1 3d model update",
+        "extract_to": "JimsLivingBestiary",
+        "nexus_file_id": 1000067830,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "JimsLivingBestiary/Jims Living Bestiary 3D model update"
+    ],
+    "plugins": [
+      "JimsLivingBestiary.omwscripts"
+    ]
+  },
+  {
+    "name": "Mandalore Armor Mod Updated",
+    "author": "Harvey Pittle",
+    "description": "New fixed version of the Mandalore Armor Mod with a 100% spawn chance of the bounty hunter after a 3000 bounty. Armor only version also available (must be spawned through console).",
+    "url": "https://www.nexusmods.com/morrowind/mods/59846",
+    "category": "Armour",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "MandaloreArmorModUpdated",
+    "slug": "nexus-59846",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Mandalore Armor Mod Updated",
+        "extract_to": "MandaloreArmorModUpdated",
+        "nexus_file_id": 1000068330,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "MandaloreArmorModUpdated"
+    ],
+    "plugins": [
+      "mandalore_UPDATED v1.esp"
+    ]
+  },
+  {
+    "name": "Peke-utchoo Race (cursed content) and other things",
+    "author": "Scheeel",
+    "description": "Adds a very cursed race, adds a occupied house in Seyda neen which is ABSOLUTELY no 6th house secret base, and a secret in Balmora. (Please note that this mod is not lore-friendly, I just made it for fun.)",
+    "url": "https://www.nexusmods.com/morrowind/mods/51379",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "PekeutchooRacecursedcontentandotherthings",
+    "slug": "nexus-51379",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Peke Utchoo race etc",
+        "extract_to": "PekeutchooRacecursedcontentandotherthings",
+        "nexus_file_id": 1000031166,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "PekeutchooRacecursedcontentandotherthings"
+    ],
+    "plugins": [
+      "peke-utchoo.ESP"
+    ]
+  },
+  {
+    "name": "Playable Ancestor Ghosts (OpenMW)",
+    "author": "souredoutlook",
+    "description": "Play as an Ancestor Ghost with relevant powers and restrictions (no weapons or armour allowed). NOTE: This mod is for OpenMW 0.51+ only.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59095",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "PlayableAncestorGhostsOpenMW",
+    "slug": "nexus-59095",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Ancestor Ghost 0.3.1",
+        "extract_to": "PlayableAncestorGhostsOpenMW",
+        "nexus_file_id": 1000068180,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "PlayableAncestorGhostsOpenMW/ancestor-ghost"
+    ],
+    "plugins": [
+      "ancestor_ghost.omwaddon",
+      "ancestor_ghost.omwscripts"
+    ]
+  },
+  {
+    "name": "Ratkinn race",
+    "author": "Rattfink333",
+    "description": "A new rat race",
+    "url": "https://www.nexusmods.com/morrowind/mods/33285",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "Ratkinnrace",
+    "slug": "nexus-33285",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "beta",
+        "extract_to": "Ratkinnrace",
+        "nexus_file_id": 64549,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "Ratkinnrace/ratkinn",
+      "Ratkinnrace/ratkinn/data"
+    ],
+    "plugins": [
+      "Clean ratkinn.ESP"
+    ]
+  },
+  {
+    "name": "SaberBeam",
+    "author": "slowchu",
+    "description": "Animation Handler + SFX replacement for Lightsabers weapons Includes a Blender Plugin for correct NIF generation",
+    "url": "https://www.nexusmods.com/morrowind/mods/59763",
+    "category": "ModdingResources",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "SaberBeam",
+    "slug": "nexus-59763",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "SaberBeam 0.3.1",
+        "extract_to": "SaberBeam",
+        "nexus_file_id": 1000068017,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SaberBeam"
+    ],
+    "plugins": [
+      "saberbeam.omwscripts"
+    ]
+  },
+  {
+    "name": "Same Hat",
+    "author": "<a href=\"https://next.nexusmods.com/profile/blurpandra/about-me\">blurpandra</a>",
+    "description": "Get a disposition bonus when you have the same hat.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58132",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "",
+    "compat": 4,
+    "dir": "SameHat",
+    "slug": "same-hat",
+    "date_added": "2026-08-19T20:34:00+00:00",
+    "date_updated": "2026-08-19T20:34:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Same Hat",
+        "extract_to": "SameHat",
+        "nexus_file_id": 1000061549,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [
+      "openmw-lua"
+    ],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SameHat/ErnSameHat-main"
+    ],
+    "plugins": [
+      "ErnSameHat.omwaddon"
+    ]
+  },
+  {
+    "name": "Solid Snake Stealth Cardboard Box",
+    "author": "AbiboTeslik",
+    "description": "This mod adds the Solid Snake Stealth Cardboard Box to your game. People cannot see you. They think you are a box...",
+    "url": "https://www.nexusmods.com/morrowind/mods/57042",
+    "category": "Items",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "SolidSnakeStealthCardboardBox",
+    "slug": "nexus-57042",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Solid Snake Stealth Cardboard Box",
+        "extract_to": "SolidSnakeStealthCardboardBox",
+        "nexus_file_id": 1000054759,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SolidSnakeStealthCardboardBox/Solid Snake Stealth Cardboard Box",
+      "SolidSnakeStealthCardboardBox/Solid Snake Stealth Cardboard Box/Data Files"
+    ],
+    "plugins": [
+      "Solid Snake Stealth Cardboard Box.omwaddon"
+    ]
+  },
+  {
+    "name": "Tel Uvirith Revised",
+    "author": "toesucker6000000",
+    "description": "This mod intends to revise the Telvanni stronghold of Tel Uvirith, hoping to bring the stronghold in line with the other Great Houses' options, as well as other Telvanni Settlements. This mod adds new rooms, objects, decorations. containers and NPCs to breathe new life into Tel Uvirith, making the tower more of a 'lived in' Telvanni settlement.",
+    "url": "https://www.nexusmods.com/morrowind/mods/52494",
+    "category": "Locations",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "TelUvirithRevised",
+    "slug": "nexus-52494",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Tel Uvirith Revised v1.2",
+        "extract_to": "TelUvirithRevised",
+        "nexus_file_id": 1000036520,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "TelUvirithRevised"
+    ],
+    "plugins": [
+      "Uvirith Revised.ESP"
+    ]
+  },
+  {
+    "name": "The Hex Weaver",
+    "author": "Ruffin Vangarr_Katya Karrel",
+    "description": "Search for a magic tower in the West Gash to the north of Caldera and meet with a strange lady who lives there.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59843",
+    "category": "Locations",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "TheHexWeaver",
+    "slug": "nexus-59843",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "The Hex Weaver",
+        "extract_to": "TheHexWeaver",
+        "nexus_file_id": 1000068346,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "TheHexWeaver"
+    ],
+    "plugins": [
+      "The Hex Weaver.ESP"
+    ]
+  },
+  {
+    "name": "Vivi's Tylwyth",
+    "author": "vivisepultura",
+    "description": "Reupload of Westly and Korana's Tylwyth race including 5 new female faces. Requires Better Bodies. Original unaltered version of the mod available in downloads.",
+    "url": "https://www.nexusmods.com/morrowind/mods/58845",
+    "category": "Races",
+    "dl_url": "",
+    "usage_notes": "Optional alternate male skin folders intentionally disabled.",
+    "compat": 0,
+    "dir": "VivisTylwyth",
+    "slug": "nexus-58845",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Vivi's Tylwyth",
+        "extract_to": "VivisTylwyth",
+        "nexus_file_id": 1000063398,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "VivisTylwyth/Vivi's Tylwyth/Data Files"
+    ],
+    "plugins": [
+      "The_Tylwyth.esp"
+    ]
+  },
+  {
+    "name": "Voice of the Mudcrab - Speaking Mudcrabs (OpenMW)",
+    "author": "Myuwind",
+    "description": "Using extensive modern Morrowind technology, gives mudcrabs high-pitched Dunmer accents. An essential mod for any load order!",
+    "url": "https://www.nexusmods.com/morrowind/mods/59547",
+    "category": "Audio",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "VoiceoftheMudcrabSpeakingMudcrabsOpenMW",
+    "slug": "nexus-59547",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Voice Of The Mudcrab (OpenMW) Latest v1.00",
+        "extract_to": "VoiceoftheMudcrabSpeakingMudcrabsOpenMW",
+        "nexus_file_id": 1000066772,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "VoiceoftheMudcrabSpeakingMudcrabsOpenMW"
+    ],
+    "plugins": [
+      "VoiceoftheMudcrab.omwscripts"
+    ]
+  },
+  {
+    "name": "Devilish Rainbows (OpenMW)",
+    "author": "DetailDevil",
+    "description": "This is a shader mod that adds realistic rainbows on cloudy / overcast days during the morning 6am to 7am and afternoon roughly 5pm to 6pm.",
+    "url": "https://www.nexusmods.com/morrowind/mods/59683",
+    "category": "Shaders",
+    "dl_url": "",
+    "usage_notes": "Shader-only OpenMW data path; no content plugin is shipped.",
+    "compat": 0,
+    "dir": "DevilishRainbowsOpenMW",
+    "slug": "nexus-59683",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Devilish Rainbows",
+        "extract_to": "DevilishRainbowsOpenMW",
+        "nexus_file_id": 1000067548,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "DevilishRainbowsOpenMW"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "Giant Toe Ingredient",
+    "author": "FishermanZeddy",
+    "description": "Head on down to Tel Mora and visit Jolda' shop for a new ingredient imported from Skyrim! <br />The Giant's Toe.  I tried to keep the Alchemical properties as close to the original from Skyrim.<br />This item is restocking so you will never run out of them.",
+    "url": "https://www.nexusmods.com/morrowind/mods/57684",
+    "category": "Items",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "GiantToeIngredient",
+    "slug": "nexus-57684",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Clean Jolda's Giant Toe Ingredient",
+        "extract_to": "GiantToeIngredient",
+        "nexus_file_id": 1000057914,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "GiantToeIngredient/Clean Jolda's Giant Toe ingredient"
+    ],
+    "plugins": [
+      "Clean Clean Jolda's Giants toe.ESP"
+    ]
+  },
+  {
+    "name": "Inventory Camera (OpenMW)",
+    "author": "SosnoviyBor",
+    "description": "Open your inventory with style!",
+    "url": "https://www.nexusmods.com/morrowind/mods/59968",
+    "category": "UserInterface",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "InventoryCameraOpenMW",
+    "slug": "nexus-59968",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "InventoryCamera",
+        "extract_to": "InventoryCameraOpenMW",
+        "nexus_file_id": 1000069053,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "InventoryCameraOpenMW"
+    ],
+    "plugins": [
+      "InventoryCamera.omwscripts"
+    ]
+  },
+  {
+    "name": "Yagrum has legs",
+    "author": "concit",
+    "description": "He got them back.",
+    "url": "https://www.nexusmods.com/morrowind/mods/53388",
+    "category": "ModelsAndTextures",
+    "dl_url": "",
+    "usage_notes": "Mesh-replacer-only data path; no plugin is shipped.",
+    "compat": 0,
+    "dir": "Yagrumhaslegs",
+    "slug": "nexus-53388",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Yagrum Legs",
+        "extract_to": "Yagrumhaslegs",
+        "nexus_file_id": 1000039774,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "Yagrumhaslegs"
+    ],
+    "plugins": []
+  },
+  {
+    "name": "Swampy Poop Throwers (Beta)",
+    "author": "Artaproteus",
+    "description": "Adds random, uncivilized NPC's that can be found bathing in swampy areas that will throw poop at the player if detected. More to come in the next update. Uploaded for The 2026 Mollython Event!",
+    "url": "https://www.nexusmods.com/morrowind/mods/59238",
+    "category": "Gameplay",
+    "dl_url": "",
+    "usage_notes": "Fetcher local WIP: Nexus archive is pinned for download, but data paths and plugins intentionally remain disabled until post-extraction validation.",
+    "compat": 0,
+    "dir": "SwampyPoopThrowersBeta",
+    "slug": "nexus-59238",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Swampy Poop Throwers",
+        "extract_to": "SwampyPoopThrowersBeta",
+        "nexus_file_id": 1000065289,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "SwampyPoopThrowersBeta/Swampy Poop Throwers by Artaproteus"
+    ],
+    "plugins": [
+      "Swampy Poop Throwers.ESP"
+    ]
+  },
+  {
+    "name": "Fantasia Grass Mod",
+    "author": "acidzebra",
+    "description": "Funny grass mod for funny mushroom game.",
+    "url": "https://www.nexusmods.com/morrowind/mods/56570",
+    "category": "Groundcover",
+    "dl_url": "",
+    "usage_notes": "Regular OpenMW groundcover: vanilla regions + Project Cyrodiil + SHOTN + Bloodmoon Solstheim + merged TR. Grass ESPs are groundcover-only and never content= entries.",
+    "compat": 0,
+    "dir": "FantasiaGrassMod",
+    "slug": "nexus-56570",
+    "date_added": "2026-08-29T00:00:00+00:00",
+    "date_updated": "2026-08-29T00:00:00+00:00",
+    "download_info": [
+      {
+        "direct_download": null,
+        "file_name": "Fantasia Grass Mod v2 Regular Edition",
+        "extract_to": "FantasiaGrassMod",
+        "nexus_file_id": 1000053549,
+        "pinned": true,
+        "actions": []
+      }
+    ],
+    "tags": [],
+    "on_lists": [
+      "fetcher-simulator"
+    ],
+    "data_paths": [
+      "FantasiaGrassMod",
+      "FantasiaGrassMod/FGM_VANILLA",
+      "FantasiaGrassMod/FGM_CYR",
+      "FantasiaGrassMod/FGM_SHOTN",
+      "FantasiaGrassMod/FGM_SO",
+      "FantasiaGrassMod/FGM_TR/merged"
+    ],
+    "plugins": [],
+    "groundcover": [
+      "FGM_AC.esp",
+      "FGM_AI.esp",
+      "FGM_AL.esp",
+      "FGM_BC.esp",
+      "FGM_GL.esp",
+      "FGM_MA.esp",
+      "FGM_SD.esp",
+      "FGM_WG.esp",
+      "FGM_CYR.esp",
+      "FGM_SHOTN.esp",
+      "FGM_SO_BM.esp",
+      "FGM_TR.esp"
     ]
   }
 ]

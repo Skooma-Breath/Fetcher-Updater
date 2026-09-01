@@ -7,8 +7,9 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $cfgPath = Join-Path $root "openmw.cfg"
-$umoModListName = "fetcher-bardcraft"
-$umoModListPath = Join-Path $root "fetcher-bardcraft-umo.json"
+$settingsPath = Join-Path $root "settings.cfg"
+$umoModListName = "fetcher-simulator"
+$umoModListPath = Join-Path $root "fetcher-simulator-umo.json"
 $patchCatalogPath = Join-Path $root "fetcher-client-patches.json"
 $fallbackTemplatePath = Join-Path $root "fetcher-canonical-fallbacks.cfg"
 $expectedFallbackCount = 655
@@ -122,9 +123,145 @@ function Test-IsBaseVfsDataLine {
     return [string]::Equals($normalizedResolvedPath, $normalizedBaseVfsPath, [StringComparison]::OrdinalIgnoreCase)
 }
 
+function Test-IsFetcherManagedDataLine {
+    param([string] $Line)
+
+    if ($Line -notmatch "^\s*data\s*=\s*(.+?)\s*$") {
+        return $false
+    }
+    $configuredPath = $Matches[1].Trim()
+    if (($configuredPath.StartsWith('"') -and $configuredPath.EndsWith('"')) -or
+        ($configuredPath.StartsWith("'") -and $configuredPath.EndsWith("'"))) {
+        $configuredPath = $configuredPath.Substring(1, $configuredPath.Length - 2)
+    }
+    $resolvedPath = Convert-ToDataPath $configuredPath
+    if ([string]::IsNullOrWhiteSpace($resolvedPath)) {
+        return $false
+    }
+
+    $normalizedPath = $resolvedPath.TrimEnd([char[]]"\/")
+    foreach ($managedRelativeRoot in @(
+        "Data Files\fetcher-simulator",
+        "Data Files\fetcher-bardcraft"
+    )) {
+        $managedRoot = [IO.Path]::GetFullPath((Join-Path $root $managedRelativeRoot)).TrimEnd([char[]]"\/")
+        if ([string]::Equals($normalizedPath, $managedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+            $normalizedPath.StartsWith($managedRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    foreach ($patch in @($patches)) {
+        foreach ($managedRelativeRoot in @(Get-OptionalPropertyValues -Object $patch -Name "dataPaths")) {
+            if ([string]::IsNullOrWhiteSpace([string]$managedRelativeRoot)) {
+                continue
+            }
+            $managedRoot = [IO.Path]::GetFullPath((Join-Path $root ([string]$managedRelativeRoot))).TrimEnd([char[]]"\/")
+            if ([string]::Equals($normalizedPath, $managedRoot, [StringComparison]::OrdinalIgnoreCase) -or
+                $normalizedPath.StartsWith($managedRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+                return $true
+            }
+        }
+    }
+    return $false
+}
+
+function Ensure-ProjectAtlasLegacyVelothiTexture {
+    $projectAtlasTextureRoot = Join-Path $root "Data Files\fetcher-simulator\Performance\ProjectAtlas\01 Textures - Vanilla\Textures\atl"
+    $glassDomesRoot = Join-Path $root "Data Files\fetcher-simulator\ModelsAndTextures\GlassDomesofVivec"
+    $legacyTexture = Join-Path $projectAtlasTextureRoot "atlas_velothi.dds"
+
+    if (Test-Path -LiteralPath $legacyTexture -PathType Leaf) {
+        return
+    }
+
+    foreach ($candidateName in @("atlas_velothi_01.dds", "atlas_velothi_02.dds")) {
+        $candidate = Join-Path $projectAtlasTextureRoot $candidateName
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            Copy-Item -LiteralPath $candidate -Destination $legacyTexture -Force
+            Write-Host "Created legacy Project Atlas Velothi texture alias from $candidateName for Glass Domes compatibility."
+            return
+        }
+    }
+
+    if (Test-Path -LiteralPath $glassDomesRoot -PathType Container) {
+        throw "Glass Domes of Vivec requires textures/atl/atlas_velothi.dds, but Project Atlas provides no compatible Velothi atlas source in $projectAtlasTextureRoot."
+    }
+}
+
+function Ensure-GroundcoverSettings {
+    param([Parameter(Mandatory = $true)][string] $Path)
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        foreach ($line in Get-Content -LiteralPath $Path) {
+            $lines.Add([string]$line)
+        }
+    }
+
+    $sectionStart = -1
+    for ($i = 0; $i -lt $lines.Count; ++$i) {
+        if ($lines[$i].Trim().Equals("[Groundcover]", [StringComparison]::OrdinalIgnoreCase)) {
+            $sectionStart = $i
+            break
+        }
+    }
+
+    $backup = $null
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        $backup = "$Path.before-fetcher-groundcover-$(Get-Date -Format 'yyyyMMdd-HHmmss').bak"
+        Copy-Item -LiteralPath $Path -Destination $backup -Force
+    }
+
+    if ($sectionStart -lt 0) {
+        if ($lines.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace($lines[$lines.Count - 1])) {
+            $lines.Add("")
+        }
+        $lines.Add("[Groundcover]")
+        $lines.Add("enabled = true")
+        $lines.Add("stomp mode = 2")
+        $lines.Add("stomp intensity = 1")
+    }
+    else {
+        $sectionEnd = $lines.Count
+        for ($i = $sectionStart + 1; $i -lt $lines.Count; ++$i) {
+            if ($lines[$i].Trim() -match '^\[[^\]]+\]$') {
+                $sectionEnd = $i
+                break
+            }
+        }
+
+        $keys = [ordered]@{
+            "enabled" = "enabled = true"
+            "stomp mode" = "stomp mode = 2"
+            "stomp intensity" = "stomp intensity = 1"
+        }
+        foreach ($key in @($keys.Keys)) {
+            $matched = $false
+            for ($i = $sectionStart + 1; $i -lt $sectionEnd; ++$i) {
+                if ($lines[$i] -match ('^\s*' + [regex]::Escape($key) + '\s*=')) {
+                    if ($key -eq "enabled") {
+                        $lines[$i] = $keys[$key]
+                    }
+                    $matched = $true
+                    break
+                }
+            }
+            if (-not $matched) {
+                $lines.Insert($sectionEnd, $keys[$key])
+                ++$sectionEnd
+            }
+        }
+    }
+
+    Set-Content -LiteralPath $Path -Value $lines -Encoding ASCII
+    return $backup
+}
+
 $umoMods = @()
 if (Test-Path -LiteralPath $umoModListPath -PathType Leaf) {
-    $umoMods = @(Get-Content -Raw -LiteralPath $umoModListPath | ConvertFrom-Json)
+    $parsedUmoMods = Get-Content -Raw -LiteralPath $umoModListPath | ConvertFrom-Json
+    $umoMods = @($parsedUmoMods | ForEach-Object { $_ })
 }
 $patches = @()
 if (Test-Path -LiteralPath $patchCatalogPath -PathType Leaf) {
@@ -186,7 +323,33 @@ foreach ($patch in $patches) {
         }
     }
 }
+# MWZ carries a later Fargoth definition. Keep the Link override plugins after it so
+# the final effective Fargoth remains the tested Zelda/Link variant.
+$mwzFargothOverrideAnchor = "MWZ 2.26 Hardcore Mode.ESP"
+$mwzFargothOverrideContent = @("fargoth.esp", "Link_(Fixed).esp")
+if ($requiredContentList.Contains($mwzFargothOverrideAnchor)) {
+    foreach ($content in $mwzFargothOverrideContent) {
+        [void]$requiredContentList.Remove($content)
+    }
+    $insertIndex = $requiredContentList.IndexOf($mwzFargothOverrideAnchor) + 1
+    foreach ($content in $mwzFargothOverrideContent) {
+        if ($availableUmoContent.Contains($content) -or $availablePatchContent.Contains($content)) {
+            $requiredContentList.Insert($insertIndex, $content)
+            ++$insertIndex
+        }
+    }
+}
 $requiredContent = @($requiredContentList)
+
+$requiredGroundcoverList = New-Object System.Collections.Generic.List[string]
+foreach ($mod in $umoMods) {
+    foreach ($groundcover in @(Get-OptionalPropertyValues -Object $mod -Name "groundcover")) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$groundcover)) {
+            Add-UniqueContent -Target $requiredGroundcoverList -Value ([string]$groundcover)
+        }
+    }
+}
+$requiredGroundcover = @($requiredGroundcoverList)
 
 if (-not (Test-Path -LiteralPath $cfgPath)) {
     throw "Could not find openmw.cfg next to this script: $cfgPath"
@@ -197,6 +360,8 @@ if (-not (Test-Path -LiteralPath $fallbackTemplatePath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $baseVfsAbsolutePath -PathType Container)) {
     throw "Required OpenMW base VFS directory is missing: $baseVfsAbsolutePath. Run the Fetcher client repair, then try again."
 }
+
+Ensure-ProjectAtlasLegacyVelothiTexture
 
 $canonicalFallbackLines = @(Get-Content -LiteralPath $fallbackTemplatePath |
     Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
@@ -228,12 +393,15 @@ $fallbackBeginMarker = "# BEGIN Fetcher Simulator canonical fallbacks"
 $fallbackEndMarker = "# END Fetcher Simulator canonical fallbacks"
 $dataBeginMarker = "# BEGIN Fetcher Simulator UMO data paths"
 $dataEndMarker = "# END Fetcher Simulator UMO data paths"
+$groundcoverBeginMarker = "# BEGIN Fetcher Simulator groundcover"
+$groundcoverEndMarker = "# END Fetcher Simulator groundcover"
 $beginMarker = "# BEGIN Fetcher Simulator public test load order"
 $endMarker = "# END Fetcher Simulator public test load order"
 $filteredLines = New-Object System.Collections.Generic.List[string]
 $insideFetcherFallbackBlock = $false
 $insideFetcherBlock = $false
 $insideFetcherDataBlock = $false
+$insideFetcherGroundcoverBlock = $false
 
 foreach ($line in $existingLines) {
     $trimmed = $line.Trim()
@@ -262,6 +430,17 @@ foreach ($line in $existingLines) {
     if ($insideFetcherDataBlock) {
         continue
     }
+    if ($trimmed -eq $groundcoverBeginMarker) {
+        $insideFetcherGroundcoverBlock = $true
+        continue
+    }
+    if ($trimmed -eq $groundcoverEndMarker) {
+        $insideFetcherGroundcoverBlock = $false
+        continue
+    }
+    if ($insideFetcherGroundcoverBlock) {
+        continue
+    }
     if ($trimmed -eq $beginMarker) {
         $insideFetcherBlock = $true
         continue
@@ -274,6 +453,9 @@ foreach ($line in $existingLines) {
         continue
     }
     if (Test-IsBaseVfsDataLine -Line $line) {
+        continue
+    }
+    if (Test-IsFetcherManagedDataLine -Line $line) {
         continue
     }
     if ($trimmed -match "^content\s*=") {
@@ -352,10 +534,14 @@ function Get-PatchDataPathEntries {
 }
 
 $existingDataLines = @{}
+$existingGroundcoverLines = @{}
 foreach ($line in $filteredLines) {
     $trimmed = $line.Trim()
     if ($trimmed -match "^data\s*=") {
         $existingDataLines[$trimmed.ToLowerInvariant()] = $true
+    }
+    if ($trimmed -match "^groundcover\s*=") {
+        $existingGroundcoverLines[$trimmed.ToLowerInvariant()] = $true
     }
 }
 
@@ -370,8 +556,11 @@ if (Test-Path -LiteralPath $clientBundleDataRoot -PathType Container) {
         AbsolutePath = $clientBundleDataRoot
     })
 }
+$managedDataSeen = New-Object System.Collections.Generic.HashSet[string]([StringComparer]::OrdinalIgnoreCase)
 $existingManagedDataEntries = @(@($clientBundleDataEntries) + @($umoDataEntries) + @($patchDataEntries) |
-    Where-Object { Test-Path -LiteralPath $_.AbsolutePath })
+    Where-Object {
+        (Test-Path -LiteralPath $_.AbsolutePath) -and $managedDataSeen.Add([string]$_.ConfigPath)
+    })
 
 $newLines = New-Object System.Collections.Generic.List[string]
 $baseVfsInserted = $false
@@ -402,6 +591,17 @@ if ($existingManagedDataEntries.Count -gt 0) {
         }
     }
     $newLines.Add($dataEndMarker)
+}
+if ($requiredGroundcover.Count -gt 0) {
+    $newLines.Add("")
+    $newLines.Add($groundcoverBeginMarker)
+    foreach ($groundcover in $requiredGroundcover) {
+        $groundcoverLine = "groundcover=$groundcover"
+        if (-not $existingGroundcoverLines.ContainsKey($groundcoverLine.ToLowerInvariant())) {
+            $newLines.Add($groundcoverLine)
+        }
+    }
+    $newLines.Add($groundcoverEndMarker)
 }
 $newLines.Add("")
 $newLines.Add($beginMarker)
@@ -453,6 +653,11 @@ finally {
     }
 }
 
+$groundcoverSettingsBackup = $null
+if ($requiredGroundcover.Count -gt 0) {
+    $groundcoverSettingsBackup = Ensure-GroundcoverSettings -Path $settingsPath
+}
+
 $dataDirs = New-Object System.Collections.Generic.List[string]
 foreach ($line in $newLines) {
     if ($line -match "^\s*data\s*=\s*(.+?)\s*$") {
@@ -477,6 +682,20 @@ foreach ($content in $requiredContent) {
     }
 }
 
+$missingGroundcover = New-Object System.Collections.Generic.List[string]
+foreach ($groundcover in $requiredGroundcover) {
+    $found = $false
+    foreach ($dir in $dataDirs) {
+        if (Test-Path -LiteralPath (Join-Path $dir $groundcover)) {
+            $found = $true
+            break
+        }
+    }
+    if (-not $found) {
+        $missingGroundcover.Add($groundcover)
+    }
+}
+
 Write-Host "Updated: $cfgPath"
 Write-Host "Backup:  $backupPath"
 Write-Host "Canonical fallbacks: $expectedFallbackCount entries ($expectedFallbackHash)"
@@ -488,6 +707,13 @@ if ($existingManagedDataEntries.Count -gt 0) {
     }
     Write-Host ""
 }
+if ($requiredGroundcover.Count -gt 0) {
+    Write-Host "Managed groundcover lines written:"
+    foreach ($groundcover in $requiredGroundcover) {
+        Write-Host "  groundcover=$groundcover"
+    }
+    Write-Host ""
+}
 Write-Host "Public test content lines written:"
 foreach ($content in $requiredContent) {
     Write-Host "  content=$content"
@@ -495,17 +721,29 @@ foreach ($content in $requiredContent) {
 
 if ($missing.Count -gt 0) {
     Write-Host ""
-    Write-Host "Warning: these files were not found in the data= folders currently listed in openmw.cfg:"
+    Write-Host "Warning: these content files were not found in the data= folders currently listed in openmw.cfg:"
     foreach ($content in $missing) {
         Write-Host "  $content"
     }
+}
+if ($missingGroundcover.Count -gt 0) {
+    Write-Host ""
+    Write-Host "Warning: these groundcover files were not found in the data= folders currently listed in openmw.cfg:"
+    foreach ($groundcover in $missingGroundcover) {
+        Write-Host "  $groundcover"
+    }
+}
+
+if ($missing.Count -gt 0 -or $missingGroundcover.Count -gt 0) {
     Write-Host ""
     Write-Host "Install the missing mods or add the correct data= folders to openmw.cfg, then run this BAT again."
     if (-not $AllowMissingContent) {
-        throw "Required Fetcher content is unresolved in openmw.cfg: $($missing -join ', ')"
+        $unresolved = @($missing) + @($missingGroundcover)
+        throw "Required Fetcher content is unresolved in openmw.cfg: $($unresolved -join ', ')"
     }
-} else {
+}
+else {
     Write-Host ""
-    Write-Host "All required content files were found in configured data= folders."
+    Write-Host "All required content and groundcover files were found in configured data= folders."
 }
 

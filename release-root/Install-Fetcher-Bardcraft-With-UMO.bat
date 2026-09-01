@@ -15,11 +15,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" %*
 set "RESULT=%ERRORLEVEL%"
 echo.
 if "%RESULT%"=="0" goto install_succeeded
-echo Bardcraft UMO install failed.
+echo Fetcher Simulator UMO install failed.
 goto finish
 
 :install_succeeded
-echo Bardcraft UMO install finished.
+echo Fetcher Simulator UMO install finished.
 
 :finish
 echo.

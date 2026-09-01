@@ -1,8 +1,8 @@
 param(
     [string] $UmoPath = "",
-    [string] $ModListName = "fetcher-bardcraft",
+    [string] $ModListName = "fetcher-simulator",
     [string] $ModListFile = "",
-    [string] $ModListAssetName = "fetcher-bardcraft-umo.json",
+    [string] $ModListAssetName = "fetcher-simulator-umo.json",
     [string] $ModListUrl = "",
     [string] $TesterToolsRepository = "Skooma-Breath/Fetcher-Updater",
     [string] $TesterToolsReleaseTag = "fetcher-tester-tools",
@@ -441,6 +441,63 @@ function Invoke-Checked {
     }
 }
 
+function Move-LegacyUmoList {
+    param(
+        [Parameter(Mandatory = $true)][string] $UmoExecutable,
+        [Parameter(Mandatory = $true)][string] $BasePath,
+        [Parameter(Mandatory = $true)][string] $CurrentListName,
+        [string] $LegacyListName = "fetcher-bardcraft"
+    )
+
+    if ($CurrentListName -ne "fetcher-simulator" -or $LegacyListName -eq $CurrentListName) {
+        return
+    }
+
+    $legacyRoot = Join-Path $BasePath $LegacyListName
+    $currentRoot = Join-Path $BasePath $CurrentListName
+    $legacyRootExists = Test-Path -LiteralPath $legacyRoot -PathType Container
+    $currentRootExists = Test-Path -LiteralPath $currentRoot -PathType Container
+
+    if ($legacyRootExists -and $currentRootExists) {
+        throw "Both legacy and current UMO list folders exist. Refusing to merge them automatically: '$legacyRoot' and '$currentRoot'."
+    }
+
+    $knownLists = @(& $UmoExecutable list local | ForEach-Object { ([string]$_).Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not inspect UMO list state before migrating '$LegacyListName'."
+    }
+    $legacyKnown = $knownLists -contains $LegacyListName
+    $currentKnown = $knownLists -contains $CurrentListName
+
+    if ($legacyKnown -and $currentKnown) {
+        throw "Both legacy and current UMO list cache entries exist. Refusing to overwrite '$CurrentListName' with '$LegacyListName'."
+    }
+
+    $movedFolder = $false
+    try {
+        if ($legacyRootExists) {
+            Write-Host "Migrating UMO list folder:"
+            Write-Host "  $legacyRoot"
+            Write-Host "  -> $currentRoot"
+            Move-Item -LiteralPath $legacyRoot -Destination $currentRoot
+            $movedFolder = $true
+        }
+
+        if ($legacyKnown) {
+            Write-Host "Migrating UMO cached list state: $LegacyListName -> $CurrentListName"
+            Invoke-Checked -Description "umo list rename $LegacyListName $CurrentListName" -Command {
+                & $UmoExecutable list rename $LegacyListName $CurrentListName
+            }
+        }
+    }
+    catch {
+        if ($movedFolder -and (Test-Path -LiteralPath $currentRoot -PathType Container) -and -not (Test-Path -LiteralPath $legacyRoot)) {
+            Move-Item -LiteralPath $currentRoot -Destination $legacyRoot
+        }
+        throw
+    }
+}
+
 function Apply-UmoInstalledDescriptorComparisonPatch {
     param([Parameter(Mandatory = $true)][string] $UmoExecutable)
 
@@ -486,6 +543,75 @@ function Apply-UmoInstalledDescriptorComparisonPatch {
     Write-Host "  $handlersPath"
 }
 
+function Apply-UmoKnownBadDigestPatch {
+    param([Parameter(Mandatory = $true)][string] $UmoExecutable)
+
+    $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
+    $dlPath = Join-Path (Split-Path -Parent $resolvedUmo) "umo\dl.py"
+    if (-not (Test-Path -LiteralPath $dlPath -PathType Leaf)) {
+        throw "UMO runtime dl.py was not found next to $resolvedUmo. Expected: $dlPath"
+    }
+
+    $source = [IO.File]::ReadAllText($dlPath)
+    $anchorHash = '"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"'
+    $doorsHash = '"17c9b2b43ca7a297359bb2076ddd8afef75d6197c3cc3b581e4b14e182ec1f88"'
+
+    if ($source.Contains($doorsHash)) {
+        Write-Host "UMO known-bad Nexus digest patch is current."
+        return
+    }
+
+    $matches = [regex]::Matches($source, [regex]::Escape($anchorHash))
+    if ($matches.Count -ne 1) {
+        throw "Could not safely locate the UMO known-bad digest list in: $dlPath"
+    }
+
+    $newline = if ($source.Contains("`r`n")) { "`r`n" } else { "`n" }
+    $replacement = $anchorHash + "," + $newline +
+        "    # Fetcher: Nexus advertises a stale SHA-256 for The Doors of Oblivion 1.4 (file 1000010485)." + $newline +
+        "    # Skip that digest so UMO validates the completed Nexus archive through its MD5 lookup path instead." + $newline +
+        "    " + $doorsHash + ","
+    $source = $source.Replace($anchorHash, $replacement)
+    [IO.File]::WriteAllText($dlPath, $source, [Text.UTF8Encoding]::new($false))
+    Write-Host "Applied Fetcher UMO known-bad Nexus digest patch:"
+    Write-Host "  $dlPath"
+}
+
+function Get-UmoProtocolHandlerPath {
+    param([Parameter(Mandatory = $true)][string] $UmoExecutable)
+
+    $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
+    $umoRoot = Split-Path -Parent (Split-Path -Parent $resolvedUmo)
+    return (Join-Path $umoRoot "umo-protocol-handler.cmd")
+}
+
+function Get-UmoProtocolHandlerCommand {
+    param([Parameter(Mandatory = $true)][string] $HandlerPath)
+
+    $cmdExe = Join-Path $env:SystemRoot "System32\cmd.exe"
+    return $cmdExe + ' /d /s /c ""' + $HandlerPath + '" "%1""'
+}
+
+function Write-UmoProtocolHandler {
+    param([Parameter(Mandatory = $true)][string] $UmoExecutable)
+
+    $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
+    $handlerPath = Get-UmoProtocolHandlerPath -UmoExecutable $resolvedUmo
+    $lines = @(
+        '@echo off',
+        'setlocal',
+        ('set "UMO_BASEPATH=' + $env:UMO_BASEPATH + '"'),
+        ('set "UMO_CACHE_DIR=' + $env:UMO_CACHE_DIR + '"'),
+        ('set "UMO_CONF_DIR=' + $env:UMO_CONF_DIR + '"'),
+        ('set "UMO_CONF_FILE=' + $env:UMO_CONF_FILE + '"'),
+        ('set "UMO_TES3CMD=' + $env:UMO_TES3CMD + '"'),
+        ('"' + $resolvedUmo + '" "%~1"'),
+        'exit /b %ERRORLEVEL%'
+    )
+    Set-Content -LiteralPath $handlerPath -Value $lines -Encoding ASCII
+    return $handlerPath
+}
+
 function Test-UmoNxmHandler {
     param([Parameter(Mandatory = $true)][string] $UmoExecutable)
 
@@ -501,40 +627,43 @@ function Test-UmoNxmHandler {
         return $false
     }
 
-    $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
-    $expectedCommand = '"' + $resolvedUmo + '" "%1"'
+    $handlerPath = Get-UmoProtocolHandlerPath -UmoExecutable $UmoExecutable
+    if (-not (Test-Path -LiteralPath $handlerPath -PathType Leaf)) {
+        return $false
+    }
+    $expectedCommand = Get-UmoProtocolHandlerCommand -HandlerPath $handlerPath
     return $command.Equals($expectedCommand, [System.StringComparison]::OrdinalIgnoreCase)
 }
 
 function Set-UmoUrlHandler {
     param(
         [Parameter(Mandatory = $true)][string] $Scheme,
-        [Parameter(Mandatory = $true)][string] $UmoExecutable
+        [Parameter(Mandatory = $true)][string] $HandlerPath
     )
 
-    $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
     $schemeKey = "Registry::HKEY_CURRENT_USER\Software\Classes\$Scheme"
     $commandKey = Join-Path $schemeKey "shell\open\command"
     New-Item -Path $commandKey -Force | Out-Null
     Set-Item -LiteralPath $schemeKey -Value "URL:$Scheme Protocol"
     New-ItemProperty -LiteralPath $schemeKey -Name "URL Protocol" -Value "" -PropertyType String -Force | Out-Null
-    Set-Item -LiteralPath $commandKey -Value ('"' + $resolvedUmo + '" "%1"')
+    Set-Item -LiteralPath $commandKey -Value (Get-UmoProtocolHandlerCommand -HandlerPath $HandlerPath)
 }
 
 function Initialize-UmoProtocolHandler {
     param([Parameter(Mandatory = $true)][string] $UmoExecutable)
 
+    $handlerPath = Write-UmoProtocolHandler -UmoExecutable $UmoExecutable
     if (Test-UmoNxmHandler -UmoExecutable $UmoExecutable) {
         return
     }
 
     Write-Host ""
     Write-Host "Registering this portable UMO as the Nexus download handler..."
-    Set-UmoUrlHandler -Scheme "nxm" -UmoExecutable $UmoExecutable
-    Set-UmoUrlHandler -Scheme "momw" -UmoExecutable $UmoExecutable
+    Set-UmoUrlHandler -Scheme "nxm" -HandlerPath $handlerPath
+    Set-UmoUrlHandler -Scheme "momw" -HandlerPath $handlerPath
 
     if (-not (Test-UmoNxmHandler -UmoExecutable $UmoExecutable)) {
-        throw "Windows did not register this copy of umo.exe for nxm:// links."
+        throw "Windows did not register the Fetcher UMO protocol wrapper for nxm:// links."
     }
 }
 
@@ -706,7 +835,7 @@ if ([string]::IsNullOrWhiteSpace($ModListFile)) {
         Invoke-WebRequest -UseBasicParsing -Uri $ModListUrl -OutFile $ModListFile
     }
     catch {
-        throw "Could not download $ModListUrl. The Fetcher Bardcraft UMO modlist may not be published yet. You can also place $ModListAssetName next to this BAT and run it again. Details: $($_.Exception.Message)"
+        throw "Could not download $ModListUrl. The Fetcher Simulator UMO modlist may not be published yet. You can also place $ModListAssetName next to this BAT and run it again. Details: $($_.Exception.Message)"
     }
 }
 
@@ -731,7 +860,9 @@ Invoke-Checked -Description "umo check" -Command {
     }
 }
 Apply-UmoInstalledDescriptorComparisonPatch -UmoExecutable $umo
+Apply-UmoKnownBadDigestPatch -UmoExecutable $umo
 Initialize-UmoProtocolHandler -UmoExecutable $umo
+Move-LegacyUmoList -UmoExecutable $umo -BasePath $UmoBasePath -CurrentListName $ModListName
 
 Write-Host ""
 Write-Host "Registering UMO modlist..."
