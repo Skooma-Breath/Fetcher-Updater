@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "patchVersion": "2026.08.25",
+  "patchVersion": "2026.08.31",
   "files": [
     {
       "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",

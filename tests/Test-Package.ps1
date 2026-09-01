@@ -721,7 +721,7 @@ try {
     $managedCompatibilityManifestPath = Join-Path $workRoot "fetcher-mod-compatibility-patches.json"
     $managedCompatibilityManifest = Get-Content -LiteralPath $managedCompatibilityManifestPath -Raw | ConvertFrom-Json
     if ([int]$managedCompatibilityManifest.formatVersion -ne 1 -or
-        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.25") {
+        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.31") {
         throw "Package has an unsupported managed mod compatibility manifest."
     }
     $expectedManagedOutputs = [ordered]@{
