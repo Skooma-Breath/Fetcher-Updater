@@ -487,6 +487,29 @@ try {
         throw "Legacy UMO cache-repair workaround is still present."
     }
 
+    $protocolHandlerMatch = [regex]::Match(
+        $umoInstallerSource,
+        '(?ms)^(function Get-UmoProtocolHandlerPath \{.*?^})\r?\n\r?\nfunction Test-UmoNxmHandler'
+    )
+    if (-not $protocolHandlerMatch.Success) {
+        throw "Could not extract UMO protocol-handler functions for package regression tests."
+    }
+    Invoke-Expression $protocolHandlerMatch.Groups[1].Value
+    $protocolHandlerFixture = Join-Path $workRoot "umo-protocol-handler-fixture"
+    New-Item -ItemType Directory -Force -Path $protocolHandlerFixture | Out-Null
+    $protocolHandlerUmo = Join-Path $protocolHandlerFixture "umo.exe"
+    Set-Content -LiteralPath $protocolHandlerUmo -Value "fixture" -Encoding ASCII
+    $expectedProtocolHandler = Join-Path $protocolHandlerFixture "umo-protocol-handler.cmd"
+    $resolvedProtocolHandler = Get-UmoProtocolHandlerPath -UmoExecutable $protocolHandlerUmo
+    if (-not $resolvedProtocolHandler.Equals($expectedProtocolHandler, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "UMO protocol handler is not colocated with umo.exe: $resolvedProtocolHandler"
+    }
+    $writtenProtocolHandler = Write-UmoProtocolHandler -UmoExecutable $protocolHandlerUmo
+    if (-not $writtenProtocolHandler.Equals($expectedProtocolHandler, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $expectedProtocolHandler -PathType Leaf)) {
+        throw "UMO protocol handler was not written beside umo.exe."
+    }
+
     $moveLegacyMatch = [regex]::Match(
         $umoInstallerSource,
         '(?ms)^(function Move-LegacyUmoList \{.*?^})\r?\n\r?\nfunction Apply-UmoInstalledDescriptorComparisonPatch'

@@ -622,7 +622,7 @@ function Get-UmoProtocolHandlerPath {
     param([Parameter(Mandatory = $true)][string] $UmoExecutable)
 
     $resolvedUmo = (Resolve-Path -LiteralPath $UmoExecutable).Path
-    $umoRoot = Split-Path -Parent (Split-Path -Parent $resolvedUmo)
+    $umoRoot = Split-Path -Parent $resolvedUmo
     return (Join-Path $umoRoot "umo-protocol-handler.cmd")
 }
 
