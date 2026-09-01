@@ -486,6 +486,64 @@ try {
         $umoInstallerSource.Contains('cache patch installed "$entryPath.mod_data.pinned"')) {
         throw "Legacy UMO cache-repair workaround is still present."
     }
+
+    $moveLegacyMatch = [regex]::Match(
+        $umoInstallerSource,
+        '(?ms)^(function Move-LegacyUmoList \{.*?^})\r?\n\r?\nfunction Apply-UmoInstalledDescriptorComparisonPatch'
+    )
+    if (-not $moveLegacyMatch.Success) {
+        throw "Could not extract Move-LegacyUmoList for dual-root migration regression tests."
+    }
+    Invoke-Expression $moveLegacyMatch.Groups[1].Value
+
+    $dualRootFixture = Join-Path $workRoot "umo-dual-root-fixture"
+    $dualBasePath = Join-Path $dualRootFixture "Data Files"
+    $dualLegacyRoot = Join-Path $dualBasePath "fetcher-bardcraft"
+    $dualCurrentRoot = Join-Path $dualBasePath "fetcher-simulator"
+    $dualLegacyActive = Join-Path $dualLegacyRoot "Gameplay\Probe\active.txt"
+    $dualCurrentActive = Join-Path $dualCurrentRoot "Gameplay\Probe\active.txt"
+    $dualLegacyBackupOnly = Join-Path $dualLegacyRoot "Gameplay\BardcraftOpenMW\.fetcher-bardcraft-backups\2.0.21\player.lua"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dualLegacyActive), (Split-Path -Parent $dualCurrentActive), (Split-Path -Parent $dualLegacyBackupOnly) | Out-Null
+    Set-Content -LiteralPath $dualLegacyActive -Value "legacy-active" -Encoding ASCII
+    Set-Content -LiteralPath $dualCurrentActive -Value "current-active" -Encoding ASCII
+    Set-Content -LiteralPath $dualLegacyBackupOnly -Value "legacy-backup-only" -Encoding ASCII
+    $fakeUmo = Join-Path $dualRootFixture "umo.cmd"
+    Set-Content -LiteralPath $fakeUmo -Value @('@echo off', 'exit /b 0') -Encoding ASCII
+
+    Move-LegacyUmoList -UmoExecutable $fakeUmo -BasePath $dualBasePath -CurrentListName "fetcher-simulator"
+    if (Test-Path -LiteralPath $dualLegacyRoot) {
+        throw "Safe dual-root migration left the legacy UMO tree active."
+    }
+    if ((Get-Content -LiteralPath $dualCurrentActive -Raw).Trim() -ne "current-active") {
+        throw "Safe dual-root migration overwrote the authoritative current UMO file."
+    }
+    $dualBackups = @(Get-ChildItem -LiteralPath (Join-Path $dualRootFixture "backups\umo-layout-migration") -Directory -Filter "fetcher-bardcraft-*")
+    if ($dualBackups.Count -ne 1) {
+        throw "Safe dual-root migration did not preserve exactly one legacy rollback tree."
+    }
+    if ((Get-Content -LiteralPath (Join-Path $dualBackups[0].FullName "Gameplay\Probe\active.txt") -Raw).Trim() -ne "legacy-active" -or
+        -not (Test-Path -LiteralPath (Join-Path $dualBackups[0].FullName "Gameplay\BardcraftOpenMW\.fetcher-bardcraft-backups\2.0.21\player.lua") -PathType Leaf)) {
+        throw "Safe dual-root migration did not preserve the complete legacy tree in rollback storage."
+    }
+
+    $unsafeRootFixture = Join-Path $workRoot "umo-dual-root-unsafe-fixture"
+    $unsafeBasePath = Join-Path $unsafeRootFixture "Data Files"
+    $unsafeLegacyRoot = Join-Path $unsafeBasePath "fetcher-bardcraft"
+    $unsafeCurrentRoot = Join-Path $unsafeBasePath "fetcher-simulator"
+    New-Item -ItemType Directory -Force -Path (Join-Path $unsafeLegacyRoot "Gameplay\Probe"), (Join-Path $unsafeCurrentRoot "Gameplay\Probe") | Out-Null
+    Set-Content -LiteralPath (Join-Path $unsafeLegacyRoot "Gameplay\Probe\legacy-only.txt") -Value "must-not-drop" -Encoding ASCII
+    $unsafeFakeUmo = Join-Path $unsafeRootFixture "umo.cmd"
+    Set-Content -LiteralPath $unsafeFakeUmo -Value @('@echo off', 'exit /b 0') -Encoding ASCII
+    $unsafeRejected = $false
+    try {
+        Move-LegacyUmoList -UmoExecutable $unsafeFakeUmo -BasePath $unsafeBasePath -CurrentListName "fetcher-simulator"
+    }
+    catch {
+        $unsafeRejected = $true
+    }
+    if (-not $unsafeRejected -or -not (Test-Path -LiteralPath $unsafeLegacyRoot -PathType Container)) {
+        throw "Dual-root migration did not reject an unrepresented active legacy file safely."
+    }
     foreach ($expected in $requiredUmoMods) {
         $matches = @($umoMods | Where-Object { [string]$_.url -eq [string]$expected.Url })
         if ($matches.Count -ne 1) {

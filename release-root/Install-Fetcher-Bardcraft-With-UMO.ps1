@@ -458,8 +458,26 @@ function Move-LegacyUmoList {
     $legacyRootExists = Test-Path -LiteralPath $legacyRoot -PathType Container
     $currentRootExists = Test-Path -LiteralPath $currentRoot -PathType Container
 
+    $quarantineLegacyRoot = $false
     if ($legacyRootExists -and $currentRootExists) {
-        throw "Both legacy and current UMO list folders exist. Refusing to merge them automatically: '$legacyRoot' and '$currentRoot'."
+        $legacyPrefix = $legacyRoot.TrimEnd([char[]]"\/") + [IO.Path]::DirectorySeparatorChar
+        $unrepresentedActiveFiles = New-Object System.Collections.Generic.List[string]
+        foreach ($legacyFile in @(Get-ChildItem -LiteralPath $legacyRoot -Recurse -File)) {
+            $relativePath = $legacyFile.FullName.Substring($legacyPrefix.Length)
+            $portableRelativePath = $relativePath.Replace("\", "/")
+            if ($portableRelativePath -match '(^|/)\.fetcher-bardcraft-backups(/|$)') {
+                continue
+            }
+            $currentPath = Join-Path $currentRoot $relativePath
+            if (-not (Test-Path -LiteralPath $currentPath -PathType Leaf)) {
+                $unrepresentedActiveFiles.Add($portableRelativePath)
+            }
+        }
+        if ($unrepresentedActiveFiles.Count -gt 0) {
+            $sample = @($unrepresentedActiveFiles | Select-Object -First 10) -join ', '
+            throw "Both legacy and current UMO list folders exist, and the current tree is missing $($unrepresentedActiveFiles.Count) active legacy file(s). Refusing automatic migration. Examples: $sample"
+        }
+        $quarantineLegacyRoot = $true
     }
 
     $knownLists = @(& $UmoExecutable list local | ForEach-Object { ([string]$_).Trim() } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -474,8 +492,27 @@ function Move-LegacyUmoList {
     }
 
     $movedFolder = $false
+    $quarantinedFolder = $false
+    $legacyBackupPath = $null
     try {
-        if ($legacyRootExists) {
+        if ($quarantineLegacyRoot) {
+            $installRoot = Split-Path -Parent $BasePath
+            $backupRoot = Join-Path $installRoot "backups\umo-layout-migration"
+            New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+            $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+            $legacyBackupPath = Join-Path $backupRoot ("{0}-{1}" -f $LegacyListName, $stamp)
+            $suffix = 0
+            while (Test-Path -LiteralPath $legacyBackupPath) {
+                ++$suffix
+                $legacyBackupPath = Join-Path $backupRoot ("{0}-{1}-{2}" -f $LegacyListName, $stamp, $suffix)
+            }
+            Write-Host "Current UMO tree already contains every active legacy path. Preserving the legacy tree as a rollback backup:"
+            Write-Host "  $legacyRoot"
+            Write-Host "  -> $legacyBackupPath"
+            Move-Item -LiteralPath $legacyRoot -Destination $legacyBackupPath
+            $quarantinedFolder = $true
+        }
+        elseif ($legacyRootExists) {
             Write-Host "Migrating UMO list folder:"
             Write-Host "  $legacyRoot"
             Write-Host "  -> $currentRoot"
@@ -493,6 +530,10 @@ function Move-LegacyUmoList {
     catch {
         if ($movedFolder -and (Test-Path -LiteralPath $currentRoot -PathType Container) -and -not (Test-Path -LiteralPath $legacyRoot)) {
             Move-Item -LiteralPath $currentRoot -Destination $legacyRoot
+        }
+        if ($quarantinedFolder -and -not [string]::IsNullOrWhiteSpace($legacyBackupPath) -and
+            (Test-Path -LiteralPath $legacyBackupPath -PathType Container) -and -not (Test-Path -LiteralPath $legacyRoot)) {
+            Move-Item -LiteralPath $legacyBackupPath -Destination $legacyRoot
         }
         throw
     }
