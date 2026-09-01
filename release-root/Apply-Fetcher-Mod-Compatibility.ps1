@@ -115,7 +115,7 @@ function Update-ClientInventoryRecords {
 function Write-ReconstructedFile {
     param(
         [Parameter(Mandatory = $true)] $Record,
-        [Parameter(Mandatory = $true)][byte[]] $SourceBytes,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][byte[]] $SourceBytes,
         [Parameter(Mandatory = $true)][string] $Destination
     )
 
@@ -180,11 +180,6 @@ try {
             throw "Compatibility patch contains a duplicate target: $($record.path)"
         }
         $targetPath = Resolve-TargetPath -Root $root -RelativePath $relativePath
-        if (-not (Test-Path -LiteralPath $targetPath -PathType Leaf)) {
-            Write-Output "Compatibility target is not installed; skipping: $($record.path)"
-            continue
-        }
-
         $outputHash = ([string]$record.outputSha256).ToLowerInvariant()
         $sourceHash = ([string]$record.sourceSha256).ToLowerInvariant()
         if ($sourceHash -notmatch '^[0-9a-f]{64}$' -or
@@ -194,28 +189,60 @@ try {
             @($record.operations).Count -eq 0) {
             throw "Compatibility patch contains an incomplete record: $($record.path)"
         }
-        $currentHash = Get-Sha256 -Path $targetPath
-        if ($currentHash -eq $outputHash) {
-            Write-Output "Already patched: $($record.path)"
-            if (Get-OptionalBoolean -Object $record -Name "updateClientInventory") {
-                $inventoryUpdates.Add([pscustomobject]@{
-                    RelativePath = $relativePath
-                    SourceHash = $sourceHash
-                    OutputHash = $outputHash
-                    OutputSize = [int64]$record.outputSize
-                })
-            }
+
+        $createIfMissing = Get-OptionalBoolean -Object $record -Name "createIfMissing"
+        $targetExists = Test-Path -LiteralPath $targetPath -PathType Leaf
+        if ((Test-Path -LiteralPath $targetPath) -and -not $targetExists) {
+            throw "Compatibility target exists but is not a file: $($record.path)"
+        }
+        if (-not $targetExists -and -not $createIfMissing) {
+            Write-Output "Compatibility target is not installed; skipping: $($record.path)"
             continue
         }
-        if ($currentHash -ne $sourceHash) {
-            if (Get-OptionalBoolean -Object $record -Name "allowUnknownSource") {
-                Write-Output "Compatibility patch does not apply to this file version; skipping: $($record.path)"
-                continue
+        if (-not $targetExists -and $createIfMissing) {
+            $requiresPathProperty = $record.PSObject.Properties["requiresPath"]
+            if ($null -ne $requiresPathProperty -and -not [string]::IsNullOrWhiteSpace([string]$requiresPathProperty.Value)) {
+                $requiresRelativePath = ConvertTo-SafeRelativePath -Path ([string]$requiresPathProperty.Value)
+                $requiresTargetPath = Resolve-TargetPath -Root $root -RelativePath $requiresRelativePath
+                if (-not (Test-Path -LiteralPath $requiresTargetPath -PathType Leaf)) {
+                    Write-Output "Compatibility prerequisite is not installed; skipping: $($record.path)"
+                    continue
+                }
             }
-            throw "Unsupported or locally modified mod file: $($record.path) (sha256=$currentHash)"
         }
 
-        $sourceBytes = [IO.File]::ReadAllBytes($targetPath)
+        if ($targetExists) {
+            $currentHash = Get-Sha256 -Path $targetPath
+            if ($currentHash -eq $outputHash) {
+                Write-Output "Already patched: $($record.path)"
+                if (Get-OptionalBoolean -Object $record -Name "updateClientInventory") {
+                    $inventoryUpdates.Add([pscustomobject]@{
+                        RelativePath = $relativePath
+                        SourceHash = $sourceHash
+                        OutputHash = $outputHash
+                        OutputSize = [int64]$record.outputSize
+                    })
+                }
+                continue
+            }
+            if ($currentHash -ne $sourceHash) {
+                if (Get-OptionalBoolean -Object $record -Name "allowUnknownSource") {
+                    Write-Output "Compatibility patch does not apply to this file version; skipping: $($record.path)"
+                    continue
+                }
+                throw "Unsupported or locally modified mod file: $($record.path) (sha256=$currentHash)"
+            }
+
+            $sourceBytes = [IO.File]::ReadAllBytes($targetPath)
+        }
+        else {
+            $emptyHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            if ([int64]$record.sourceSize -ne 0 -or $sourceHash -ne $emptyHash) {
+                throw "createIfMissing compatibility targets must declare an empty source: $($record.path)"
+            }
+            $sourceBytes = [byte[]]::new(0)
+        }
+
         if ($sourceBytes.LongLength -ne [int64]$record.sourceSize) {
             throw "Compatibility patch source size mismatch for $($record.path)."
         }
@@ -232,12 +259,16 @@ try {
             OutputHash = $outputHash
             SourceHash = $sourceHash
             OutputSize = [int64]$record.outputSize
+            HadOriginal = $targetExists
             UpdateClientInventory = Get-OptionalBoolean -Object $record -Name "updateClientInventory"
         })
     }
 
     if ($pending.Count -gt 0) {
         foreach ($item in $pending) {
+            if (-not $item.HadOriginal) {
+                continue
+            }
             $backupPath = Join-Path $backupRoot $item.RelativePath
             if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
                 if ((Get-Sha256 -Path $backupPath) -ne (Get-Sha256 -Path $item.TargetPath)) {
@@ -254,6 +285,7 @@ try {
         try {
             foreach ($item in $pending) {
                 $applied.Add($item)
+                New-Item -ItemType Directory -Force -Path (Split-Path -Parent $item.TargetPath) | Out-Null
                 Copy-Item -LiteralPath $item.StagedPath -Destination $item.TargetPath -Force
                 if ((Get-Sha256 -Path $item.TargetPath) -ne $item.OutputHash) {
                     throw "Installed compatibility output failed verification: $($item.RelativePath)"
@@ -272,8 +304,11 @@ try {
         catch {
             foreach ($item in $applied) {
                 $backupPath = Join-Path $backupRoot $item.RelativePath
-                if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
+                if ($item.HadOriginal -and (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
                     Copy-Item -LiteralPath $backupPath -Destination $item.TargetPath -Force
+                }
+                elseif (-not $item.HadOriginal -and (Test-Path -LiteralPath $item.TargetPath -PathType Leaf)) {
+                    Remove-Item -LiteralPath $item.TargetPath -Force
                 }
             }
             throw

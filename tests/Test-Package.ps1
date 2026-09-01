@@ -744,7 +744,7 @@ try {
     $managedCompatibilityManifestPath = Join-Path $workRoot "fetcher-mod-compatibility-patches.json"
     $managedCompatibilityManifest = Get-Content -LiteralPath $managedCompatibilityManifestPath -Raw | ConvertFrom-Json
     if ([int]$managedCompatibilityManifest.formatVersion -ne 1 -or
-        [string]$managedCompatibilityManifest.patchVersion -ne "2026.08.31") {
+        [string]$managedCompatibilityManifest.patchVersion -ne "2026.09.01") {
         throw "Package has an unsupported managed mod compatibility manifest."
     }
     $expectedManagedOutputs = [ordered]@{
@@ -757,9 +757,11 @@ try {
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
         "Data Files/fetcher-simulator/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
         "resources/vfs/scripts/omw/input/playercontrols.lua" = "a5acc206e16403880fa08d61f408cbd3152416f95eb4568b07005ecc730b2ffa"
+        "Data Files/fetcher-simulator/Races/Ratkinnrace/ratkinn/Clean ratkinn.ESP" = "ea59d8740e4a9dc73d0f56a29479db287290936a0419eb14311cef0f9046ee33"
+        "Data Files/fetcher-simulator/Races/Ratkinnrace/ratkinn/data/meshes/rtf/b/rtf_empty_hair.nif" = "74cb03b220941ddf7f6ea4616ee67b75a5edbeabcf00c4d8b4d8c579e3ca5740"
     }
     if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {
-        throw "Managed compatibility manifest does not contain the expected nine Lua patches."
+        throw "Managed compatibility manifest does not contain the expected eleven compatibility patches."
     }
     foreach ($record in @($managedCompatibilityManifest.files)) {
         $relativePath = (ConvertTo-SafeRelativePath -Path ([string]$record.path)).Replace("\", "/")
@@ -768,11 +770,22 @@ try {
             throw "Managed mod compatibility manifest contains an unexpected output: $relativePath"
         }
         if ([string]$record.sourceSha256 -notmatch "^[0-9a-f]{64}$" -or
-            [int64]$record.sourceSize -le 0 -or
+            [int64]$record.sourceSize -lt 0 -or
             [int64]$record.outputSize -le 0 -or
             @($record.operations).Count -eq 0) {
             throw "Managed mod compatibility record is incomplete: $relativePath"
         }
+    }
+    $ratkinnEmptyHairCompatibility = @($managedCompatibilityManifest.files | Where-Object {
+        ([string]$_.path).Replace("\", "/") -eq "Data Files/fetcher-simulator/Races/Ratkinnrace/ratkinn/data/meshes/rtf/b/rtf_empty_hair.nif"
+    })[0]
+    if ([string]$ratkinnEmptyHairCompatibility.sourceSha256 -ne "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" -or
+        [int64]$ratkinnEmptyHairCompatibility.sourceSize -ne 0 -or
+        -not [bool]$ratkinnEmptyHairCompatibility.createIfMissing -or
+        [string]$ratkinnEmptyHairCompatibility.requiresPath -ne "Data Files/fetcher-simulator/Races/Ratkinnrace/ratkinn/Clean ratkinn.ESP" -or
+        [int64]$ratkinnEmptyHairCompatibility.outputSize -ne 178 -or
+        @($ratkinnEmptyHairCompatibility.operations).Count -ne 1) {
+        throw "Ratkinn empty-hair compatibility asset is not safely scoped as a create-only file."
     }
     $playerControlsCompatibility = @($managedCompatibilityManifest.files | Where-Object {
         ([string]$_.path).Replace("\", "/") -eq "resources/vfs/scripts/omw/input/playercontrols.lua"
@@ -893,6 +906,65 @@ try {
     }
     if (-not $managedRejectedUnsafePath) {
         throw "Managed mod compatibility fixture accepted a target outside the installation root."
+    }
+
+    $managedCreateRoot = Join-Path $workRoot "managed-create-fixture"
+    New-Item -ItemType Directory -Force -Path $managedCreateRoot | Out-Null
+    $managedCreateTarget = Join-Path $managedCreateRoot "Data Files\fixture\created.bin"
+    $managedCreateAnchor = Join-Path $managedCreateRoot "Data Files\fixture\anchor.mod"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $managedCreateAnchor) | Out-Null
+    Set-Content -LiteralPath $managedCreateAnchor -Encoding ASCII -Value "anchor"
+    $managedCreateBytes = [Text.Encoding]::UTF8.GetBytes("created`n")
+    $managedCreateHashProvider = [Security.Cryptography.SHA256]::Create()
+    try {
+        $managedCreateHash = ([BitConverter]::ToString($managedCreateHashProvider.ComputeHash($managedCreateBytes))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        $managedCreateHashProvider.Dispose()
+    }
+    $managedCreateManifestPath = Join-Path $workRoot "managed-compatibility-create.json"
+    [ordered]@{
+        formatVersion = 1
+        patchVersion = "create-fixture"
+        files = @([ordered]@{
+            path = "Data Files/fixture/created.bin"
+            sourceSha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            sourceSize = 0
+            outputSha256 = $managedCreateHash
+            outputSize = $managedCreateBytes.Length
+            createIfMissing = $true
+            requiresPath = "Data Files/fixture/anchor.mod"
+            operations = @([ordered]@{ data = [Convert]::ToBase64String($managedCreateBytes) })
+        })
+    } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $managedCreateManifestPath -Encoding UTF8
+
+    & $managedCompatibilityScriptPath -InstallRoot $managedCreateRoot -ManifestPath $managedCreateManifestPath | Out-Null
+    if (-not (Test-Path -LiteralPath $managedCreateTarget -PathType Leaf) -or
+        (Get-FileHash -LiteralPath $managedCreateTarget -Algorithm SHA256).Hash.ToLowerInvariant() -ne $managedCreateHash) {
+        throw "Managed mod compatibility fixture did not create its verified missing target."
+    }
+    $managedCreateBackup = Join-Path $managedCreateRoot "_fetcher_update\compatibility-backups\create-fixture\Data Files\fixture\created.bin"
+    if (Test-Path -LiteralPath $managedCreateBackup) {
+        throw "Managed create-only compatibility fixture unexpectedly backed up a file that did not exist."
+    }
+    & $managedCompatibilityScriptPath -InstallRoot $managedCreateRoot -ManifestPath $managedCreateManifestPath | Out-Null
+    $managedMissingPrerequisiteRoot = Join-Path $workRoot "managed-create-missing-prerequisite-fixture"
+    New-Item -ItemType Directory -Force -Path $managedMissingPrerequisiteRoot | Out-Null
+    & $managedCompatibilityScriptPath -InstallRoot $managedMissingPrerequisiteRoot -ManifestPath $managedCreateManifestPath | Out-Null
+    $managedMissingPrerequisiteTarget = Join-Path $managedMissingPrerequisiteRoot "Data Files\fixture\created.bin"
+    if (Test-Path -LiteralPath $managedMissingPrerequisiteTarget) {
+        throw "Managed create-only compatibility fixture ignored its missing prerequisite."
+    }
+    [IO.File]::WriteAllBytes($managedCreateTarget, [Text.Encoding]::UTF8.GetBytes("foreign`n"))
+    $managedCreateRejectedForeignFile = $false
+    try {
+        & $managedCompatibilityScriptPath -InstallRoot $managedCreateRoot -ManifestPath $managedCreateManifestPath | Out-Null
+    }
+    catch {
+        $managedCreateRejectedForeignFile = $true
+    }
+    if (-not $managedCreateRejectedForeignFile) {
+        throw "Managed create-only compatibility fixture overwrote an unexpected existing file."
     }
 
     $zhiFixtureRoot = Join-Path $workRoot "zhi-fixture"
