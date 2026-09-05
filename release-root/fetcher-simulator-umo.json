@@ -1968,7 +1968,7 @@
     "url": "https://www.nexusmods.com/morrowind/mods/44398",
     "category": "Quests",
     "dl_url": "",
-    "usage_notes": "Masque of Clavicus Vile optional folder disabled.",
+    "usage_notes": "Required install order: 1.0 base, 1.4 update, then 1.4 missing-files update. Optional Clavicus Vile replacer folders disabled.",
     "compat": 4,
     "dir": "TheDoorsofOblivion",
     "slug": "the-doors-of-oblivion",
@@ -1977,9 +1977,25 @@
     "download_info": [
       {
         "direct_download": null,
+        "file_name": "The Doors of Oblivion",
+        "extract_to": "TheDoorsofOblivion",
+        "nexus_file_id": 1000006047,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
         "file_name": "The Doors of Oblivion 1.4",
         "extract_to": "TheDoorsofOblivion",
         "nexus_file_id": 1000010485,
+        "pinned": true,
+        "actions": []
+      },
+      {
+        "direct_download": null,
+        "file_name": "The Doors of Oblivion 1.4 missing files plus extras",
+        "extract_to": "TheDoorsofOblivion",
+        "nexus_file_id": 1000013634,
         "pinned": true,
         "actions": []
       }
@@ -1989,7 +2005,9 @@
       "fetcher-simulator"
     ],
     "data_paths": [
-      "TheDoorsofOblivion/The Doors of Oblivion 1.4/Data Files"
+      "TheDoorsofOblivion/The Doors of Oblivion 1.0/Data Files",
+      "TheDoorsofOblivion/The Doors of Oblivion 1.4/Data Files",
+      "TheDoorsofOblivion/The Doors of Oblivion 1.4 missing files+extras/data files"
     ],
     "plugins": [
       "The Doors of Oblivion 1.4.esp"

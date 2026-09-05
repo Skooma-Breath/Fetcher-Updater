@@ -462,6 +462,18 @@ try {
             )
         },
         [pscustomobject]@{
+            Url = "https://www.nexusmods.com/morrowind/mods/44398"
+            FileIds = @(1000006047, 1000010485, 1000013634)
+            DataPaths = @(
+                "TheDoorsofOblivion/The Doors of Oblivion 1.0/Data Files",
+                "TheDoorsofOblivion/The Doors of Oblivion 1.4/Data Files",
+                "TheDoorsofOblivion/The Doors of Oblivion 1.4 missing files+extras/data files"
+            )
+            Plugins = @("The Doors of Oblivion 1.4.esp")
+            Pinned = $true
+            Ordered = $true
+        },
+        [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/26309"
             FileIds = @(46321)
             Plugins = @("FF7 Tsurugi Resource.esp")
@@ -579,6 +591,14 @@ try {
         foreach ($fileId in @($expected.FileIds)) {
             if ($actualFileIds -notcontains [int64]$fileId) {
                 throw "$($mod.name) does not pin expected Nexus file id $fileId."
+            }
+        }
+        if ($expected.PSObject.Properties.Name -contains "Ordered" -and [bool]$expected.Ordered) {
+            if (($actualFileIds -join ",") -ne (@($expected.FileIds) -join ",")) {
+                throw "$($mod.name) does not preserve the required download order."
+            }
+            if (($mod.data_paths -join "|") -ne (@($expected.DataPaths) -join "|")) {
+                throw "$($mod.name) does not preserve the required data-path override order."
             }
         }
         if ($expected.PSObject.Properties.Name -contains "Pinned" -and
