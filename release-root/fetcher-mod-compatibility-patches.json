@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "patchVersion": "2026.09.01",
+  "patchVersion": "2026.09.11",
   "files": [
     {
       "path": "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_circlets/npc_circlets.lua",
@@ -739,6 +739,171 @@
       "operations": [
         {
           "data": "TmV0SW1tZXJzZSBGaWxlIEZvcm1hdCwgVmVyc2lvbiA0LjAuMC4yCgIAAAQBAAAABgAAAE5pTm9kZRIAAABSYXRraW5uIEVtcHR5IEhhaXL//////////wgAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AACAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAA=="
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/global.lua",
+      "sourceSha256": "666a078769f413a4da6b78f0ec15d9d330099a5107f5d15c0934bd29fdee0aa8",
+      "sourceSize": 6974,
+      "outputSha256": "385d4d21fd9bcc72b48e383c69be15673dee4f92e9a743b0d4feede1adc911e5",
+      "outputSize": 5304,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 641
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gY3JlYXRlSW52ZW50b3J5T2JqZWN0KGludmVudG9yeSwgcmVjb3JkSWQsIGNvbmRpdGlvbikK"
+        },
+        {
+          "copyOffset": 756,
+          "copyLength": 91
+        },
+        {
+          "data": "ICAgICAgICByZXR1cm4gbmlsCg=="
+        },
+        {
+          "copyOffset": 884,
+          "copyLength": 95
+        },
+        {
+          "copyOffset": 1039,
+          "copyLength": 29
+        },
+        {
+          "data": "ICAgIHJldHVybiBpbnZlbnRvcnk6ZmluZChyZWNvcmRJZCkgb3IgaXRlbQo="
+        },
+        {
+          "copyOffset": 2467,
+          "copyLength": 366
+        },
+        {
+          "data": "ICAgIGxvY2FsIHJlc3RvcmVkID0gY3JlYXRlSW52ZW50b3J5T2JqZWN0KGludmVudG9yeSwgZGF0YS5zb3VyY2VJZCwgY29uZGl0aW9uKQogICAgaWYgbm90IHJlc3RvcmVkIHRoZW4KICAgICAgICBkZWJ1Z0xvZyhkYXRhLCAiZmFpbGVkIHRvIHJlc3RvcmUgc291cmNlICIgLi4gdG9zdHJpbmcoZGF0YS5zb3VyY2VJZCkpCiAgICAgICAgcmV0dXJuCiAgICBlbmQKICAgIGRlYnVnTG9nKGRhdGEsICJyZXN0b3JlZCBzb3VyY2UgIiAuLiB0b3N0cmluZyhkYXRhLnNvdXJjZUlkKSAuLiAiIHNvdXJjZXsiIC4uIGRlc2NyaWJlSXRlbShyZXN0b3JlZCkgLi4gIn0iKQogICAgaWYgZGF0YS5lcXVpcFJlc3RvcmVkU291cmNlIHRoZW4KICAgICAgICBkYXRhLnBsYXllcjpzZW5kRXZlbnQoIkhlbGRMaWdodEJvb3N0X1NvdXJjZVJlc3RvcmVkIiwgewogICAgICAgICAgICBpdGVtID0gcmVzdG9yZWQsCiAgICAgICAgfSkKICAgIGVuZAo="
+        },
+        {
+          "copyOffset": 3354,
+          "copyLength": 881
+        },
+        {
+          "data": "ICAgIGxvY2FsIGl0ZW0gPSBjcmVhdGVJbnZlbnRvcnlPYmplY3QoaW52ZW50b3J5LCBkYXRhLmJvb3N0ZWRJZCwgY29uZGl0aW9uKQogICAgaWYgbm90IGl0ZW0gdGhlbgo="
+        },
+        {
+          "copyOffset": 4660,
+          "copyLength": 227
+        },
+        {
+          "data": "ICAgICAgICAgICAgaXRlbSA9IG5pbCwK"
+        },
+        {
+          "copyOffset": 4912,
+          "copyLength": 11
+        },
+        {
+          "data": "ICAgICAgICByZXR1cm4KICAgIGVuZAogICAgZGF0YS5wbGF5ZXI6c2VuZEV2ZW50KCJIZWxkTGlnaHRCb29zdF9Cb29zdGVkTGlnaHRSZWFkeSIsIHsKICAgICAgICByZXF1ZXN0SWQgPSBkYXRhLnJlcXVlc3RJZCwKICAgICAgICBzb3VyY2VJZCA9IGRhdGEuc291cmNlSWQsCiAgICAgICAgc291cmNlQ29uZGl0aW9uID0gY29uZGl0aW9uLAogICAgICAgIGJvb3N0ZWRJZCA9IGRhdGEuYm9vc3RlZElkLAogICAgICAgIGl0ZW0gPSBpdGVtLAogICAgfSkK"
+        },
+        {
+          "copyOffset": 4932,
+          "copyLength": 1758
+        },
+        {
+          "copyOffset": 6751,
+          "copyLength": 223
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/player.lua",
+      "sourceSha256": "3e0c3ad7647c45903f530e8c01892c274f54f5c67956715e8e4eb33cb12b762a",
+      "sourceSize": 16388,
+      "outputSha256": "09d6264283c6e358d03f37724396242ad3a5fc0e4bab724379533ae1da21e624",
+      "outputSize": 15699,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 382
+        },
+        {
+          "copyOffset": 409,
+          "copyLength": 6579
+        },
+        {
+          "data": "bG9jYWwgZnVuY3Rpb24gd2FudGVkQm9vc3QoaXRlbSwgcmVjb3JkKQo="
+        },
+        {
+          "copyOffset": 7463,
+          "copyLength": 250
+        },
+        {
+          "data": "ICAgIHJldHVybiBjb21tb24uYm9vc3RlZExpZ2h0SWRGb3JSZWNvcmQocmVjb3JkLmlkLCBtb2RTZXR0aW5ncy5yYW5nZU11bHRpcGxpZXIpCg=="
+        },
+        {
+          "copyOffset": 7778,
+          "copyLength": 2604
+        },
+        {
+          "copyOffset": 10475,
+          "copyLength": 1666
+        },
+        {
+          "copyOffset": 12298,
+          "copyLength": 109
+        },
+        {
+          "data": "ICAgICAgICBsb2NhbCBjdXJyZW50Qm9vc3RlZElkID0gY29tbW9uLmJvb3N0ZWRMaWdodElkRm9yUmVjb3JkKGFjdGl2ZS5zb3VyY2VJZCwgbW9kU2V0dGluZ3MucmFuZ2VNdWx0aXBsaWVyKQo="
+        },
+        {
+          "copyOffset": 12500,
+          "copyLength": 221
+        },
+        {
+          "data": "ICAgIGxvY2FsIGJvb3N0ZWRJZCA9IHdhbnRlZEJvb3N0KGhlbGQsIHJlY29yZCkK"
+        },
+        {
+          "copyOffset": 12781,
+          "copyLength": 3607
+        }
+      ]
+    },
+    {
+      "path": "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/settings.lua",
+      "sourceSha256": "23faeb6124d95fc1f9fcea7fddb4cd10415786199c1bc94728a2adf4039a4a29",
+      "sourceSize": 2855,
+      "outputSha256": "6a7d007a8187b8b4b6c2015f52c53663f490dfe71d5132f570b9323cf92e7548",
+      "outputSize": 1725,
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 702
+        },
+        {
+          "data": "ICAgICAgICAgICAga2V5ID0gIlJhbmdlTXVsdGlwbGllciIsCg=="
+        },
+        {
+          "copyOffset": 747,
+          "copyLength": 33
+        },
+        {
+          "data": "ICAgICAgICAgICAgbmFtZSA9ICJSYW5nZU11bHRpcGxpZXJfbmFtZSIsCiAgICAgICAgICAgIGRlc2NyaXB0aW9uID0gIlJhbmdlTXVsdGlwbGllcl9kZXNjcmlwdGlvbiIsCg=="
+        },
+        {
+          "copyOffset": 1323,
+          "copyLength": 425
+        },
+        {
+          "copyOffset": 2270,
+          "copyLength": 149
+        },
+        {
+          "data": "ICAgICAgICByYW5nZU11bHRpcGxpZXIgPSBjb21tb24ubm9ybWFsaXplTXVsdGlwbGllcihzZWN0aW9uOmdldCgiUmFuZ2VNdWx0aXBsaWVyIikpLAo="
+        },
+        {
+          "copyOffset": 2623,
+          "copyLength": 191
+        },
+        {
+          "copyOffset": 2853,
+          "copyLength": 2
         }
       ]
     }

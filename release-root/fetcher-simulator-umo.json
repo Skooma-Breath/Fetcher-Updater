@@ -1637,7 +1637,7 @@
         "file_name": "Held Light Boost 1.0.0",
         "extract_to": "HeldLightBoost",
         "nexus_file_id": 1000066946,
-        "pinned": false,
+        "pinned": true,
         "actions": []
       }
     ],
