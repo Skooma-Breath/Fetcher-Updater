@@ -416,7 +416,7 @@ try {
         },
         [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/59576"
-            FileIds = @(1000066946)
+            FileIds = @(1000070157)
             Plugins = @("Held Light Boost.omwscripts")
         },
         [pscustomobject]@{

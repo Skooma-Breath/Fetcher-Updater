@@ -1634,9 +1634,9 @@
     "download_info": [
       {
         "direct_download": null,
-        "file_name": "Held Light Boost 1.0.0",
+        "file_name": "Held Light Boost 1.1.0",
         "extract_to": "HeldLightBoost",
-        "nexus_file_id": 1000066946,
+        "nexus_file_id": 1000070157,
         "pinned": true,
         "actions": []
       }
