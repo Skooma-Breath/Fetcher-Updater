@@ -764,7 +764,7 @@ try {
     $managedCompatibilityManifestPath = Join-Path $workRoot "fetcher-mod-compatibility-patches.json"
     $managedCompatibilityManifest = Get-Content -LiteralPath $managedCompatibilityManifestPath -Raw | ConvertFrom-Json
     if ([int]$managedCompatibilityManifest.formatVersion -ne 1 -or
-        [string]$managedCompatibilityManifest.patchVersion -ne "2026.09.11") {
+        [string]$managedCompatibilityManifest.patchVersion -ne "2026.09.14") {
         throw "Package has an unsupported managed mod compatibility manifest."
     }
     $expectedManagedOutputs = [ordered]@{
@@ -775,7 +775,6 @@ try {
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_masks/npc_masks.lua" = "0e7f1b432cd974c70471dbe3cd009159fe8d3639994054e638d3531e264a1aa9"
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/Fashionwind_scarves/npc_scarves.lua" = "d9429e9be406d00a8655a30ab7f87376305d4573b041d6295eb482beeb516ceb"
         "Data Files/fetcher-simulator/Items/FashionwindExpanded/scripts/OMWBackpacks/npc_backpacks.lua" = "2f769ceb492d45a1adbc7fba9dd5ada2ebd15e8bc2a9035fcb4f96f7e8937bcb"
-        "Data Files/fetcher-simulator/Quests/DevilishTouchOfMadness/scripts/devilish_cliffracer_global.lua" = "b5c47ad91c1641d919befe59c425e0706b11a6e74c46b74af02a8a37365cb175"
         "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/global.lua" = "385d4d21fd9bcc72b48e383c69be15673dee4f92e9a743b0d4feede1adc911e5"
         "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/player.lua" = "09d6264283c6e358d03f37724396242ad3a5fc0e4bab724379533ae1da21e624"
         "Data Files/fetcher-simulator/Gameplay/HeldLightBoost/Held Light Boost/scripts/held-light-boost/settings.lua" = "6a7d007a8187b8b4b6c2015f52c53663f490dfe71d5132f570b9323cf92e7548"
@@ -784,7 +783,7 @@ try {
         "Data Files/fetcher-simulator/Races/Ratkinnrace/ratkinn/data/meshes/rtf/b/rtf_empty_hair.nif" = "74cb03b220941ddf7f6ea4616ee67b75a5edbeabcf00c4d8b4d8c579e3ca5740"
     }
     if (@($managedCompatibilityManifest.files).Count -ne $expectedManagedOutputs.Count) {
-        throw "Managed compatibility manifest does not contain the expected fourteen compatibility patches."
+        throw "Managed compatibility manifest does not contain the expected thirteen compatibility patches."
     }
     foreach ($record in @($managedCompatibilityManifest.files)) {
         $relativePath = (ConvertTo-SafeRelativePath -Path ([string]$record.path)).Replace("\", "/")
