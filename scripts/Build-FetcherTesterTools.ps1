@@ -102,11 +102,15 @@ try {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath $source -Destination $destination -Force
         $item = Get-Item -LiteralPath $destination
-        $records.Add([ordered]@{
+        $record = [ordered]@{
             path = $relativePath.Replace("\", "/")
             size = [int64]$item.Length
             sha256 = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
-        })
+        }
+        if ($relativePath.Equals("FetcherLauncher.exe", [StringComparison]::OrdinalIgnoreCase)) {
+            $record.optional = $true
+        }
+        $records.Add($record)
     }
 
     $manifest = [ordered]@{

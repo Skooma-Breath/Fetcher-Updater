@@ -60,6 +60,29 @@ function ConvertTo-SafeRelativePath {
     return ($segments -join "/")
 }
 
+function Test-TesterToolOptional {
+    param([Parameter(Mandatory = $true)] $Record)
+
+    $property = $Record.PSObject.Properties["optional"]
+    return $null -ne $property -and [bool]$property.Value
+}
+
+function Write-OptionalTesterToolWarning {
+    param(
+        [Parameter(Mandatory = $true)][string] $RelativePath,
+        [string] $Details = ""
+    )
+
+    if ($RelativePath.Equals("FetcherLauncher.exe", [StringComparison]::OrdinalIgnoreCase)) {
+        Write-Warning "FetcherLauncher.exe was blocked, removed, or could not be read. Windows Security or another antivirus product may have quarantined the optional GUI launcher. Tester tools will continue installing; use Update-Fetcher-Simulator.bat (or Update-Fetcher-Simulator.ps1) until the launcher is restored. Do not disable antivirus; check its protection history for the detection."
+    }
+    else {
+        Write-Warning "Optional tester tool is unavailable and will be skipped: $RelativePath"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Details)) {
+        Write-Warning "  $Details"
+    }
+}
 function Test-GitHubApiRateLimitFailure {
     param([Parameter(Mandatory = $true)] $ErrorRecord)
 
@@ -105,9 +128,19 @@ function Test-InstalledTesterToolsManifest {
             }
 
             $installedPath = Join-Path $Root $relativePath.Replace("/", "\")
-            if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf) -or
-                (Get-Item -LiteralPath $installedPath).Length -ne [int64]$record.size -or
-                (Get-FileHash -LiteralPath $installedPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne ([string]$record.sha256).ToLowerInvariant()) {
+            $optional = Test-TesterToolOptional -Record $record
+            if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf)) {
+                if ($optional) { continue }
+                return $false
+            }
+            try {
+                $installedItem = Get-Item -LiteralPath $installedPath
+                if ($installedItem.Length -ne [int64]$record.size) { return $false }
+                $installedHash = (Get-FileHash -LiteralPath $installedPath -Algorithm SHA256).Hash.ToLowerInvariant()
+                if ($installedHash -ne ([string]$record.sha256).ToLowerInvariant()) { return $false }
+            }
+            catch {
+                if ($optional) { continue }
                 return $false
             }
         }
@@ -134,8 +167,25 @@ function New-VerifiedInstalledTesterToolsArchive {
         $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
         $source = Join-Path $Root $relativePath.Replace("/", "\")
         $destination = Join-Path $StageRoot $relativePath.Replace("/", "\")
+        $optional = Test-TesterToolOptional -Record $record
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            if ($optional) {
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details "The locally installed optional file is not available for the fallback archive."
+                continue
+            }
+            throw "Required installed tester tool is missing: $relativePath"
+        }
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-        Copy-Item -LiteralPath $source -Destination $destination -Force
+        try {
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+        catch {
+            if ($optional) {
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details $_.Exception.Message
+                continue
+            }
+            throw
+        }
     }
 
     Compress-Archive -Path (Join-Path $StageRoot "*") -DestinationPath $DestinationPath -CompressionLevel Optimal
@@ -218,6 +268,7 @@ try {
         throw "Unsupported Fetcher tester tools manifest."
     }
     $manifestPaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $optionalUnavailable = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
     foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
         $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
         if ($relativePath.Equals("fetcher-tester-tools.json", [StringComparison]::OrdinalIgnoreCase) -or
@@ -228,19 +279,38 @@ try {
         if ([int64]$record.size -lt 0 -or $expectedHash -notmatch "^[0-9a-fA-F]{64}$") {
             throw "Tester tools manifest contains an invalid record: $relativePath"
         }
+        $optional = Test-TesterToolOptional -Record $record
         $source = Join-Path $extractRoot $relativePath.Replace("/", "\")
-        if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
-            (Get-Item -LiteralPath $source).Length -ne [int64]$record.size -or
-            (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expectedHash.ToLowerInvariant()) {
-            throw "Tester tool failed manifest validation: $relativePath"
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            if ($optional) {
+                [void]$optionalUnavailable.Add($relativePath)
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details "The file disappeared after extraction."
+                continue
+            }
+            throw "Required tester tool is missing after extraction: $relativePath"
+        }
+        $sourceItem = Get-Item -LiteralPath $source
+        if ($sourceItem.Length -ne [int64]$record.size) {
+            throw "Tester tool failed manifest size validation: $relativePath"
+        }
+        try {
+            $actualHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+        catch {
+            if ($optional) {
+                [void]$optionalUnavailable.Add($relativePath)
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details $_.Exception.Message
+                continue
+            }
+            throw
+        }
+        if ($actualHash -ne $expectedHash.ToLowerInvariant()) {
+            throw "Tester tool failed manifest hash validation: $relativePath"
         }
     }
     $payloadPaths = @(Get-ChildItem -LiteralPath $extractRoot -File -Recurse | ForEach-Object {
         $_.FullName.Substring($extractRoot.Length).TrimStart("\", "/").Replace("\", "/")
     } | Where-Object { -not $_.Equals("fetcher-tester-tools.json", [StringComparison]::OrdinalIgnoreCase) })
-    if ($payloadPaths.Count -ne $manifestPaths.Count) {
-        throw "Tester tools manifest does not cover the complete archive payload."
-    }
     foreach ($payloadPath in $payloadPaths) {
         if (-not $manifestPaths.Contains($payloadPath)) {
             throw "Tester tools archive contains an unmanifested payload: $payloadPath"
@@ -248,10 +318,28 @@ try {
     }
     foreach ($record in @($manifest.files | ForEach-Object { $_ })) {
         $relativePath = ConvertTo-SafeRelativePath -Path ([string]$record.path)
+        if ($optionalUnavailable.Contains($relativePath)) { continue }
         $source = Join-Path $extractRoot $relativePath.Replace("/", "\")
         $destination = Join-Path $root $relativePath.Replace("/", "\")
+        $optional = Test-TesterToolOptional -Record $record
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            if ($optional) {
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details "The file became unavailable before installation."
+                continue
+            }
+            throw "Required tester tool became unavailable before installation: $relativePath"
+        }
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-        Copy-Item -LiteralPath $source -Destination $destination -Force
+        try {
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+        catch {
+            if ($optional) {
+                Write-OptionalTesterToolWarning -RelativePath $relativePath -Details $_.Exception.Message
+                continue
+            }
+            throw
+        }
     }
     Copy-Item -LiteralPath $manifestPath -Destination (Join-Path $root "fetcher-tester-tools.json") -Force
 }
