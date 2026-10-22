@@ -1,0 +1,116 @@
+{
+  "repository": "https://github.com/libarchive/libarchive",
+  "version": "v3.8.10",
+  "directory": "libarchive/test",
+  "fixtures": [
+    {
+      "file": "test_read_format_rar3_lowdist_reset.rar",
+      "source": "test_read_format_rar3_lowdist_reset.rar.uu",
+      "sha256": "45ca17d52b91a6f24c48fe5d79b04cb26052f7e1d732d8bf8e459c433540f916",
+      "bytes": 566,
+      "expectedFiles": [
+        {
+          "path": "lowdist-reset.bin",
+          "bytes": 64,
+          "sha256": "353d5f7a0789034186922e5834f666f36fa1f98e18f53fb4140b336ba090a923"
+        }
+      ]
+    },
+    {
+      "file": "test_read_format_rar5_compressed.rar",
+      "source": "test_read_format_rar5_compressed.rar.uu",
+      "sha256": "68f9d7e2662cd5bc5607ba9c6bf1edbf121cf3b08011a7d8643091791750a7c8",
+      "bytes": 436,
+      "expectedFiles": [
+        {
+          "path": "test.bin",
+          "bytes": 1200,
+          "sha256": "588870a2dade35c2650fbb7898c9a9c7f21fce7c281198604e8d0c9737f2c375"
+        }
+      ]
+    },
+    {
+      "file": "test_read_format_rar5_stored.rar",
+      "source": "test_read_format_rar5_stored.rar.uu",
+      "sha256": "35d75e315d164d2e329afc28f7d844f013271b4fcffd4ddd78efcdd114a383a7",
+      "bytes": 109,
+      "expectedFiles": [
+        {
+          "path": "helloworld.txt",
+          "bytes": 29,
+          "sha256": "fef9ad8cf601b43f76c6320075f62267c6e5c0a526d750a70b80c919a4a0aad8"
+        }
+      ]
+    },
+    {
+      "file": "test_read_format_rar5_multiple_files_solid.rar",
+      "source": "test_read_format_rar5_multiple_files_solid.rar.uu",
+      "sha256": "0aa2c652c06304dedd93019663c1d52d5e85055d5fdb8045bfcc4345b90b4a0f",
+      "bytes": 677,
+      "expectedFiles": [
+        {
+          "path": "test1.bin",
+          "bytes": 4096,
+          "sha256": "7d89f86f9f69d744ffff3fc043e15bf89fc3ffc134ffcbb31d164a99bb8b67b0"
+        },
+        {
+          "path": "test2.bin",
+          "bytes": 4096,
+          "sha256": "f81e6fceeeab366306b23466bf6bb3aac2875e0906dc20a8652be0696ceb15a2"
+        },
+        {
+          "path": "test3.bin",
+          "bytes": 4096,
+          "sha256": "5e621f2b6ce8fed758c3df8221f994eda55d1e432c7cc4349c34a30ec2e1c43d"
+        },
+        {
+          "path": "test4.bin",
+          "bytes": 4096,
+          "sha256": "2627f40180217252956edb9a426e8d3e344adaf89019d3bccbe04f6c3416dcdd"
+        }
+      ]
+    },
+    {
+      "file": "test_read_format_rar.rar",
+      "source": "test_read_format_rar.rar.uu",
+      "sha256": "d421b86f6290aefad61b2a36737253b2b30fe27c156bd95abfc230f24fe0307e",
+      "bytes": 336
+    },
+    {
+      "file": "test_read_format_rar5_hardlink.rar",
+      "source": "test_read_format_rar5_hardlink.rar.uu",
+      "sha256": "2a0494afad63dcf7a5522afd593bde0cb42f53744888397febf112c00853f3d0",
+      "bytes": 122
+    },
+    {
+      "file": "test_read_format_rar5_symlink.rar",
+      "source": "test_read_format_rar5_symlink.rar.uu",
+      "sha256": "a7336968564786ea5ff106fff2f6ef8dfd8ad5ecca86fbd1db3d63ba42bcd29a",
+      "bytes": 190
+    },
+    {
+      "file": "test_read_format_rar4_encrypted.rar",
+      "source": "test_read_format_rar4_encrypted.rar.uu",
+      "sha256": "c30dc6d10e59aaab1c863afa469d188c644a22d67d6e50ac7ca887e520f5fc8b",
+      "bytes": 311
+    },
+    {
+      "file": "test_read_format_rar5_encrypted_filenames.rar",
+      "source": "test_read_format_rar5_encrypted_filenames.rar.uu",
+      "sha256": "b2b98004c9cbf4f2a4000380ad47a16dea99f2d50835b1602c40d724eb82c300",
+      "bytes": 718
+    },
+    {
+      "file": "test_read_format_7zip_encryption.7z",
+      "source": "test_read_format_7zip_encryption.7z.uu",
+      "sha256": "91f5427859ad1391c9fb877c98e4b55213c479f39fd012882f7d112388842076",
+      "bytes": 145
+    },
+    {
+      "file": "test_rar_multivolume_single_file.part1.rar",
+      "source": "test_rar_multivolume_single_file.part1.rar.uu",
+      "sha256": "54769cdaa6aeac494b9ba580804598369ba240f61550620434e08350e4428ec2",
+      "bytes": 7000
+    }
+  ]
+}

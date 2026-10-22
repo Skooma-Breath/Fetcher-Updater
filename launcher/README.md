@@ -7,16 +7,16 @@ Implemented in this candidate:
 
 - Public server browser using the game's live master service, search, favorites and direct connect.
 - Current-public vanilla and separate surf/truck/Studio preview profiles; generic operator profile URLs.
-- Native WinHTTP release checks/downloads, GitHub SHA-256 validation, ZIP extraction, file receipts/cache,
+- Native WinHTTP release checks/downloads, GitHub SHA-256 validation, native ZIP/7z/RAR extraction, file receipts/cache,
   client and launcher/tools installation, update mutex and exception rollback with retained backups.
 - Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.
 - Local model/source/license/adaptation records and preserved content-bundle attribution notices.
 - Reviewed server manifests, owner/source isolation, previous-manifest selection and ordinary archive layouts.
-- Declarative pinned UMO ZIP lists, Nexus API-key downloads where eligible and exact-file manual import.
+- Declarative pinned UMO lists with folder selection and native copy/rename/remove operations, Nexus API-key downloads where eligible and exact-file manual import.
 - Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.
 - Existing-installation mode launches an already configured full mod setup unchanged.
 
-**Migration boundary:** 7z/RAR archives, arbitrary UMO actions/FOMOD choices, third-party tool bootstrap and legacy
+**Migration boundary:** encrypted/multipart archives, unsupported codec variants, plugin-cleaning/FOMOD choices, third-party tool bootstrap and legacy
 compatibility appliers have not yet been ported. Nexus authentication is fixture-tested; live account
 acceptance and public application registration remain required. Existing script entry points remain supported during
 migration. The native launcher does not claim to install/repair that entire historical mod list.
@@ -31,7 +31,8 @@ python tests\test_native_backend.py --exe launcher\build\bin\FetcherLauncher.exe
 
 The build runs CTest, local HTTP/package integration and the launcher self-test. The optional
 bundle test exercises the real combined surf/truck/Studio archive. Dependencies are pinned through
-CMake: webview 0.12.0, nlohmann/json 3.11.3 and miniz 3.0.2. Their licenses ship in the notices file.
+CMake: webview 0.12.0, nlohmann/json 3.11.3, miniz 3.0.2, libarchive 3.8.10,
+liblzma 5.8.4, zlib 1.3.2 and bzip2 1.0.8. Their licenses ship in the notices file.
 The Microsoft Edge WebView2 Runtime is required. C++ handles backend logic; HTML/JavaScript renders UI.
 
 ## Isolated preview

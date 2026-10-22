@@ -68,3 +68,35 @@ verified SHA-256 8ad68f4741d08560cb5e6cb7887fc834ca7ad6408847fcf182499e638a822fd
 extracted 354 files and validated the declared plugin order, keyboard model/icon and both credit files.
 The test preserved its personal-config marker. No game was launched and no server settings changed.
 The live test report is retained in release-assets/server-profiles-github-test/live-test-report.json.
+
+## Native archive and UMO layout candidate — 2026-10-22
+
+- MSVC x64 Release build and launcher self-test pass. The native suite passes 153 assertions.
+  ZIP remains on miniz; 7z/RAR use pinned static libarchive 3.8.10 with liblzma 5.8.4,
+  zlib 1.3.2 and bzip2 1.0.8. No installed archiver, DLL or interpreter is needed at runtime.
+- Native tests decode LZMA/LZMA2, PPMd, Deflate and BZip2 7z files, independent Unicode-path
+  fixtures, and stored/compressed/solid classic RAR/RAR5 regression fixtures. Positive RAR
+  payloads match independently obtained 7-Zip hashes. Tests reject traversal, case collisions,
+  truncation, damaged compressed data, format mismatches, links, encrypted archives and an
+  incomplete multipart archive. Fixture provenance and notices accompany the test archives.
+- Contained copy, rename/move and remove operations support scoped UMO download actions.
+  Tests cover explicit overwrite requirements, metadata/path containment, unsupported commands,
+  cross-mod references and recursive self-copy rejection. Derived layouts have separate recipe
+  caches; original verified archive contents remain unchanged.
+- `tests/test_archive_layouts.py` passes 23 real-executable operations: a mixed 7z/RAR UMO list,
+  plugin master order, required assets, modern/classic variants from identical source bytes,
+  same-size corrupt-layout repair without redownload, failure rollback, folder-only selection,
+  and exact-file Nexus manual 7z import without an API key.
+- Existing native backend integration and all 54 server-manifest fixture operations pass.
+  A fresh public HTTPS run also downloads and verifies the unchanged 33,598,923-byte Vanilla
+  candidate, extracts its 354 files, checks plugin order/model/icon/credit files and preserves
+  the personal configuration marker. Evidence is retained in
+  release-assets/archive-layouts-github-test/live-test-report.json.
+- Native WebView2 inspection confirms archive support guidance and a review-only local fixture
+  displays its format, normalized copy/move/remove operations and explicit replacement flag before
+  acceptance. The fixture was neither accepted nor downloaded. The Webb background, floating
+  rockets and three-tab navigation remain present.
+
+Encrypted/multipart archives, FOMOD choices, external plugin cleaners, complete historical UMO
+compatibility processing, Nexus registration/SSO/NXM handoff and live-account eligibility remain
+outside this slice. These tests do not launch a game or change the public launcher/server.

@@ -20,9 +20,9 @@ void validateModDefinition(const Json &d) {
     need(d.is_object(), "Invalid mod package.");
     int sources = int(d.contains("url")) + int(d.contains("repository")) + int(d.contains("nexus"));
     need(sources == 1, "Each mod package requires exactly one source.");
-    need(d.value("archiveFormat", "zip") == "zip",
-         "This candidate supports ZIP archives only; unpack/repackage with "
-         "permission or use a ZIP file.");
+    auto format = d.value("archiveFormat", "auto");
+    need(format == "auto" || format == "zip" || format == "7z" || format == "rar",
+         "Supported archive formats are ZIP, 7z and RAR.");
     if (!d.contains("repository"))
         need(std::regex_match(d.at("sha256").get<std::string>(), std::regex("[0-9a-fA-F]{64}")),
              "Each direct/Nexus file must pin its SHA-256.");
@@ -55,9 +55,7 @@ void validateModDefinition(const Json &d) {
         for (const auto &p : d.at("dataDirs"))
             dataPath(p.get<std::string>());
     }
-    need(d.value("actions", Json::array()).empty(),
-         "Mod installer actions are unsupported; publish a declarative archive "
-         "layout.");
+    normalizeModActions(d.value("actions", Json::array()));
 }
 Json normalizeServerManifest(const Json &value) {
     need(value.is_object(), "Publish a server manifest object wrapping the UMO "
@@ -93,15 +91,18 @@ Json normalizeServerManifest(const Json &value) {
             need(m.value("actions", Json::array()).empty(), "UMO actions are unsupported: " + name);
             std::size_t file = 0;
             for (const auto &d : downloads) {
-                need(d.value("actions", Json::array()).empty(),
-                     "UMO installer actions are unsupported: " + name);
                 need(d.value("pinned", false),
                      "Pin the exact UMO file version before publishing: " + name);
                 Json item = {{"id", "umo-" + std::to_string(index) + "-" + std::to_string(file++)},
                              {"name", name},
                              {"author", m.value("author", "")},
                              {"sha256", d.at("sha256")},
-                             {"archiveFormat", d.value("archiveFormat", "zip")}};
+                             {"archiveFormat", d.value("archiveFormat", "auto")}};
+                if (!d.value("actions", Json::array()).empty()) {
+                    auto prefix = d.at("extract_to").get<std::string>();
+                    safeRelative(prefix);
+                    item["actions"] = normalizeModActions(d.at("actions"), prefix);
+                }
                 if (d.contains("direct_download") && !d.at("direct_download").is_null() &&
                     d.at("direct_download") != "") {
                     need(d.at("direct_download").is_string(),
@@ -159,8 +160,11 @@ Json normalizeServerManifest(const Json &value) {
         p["packages"] = Json::array();
     if (!p.contains("content"))
         p["content"] = Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm"});
-    for (const auto &d : p.at("packages"))
+    for (auto &d : p.at("packages")) {
+        if (d.contains("actions"))
+            d["actions"] = normalizeModActions(d.at("actions"));
         validateModDefinition(d);
+    }
     return p;
 }
 void validateModPayload(const fs::path &directory) {

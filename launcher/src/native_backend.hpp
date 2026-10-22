@@ -23,6 +23,7 @@ class Backend {
     Json profile() const;
     Json resolve(const Json &definition);
     fs::path package(const Json &definition, bool repair);
+    fs::path layout(const fs::path &raw, const Json &definition);
     fs::path prepare();
     fs::path gameData() const;
     void validateProfile(const Json &profile) const;

@@ -30,6 +30,9 @@ std::string httpGet(const std::string &url);
 std::string nexusGet(const std::string &path, const std::string &key);
 void download(const std::string &url, const fs::path &path, const std::string &hash,
               const Log &log);
+std::string detectArchiveFormat(const fs::path &archive);
+std::vector<std::string> extractArchive(const fs::path &archive, const fs::path &stage,
+                                        const std::string &format = "auto");
 std::vector<std::string> extractZip(const fs::path &archive, const fs::path &stage);
 void launch(const fs::path &exe, const std::vector<std::wstring> &args, const fs::path &cwd);
 void assertGameStopped(const fs::path &root);

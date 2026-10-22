@@ -325,8 +325,12 @@ fs::path Backend::package(const Json &definition, bool repair) {
     noLinks(dest);
     auto receipt = optional(dest / ".fetcher-package.json");
     if (!repair && receipt.value("sha256", "") == hash &&
-        verifyFiles(dest, receipt.value("files", Json::array()), true))
+        verifyFiles(dest, receipt.value("files", Json::array()), true)) {
+        auto declared = definition.value("archiveFormat", "auto");
+        need(declared == "auto" || declared == receipt.value("archiveFormat", "zip"),
+             "Cached archive does not match its declared format.");
         return dest;
+    }
     auto archive = mManaged / "downloads" / (hash + ".zip");
     if (!fs::is_regular_file(archive) || sha256(archive) != hash) {
         if (ref.contains("nexus")) {
@@ -355,16 +359,72 @@ fs::path Backend::package(const Json &definition, bool repair) {
     }
     auto stage = mManaged / "staging" / ("package-" + stamp());
     try {
-        auto names = extractZip(archive, stage);
+        auto kind = detectArchiveFormat(archive);
+        auto names = extractArchive(archive, stage, definition.value("archiveFormat", "auto"));
         Json records = Json::array();
         for (const auto &name : names)
             records.push_back({{"path", name},
                                {"size", fs::file_size(stage / safeRelative(name))},
                                {"sha256", sha256(stage / safeRelative(name))}});
         writeAtomic(stage / ".fetcher-package.json",
-                    Json{{"sha256", hash}, {"files", records}}.dump(2));
+                    Json{{"sha256", hash}, {"archiveFormat", kind}, {"files", records}}.dump(2));
         if (fs::exists(dest))
             removeManaged(mManaged / "packages", dest);
+        fs::create_directories(dest.parent_path());
+        fs::rename(stage, dest);
+    } catch (...) {
+        if (fs::exists(stage))
+            removeManaged(mManaged / "staging", stage);
+        throw;
+    }
+    return dest;
+}
+fs::path Backend::layout(const fs::path &raw, const Json &definition) {
+    auto actions = normalizeModActions(definition.value("actions", Json::array()));
+    if (actions.empty())
+        return raw;
+    auto source = readJson(raw / ".fetcher-package.json");
+    auto key = modLayoutKey(definition, source.at("sha256"));
+    auto dest = mManaged / "layouts" / key;
+    noLinks(dest);
+    auto previous = optional(dest / ".fetcher-package.json");
+    if (previous.value("layoutKey", "") == key &&
+        verifyFiles(dest, previous.value("files", Json::array()), true))
+        return dest;
+    auto stage = mManaged / "staging" / ("layout-" + stamp());
+    noLinks(stage);
+    fs::create_directories(stage);
+    try {
+        // Preserve empty directories, but copy only files from the verified source receipt.
+        for (const auto &entry : fs::recursive_directory_iterator(raw)) {
+            noLinks(entry.path());
+            if (entry.is_directory())
+                fs::create_directories(stage / entry.path().lexically_relative(raw));
+        }
+        for (const auto &record : source.at("files")) {
+            auto rel = safeRelative(record.at("path"));
+            need(rel != L".fetcher-package.json", "Archive uses reserved launcher metadata.");
+            fs::create_directories((stage / rel).parent_path());
+            fs::copy_file(raw / rel, stage / rel);
+        }
+        applyModActions(stage, actions);
+        Json records = Json::array();
+        for (const auto &entry : fs::recursive_directory_iterator(stage)) {
+            noLinks(entry.path());
+            if (entry.is_regular_file())
+                records.push_back(
+                    {{"path", utf8(entry.path().lexically_relative(stage).generic_wstring())},
+                     {"size", entry.file_size()},
+                     {"sha256", sha256(entry.path())}});
+        }
+        need(!records.empty(), "Layout removed every file from the package.");
+        writeAtomic(
+            stage / ".fetcher-package.json",
+            Json{{"layoutKey", key}, {"sourceSha256", source.at("sha256")}, {"files", records}}
+                .dump(2));
+        validateModPayload(stage);
+        if (fs::exists(dest))
+            removeManaged(mManaged / "layouts", dest);
         fs::create_directories(dest.parent_path());
         fs::rename(stage, dest);
     } catch (...) {
@@ -546,6 +606,7 @@ fs::path Backend::prepare() {
     for (const auto &d : p.at("packages")) {
         auto dir = package(d, false);
         validateModPayload(dir);
+        dir = layout(dir, d);
         for (const auto &root : modDataRoots(dir, d))
             roots.push_back(root);
     }
@@ -686,6 +747,13 @@ Json Backend::check(bool repair, bool install) {
             auto receipt = optional(dir / ".fetcher-package.json");
             bool current = receipt.value("sha256", "") == r.at("sha256") &&
                            verifyFiles(dir, receipt.value("files", Json::array()), repair);
+            if (current && !d.value("actions", Json::array()).empty()) {
+                auto key = modLayoutKey(d, r.at("sha256"));
+                auto dir = mManaged / "layouts" / key;
+                auto receipt = optional(dir / ".fetcher-package.json");
+                current = receipt.value("layoutKey", "") == key &&
+                          verifyFiles(dir, receipt.value("files", Json::array()), repair);
+            }
             if (!current) {
                 reasons.push_back(d.at("id"));
                 if (install)

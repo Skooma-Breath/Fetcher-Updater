@@ -93,7 +93,7 @@ void request(std::string url, std::uint64_t limit, Sink sink,
         const auto path =
             (c.dwUrlPathLength ? std::wstring(c.lpszUrlPath, c.dwUrlPathLength) : L"/") +
             (c.dwExtraInfoLength ? std::wstring(c.lpszExtraInfo, c.dwExtraInfoLength) : L"");
-        Internet session(WinHttpOpen(L"FetcherLauncher/0.3", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+        Internet session(WinHttpOpen(L"FetcherLauncher/0.4", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
                                      WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
         require(WinHttpSetTimeouts(session.h, 10000, 10000, 15000, 30000) != 0,
                 "Could not set HTTP timeouts.");
@@ -386,7 +386,7 @@ std::string nexusGet(const std::string &path, const std::string &key) {
     require(key.size() >= 10 && key.size() <= 512 && key.find_first_of("\r\n") == std::string::npos,
             "Invalid Nexus API key.");
     auto headers = L"Accept: application/json\r\nApplication-Name: Fetcher "
-                   L"Launcher\r\nApplication-Version: 0.3.0\r\napikey: " +
+                   L"Launcher\r\nApplication-Version: 0.4.0\r\napikey: " +
                    wide(key) + L"\r\n";
     std::string text;
     request((nexusFixture.empty() ? "https://api.nexusmods.com" : nexusFixture) + path,
@@ -457,6 +457,7 @@ std::vector<std::string> extractZip(const fs::path &p, const fs::path &stage) {
         if (s.m_is_directory && !name.empty() && name.back() == '/')
             name.pop_back();
         auto rel = safeRelative(name);
+        require(lower(name) != ".fetcher-package.json", "Archive uses reserved launcher metadata.");
         require(seen.insert(lower(name)).second, "Duplicate ZIP path.");
         require(((s.m_external_attr >> 16) & 0170000) != 0120000, "ZIP symlinks are forbidden.");
         total += s.m_uncomp_size;

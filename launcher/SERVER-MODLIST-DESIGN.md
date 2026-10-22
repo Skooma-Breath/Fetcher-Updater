@@ -1,10 +1,10 @@
 # Server-owned mod lists: planned design
 
 Status: target design with a first native implementation now available. Reviewed/namespaced
-manifests, pinned declarative UMO ZIP normalization, direct archives, protected Nexus API-key
+manifests, pinned declarative UMO ZIP/7z/RAR normalization and contained copy/rename/remove layouts, direct archives, protected Nexus API-key
 downloads, manual import and previous-manifest selection are implemented. See PROFILE-FORMAT.md
-for the current contract and TEST-REPORT.md for evidence. Unsupported UMO transforms, 7z/RAR,
-SSO/NXM and live account/public-rollout acceptance remain outstanding.
+for the current contract and TEST-REPORT.md for evidence. Advanced transforms/FOMOD, encrypted or
+multipart archives, SSO/NXM and live account/public-rollout acceptance remain outstanding.
 
 ## Operator and player workflow
 

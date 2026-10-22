@@ -547,7 +547,8 @@
               Nexus controls automatic download eligibility. You can also open
               the pinned file on Nexus, download it yourself and import the
               archive. Its SHA-256 must match the server manifest. This
-              candidate supports ZIP archives.
+              candidate supports ZIP, 7z and RAR archives. Encrypted and
+              multipart archives are unsupported.
             </p>
             <div class="row">
               <select id="archivePackage" aria-label="Mod package"></select>
@@ -839,7 +840,20 @@ Fetcher native launcher ready.
             : d.repository
               ? `${d.repository} / ${d.releaseTag} / ${d.assetName}`
               : displayUrl(d.url);
-          return `${d.name || d.id}${d.version ? " / " + d.version : ""}\n${source}\nSHA-256: ${d.sha256 || "resolved during review"}\nData directories: ${(d.dataDirs || ["package manifest"]).join(", ")}`;
+          return (
+            `${d.name || d.id}${d.version ? " / " + d.version : ""}\n${source}\nSHA-256: ${d.sha256 || "resolved during review"}\nData directories: ${(d.dataDirs || ["package manifest"]).join(", ")}` +
+            `\nArchive: ${d.archiveFormat || "auto-detect"}` +
+            ((d.actions || []).length
+              ? "\nFile layout operations:\n" +
+                d.actions
+                  .map((op) =>
+                    op.action === "remove"
+                      ? `Remove ${op.path}`
+                      : `${op.action === "copy" ? "Copy" : "Move"} ${op.src} -> ${op.dst}${op.force ? " (replace existing)" : ""}`,
+                  )
+                  .join("\n")
+              : "")
+          );
         };
         $("packageSources").textContent = [
           p?._sourceUrl

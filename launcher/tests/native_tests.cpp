@@ -1,5 +1,7 @@
 #include "native_backend.hpp"
 #include "server_manifest.hpp"
+#include <archive.h>
+#include <archive_entry.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -46,6 +48,132 @@ void zip(const fs::path &path, const std::string &name) {
     check(mz_zip_writer_finalize_archive(&z) != 0, "finalize zip");
     mz_zip_writer_end(&z);
 }
+void sevenZip(const fs::path &path, const std::vector<std::pair<std::string, std::string>> &files,
+              const std::string &method = "lzma2") {
+    auto archive = archive_write_new();
+    check(archive_write_set_format_7zip(archive) == ARCHIVE_OK, "create 7z writer");
+    check(archive_write_set_options(archive, ("7zip:compression=" + method).c_str()) == ARCHIVE_OK,
+          "LZMA2 writer");
+    check(archive_write_open_filename_w(archive, path.c_str()) == ARCHIVE_OK, "open 7z writer");
+    for (const auto &file : files) {
+        auto entry = archive_entry_new();
+        archive_entry_set_pathname_utf8(entry, file.first.c_str());
+        archive_entry_set_filetype(entry, AE_IFREG);
+        archive_entry_set_perm(entry, 0644);
+        archive_entry_set_size(entry, file.second.size());
+        check(archive_write_header(archive, entry) == ARCHIVE_OK, "write 7z header");
+        check(archive_write_data(archive, file.second.data(), file.second.size()) ==
+                  file.second.size(),
+              "write 7z data");
+        archive_entry_free(entry);
+    }
+    check(archive_write_close(archive) == ARCHIVE_OK, "finish 7z writer");
+    archive_write_free(archive);
+}
+void archiveAndLayoutTests(const fs::path &root) {
+    auto archive = root / "sample.7z";
+    sevenZip(archive, {{"Data Files/notes.txt", "native LZMA2 test"}});
+    auto files = extractArchive(archive, root / "7z-good");
+    check(files.size() == 1 && read(root / "7z-good/Data Files/notes.txt") == "native LZMA2 test",
+          "7z LZMA2 extraction");
+    for (const auto &method : {"lzma1", "bzip2", "deflate", "ppmd"}) {
+        auto packed = root / (std::string(method) + ".7z");
+        sevenZip(packed, {{"file.txt", std::string(4096, 'A')}}, method);
+        auto target = root / (std::string(method) + "-out");
+        extractArchive(packed, target);
+        check(read(target / "file.txt") == std::string(4096, 'A'),
+              "7z alternative codec roundtrip");
+    }
+    auto fixtures = fs::u8path(FETCHER_ARCHIVE_FIXTURES);
+    auto corrupt = read(fixtures / "test_read_format_rar5_compressed.rar");
+    corrupt[corrupt.size() / 2] ^= 0x20;
+    writeAtomic(root / "corrupt.rar", corrupt);
+    rejects([&] { extractArchive(root / "corrupt.rar", root / "rar-corrupt"); },
+            "corrupt RAR rejected");
+    extractArchive(fixtures / "unicode-lzma2.7z", root / "7z-unicode");
+    check(read(root / L"7z-unicode/Data Files/\u00e9.txt") == "Unicode filename",
+          "7z independent Unicode filename");
+    check(read(root / L"7z-unicode/\u65e5\u672c\u8a9e/sample.txt") == "Japanese directory",
+          "7z independent Unicode directory");
+    rejects([&] { extractArchive(archive, root / "wrong-format", "rar"); },
+            "declared archive format mismatch");
+    sevenZip(root / "7z-escape.7z", {{"../escaped.txt", "outside"}});
+    rejects([&] { extractArchive(root / "7z-escape.7z", root / "7z-bad"); },
+            "7z traversal rejected");
+    check(!fs::exists(root / "escaped.txt"), "7z traversal wrote nothing outside stage");
+    sevenZip(root / "7z-duplicate.7z", {{"file.txt", "one"}, {"FILE.txt", "two"}});
+    rejects([&] { extractArchive(root / "7z-duplicate.7z", root / "7z-duplicates"); },
+            "7z case collision rejected");
+    auto truncated = read(archive);
+    truncated.resize(truncated.size() - 10);
+    writeAtomic(root / "truncated.7z", truncated);
+    rejects([&] { extractArchive(root / "truncated.7z", root / "truncated-output"); },
+            "truncated 7z rejected");
+    auto catalog = readJson(fixtures / "upstream.json");
+    for (const auto &fixture : catalog.at("fixtures")) {
+        auto path = fixtures / fixture.at("file").get<std::string>();
+        check(sha256(path) == fixture.at("sha256"), "upstream fixture identity");
+        auto target = root / ("fixture-" + path.filename().string());
+        if (fixture.contains("expectedFiles")) {
+            auto entries = extractArchive(path, target);
+            check(entries.size() == fixture.at("expectedFiles").size(), "RAR file count");
+            for (const auto &expected : fixture.at("expectedFiles"))
+                check(sha256(target / safeRelative(expected.at("path"))) == expected.at("sha256"),
+                      "RAR/RAR5 decoded bytes match independent 7-Zip hashes");
+        } else
+            rejects([&] { extractArchive(path, target); },
+                    "RAR/7z links, encryption and incomplete volumes rejected");
+    }
+    auto stage = root / "layout";
+    fs::create_directories(stage);
+    writeAtomic(stage / "variants/modern/texture.dds", "modern texture");
+    writeAtomic(stage / "Data Files/Old.esp", "plugin bytes");
+    writeAtomic(stage / "unused/readme.txt", "unused");
+    auto actions = normalizeModActions(Json::parse(R"json([
+        {"action":"copy","src":"Mod/variants/modern","dst":"Mod/Data Files/textures"},
+        {"action":"rename","src":"Mod/Data Files/Old.esp","dst":"Mod/Data Files/New.esp"},
+        {"action":"remove","paths":["Mod/unused"]}
+    ])json"),
+                                       "Mod");
+    check(actions[1]["action"] == "move" && actions[0]["src"] == "variants/modern",
+          "UMO paths and action normalization");
+    applyModActions(stage, actions);
+    check(read(stage / "Data Files/textures/texture.dds") == "modern texture" &&
+              read(stage / "Data Files/New.esp") == "plugin bytes" &&
+              !fs::exists(stage / "unused") && fs::exists(stage / "variants/modern/texture.dds") &&
+              !fs::exists(stage / "Data Files/Old.esp"),
+          "native copy/rename/remove layout");
+    for (const auto &invalid : {
+             R"json([{"action":"run","command":"bad"}])json",
+             R"json([{"action":"clean","path":"x.esp"}])json",
+             R"json([{"action":"remove","path":"../outside"}])json",
+             R"json([{"action":"copy","src":"source","dst":".fetcher-package.json"}])json",
+             R"json([{"action":"copy","src":"source","dst":"out","command":"bad"}])json"})
+        rejects([&] { normalizeModActions(Json::parse(invalid)); },
+                "unsupported/unsafe mod action rejected during review");
+    rejects([&] {
+        normalizeModActions(
+            Json::parse(R"json([{"action":"copy","src":"Other/file","dst":"Mod/out"}])json"),
+            "Mod");
+    }, "cross-mod UMO action rejected");
+    rejects([&] {
+        applyModActions(
+            stage,
+            Json::parse(R"json([{"action":"copy","src":"variants","dst":"variants/nested"}])json"));
+    }, "recursive self-copy rejected");
+    rejects([&] {
+        applyModActions(
+            stage,
+            Json::parse(
+                R"json([{"action":"copy","src":"Data Files/New.esp","dst":"Data Files/textures/texture.dds"}])json"));
+    }, "implicit overwrite rejected");
+    applyModActions(
+        stage,
+        Json::parse(
+            R"json([{"action":"copy","src":"Data Files/New.esp","dst":"Data Files/textures/texture.dds","force":true}])json"));
+    check(read(stage / "Data Files/textures/texture.dds") == "plugin bytes",
+          "explicit force overwrite");
+}
 } // namespace
 int main() {
     auto root = fs::temp_directory_path() /
@@ -61,6 +189,7 @@ int main() {
             rejects([&] { safeRelative(path); }, "unsafe relative path rejected");
         check(safeRelative("Data Files/meshes/keyboard.nif").filename() == L"keyboard.nif",
               "ordinary asset path");
+        archiveAndLayoutTests(root);
         writeAtomic(root / L"test.txt", "hello");
         check(textSha256("hello") == sha256(root / L"test.txt"), "memory/file SHA-256 consistency");
         auto secret = protectSecret("test-key-not-a-real-credential");

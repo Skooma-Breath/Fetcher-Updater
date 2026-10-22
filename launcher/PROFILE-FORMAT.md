@@ -63,13 +63,50 @@ HTTPS archive URL. Nexus mod identity comes from the entry's url. data_paths and
 normalized into per-package dataDirs. For multi-archive mods or ambiguous layouts, provide an
 explicit dataDirs array on each download. With no wrapper content, vanilla masters and each mod's
 plugins build the order; mod groundcover entries remain separate. Set wrapper content explicitly
-when the server needs a different order. UMO actions must be empty: no arbitrary installer commands
-or compatibility scripts run. Unpinned files, missing hashes/IDs and unsupported actions fail review.
+when the server needs a different order. Native copy, rename/move and remove actions are supported
+as described below. No arbitrary installer commands or compatibility scripts run. Unpinned files,
+missing hashes/IDs and unsupported actions fail review.
 Existing legacy lists often need owner curation before they satisfy these requirements.
 
-This candidate supports ZIP extraction only. 7z/RAR, FOMOD choices, UMO transformations and the
-complete historical compatibility-applier pipeline remain unsupported. Do not rehost/repackage
-third-party files without the appropriate permission. The separate legacy installer remains usable.
+ZIP, 7z and RAR/RAR5 archives are decoded in-process. Set archiveFormat to auto (the default), zip,
+7z or rar. Actual bytes determine format; an explicit mismatched format fails preparation even when
+the download filename has a different suffix. The pinned static libarchive/LZMA/zlib/bzip2 build
+covers common LZMA/LZMA2, PPMd, Deflate and BZip2 7z codecs and stored/compressed/solid RAR cases.
+Encrypted archives, multipart archives, self-extracting executables and other unsupported codec
+variants fail without launching an external program. FOMOD choices, plugin-cleaning actions and
+the historical compatibility-applier pipeline remain migration work. The legacy installer remains usable.
+
+## Native file layout operations
+
+Package dataDirs selects folders without moving files. When a mod requires actual layout changes,
+add a bounded actions array. Direct package paths are archive-relative. UMO download_info.actions
+uses paths beneath that download's extract_to prefix; normalization strips the prefix. Actions
+cannot reach another package, the game installation, another profile or launcher metadata.
+
+```json
+"actions": [
+  {"action":"copy", "src":"Options/Modern", "dst":"Data Files/textures"},
+  {"action":"rename", "src":"Data Files/Old.esp", "dst":"Data Files/Selected.esp"},
+  {"action":"remove", "paths":["Unused patch", "Optional/readme.txt"]}
+]
+```
+
+copy recursively copies a file or directory. Copying a file into an existing directory retains
+its filename. Directory merges and overwriting files require force=true. rename normalizes to
+move; moves into an existing directory retain the source name. Replacing a move target requires
+force=true. remove accepts exactly one path or a paths list; missing sources fail preparation.
+Source/target paths cannot be equal, contain one another, use wildcards, escape the package, or
+address .fetcher-* metadata. Up to 128 normalized operations are allowed. Known UMO tes3cmd=null
+metadata is discarded; an executable/tool value is rejected. Unknown actions and fields fail review.
+No shell, script interpreter, plugin cleaner, file association or downloaded executable is invoked.
+
+Operations run in a fresh staging copy with entry/byte limits. The original SHA-addressed extracted
+archive remains immutable. A separate derived layout cache is keyed by source SHA plus normalized
+operations and recipe version; two servers can choose different variants without overwriting each
+other. Verified derived layouts are reused and corrupted layouts rebuilt from the source cache.
+Failure before activation leaves the previous config/layout usable. Review displays file operations,
+including explicit replacements, before acceptance. Select a different dataDirs folder when moving
+a directory into its ancestor would otherwise be necessary.
 
 ## Review, identity and updates
 
