@@ -28,11 +28,51 @@
       }
       body {
         margin: 0;
-        background:
-          linear-gradient(110deg, #090f19f5, #101b2bd4),
-          url(assets/potm2504a.jpg) center/cover fixed;
+        background: #020308 url(assets/potm2504a.jpg) center/cover no-repeat fixed;
         color: var(--ink);
         min-width: 820px;
+      }
+      .float-layer {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .floater {
+        position: absolute;
+        left: 0;
+        top: var(--top);
+        width: var(--size);
+        opacity: 0;
+        image-rendering: auto;
+        filter:
+          saturate(1.04)
+          contrast(1.10)
+          brightness(1.04)
+          drop-shadow(0 0 14px rgba(116, 189, 255, 0.22))
+          drop-shadow(0 12px 19px rgba(0,0,0,.75));
+        mix-blend-mode: normal;
+        animation: drift var(--duration) linear forwards;
+        will-change: transform, opacity;
+      }
+
+      @keyframes drift {
+        0% { opacity: 0; transform: translate3d(var(--start), 14px, 0) rotate(var(--tilt)); }
+        12% { opacity: var(--opacity); }
+        49% { transform: translate3d(var(--mid), -13px, 0) rotate(var(--mid-tilt)); }
+        87% { opacity: var(--opacity); }
+        100% { opacity: 0; transform: translate3d(var(--end), 9px, 0) rotate(var(--end-tilt)); }
+      }
+
+      header,
+      .shell {
+        position: relative;
+        z-index: 2;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .floater { display: none; }
       }
       button,
       input,
@@ -348,6 +388,7 @@
     </style>
   </head>
   <body>
+    <div id="floatLayer" class="float-layer" aria-hidden="true"></div>
     <header>
       <div>
         <h1>FETCHER</h1>
@@ -576,6 +617,42 @@
     </div>
     <script type="module">
       const $ = (id) => document.getElementById(id);
+      function spawnFloater(initial = false) {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const img = document.createElement("img");
+        img.className = "floater";
+        const movingRight = Math.random() >= 0.5;
+        img.src = movingRight
+          ? "assets/fetcher-float-right.gif"
+          : "assets/fetcher-float.gif";
+        const size = 62 + Math.round(Math.random() * 155);
+        const duration = 18 + Math.round(Math.random() * 22);
+        const top = 4 + Math.round(Math.random() * 76);
+        const tilt = -18 + Math.round(Math.random() * 36);
+        img.style.setProperty("--size", `${size}px`);
+        img.style.setProperty("--duration", `${duration}s`);
+        img.style.setProperty("--top", `${top}%`);
+        img.style.setProperty("--opacity", "1");
+        img.style.setProperty("--tilt", `${tilt}deg`);
+        img.style.setProperty("--mid-tilt", `${Math.round(tilt * -0.35)}deg`);
+        img.style.setProperty("--end-tilt", `${Math.round(tilt * 0.55)}deg`);
+        img.style.setProperty("--start", movingRight
+          ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`);
+        img.style.setProperty("--mid", movingRight ? "48vw" : "42vw");
+        img.style.setProperty("--end", movingRight
+          ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`);
+        if (initial) {
+          img.style.animationDelay = `-${Math.round(Math.random() * duration * 0.65)}s`;
+        }
+        img.addEventListener("animationend", () => img.remove());
+        $("floatLayer").appendChild(img);
+      }
+      function scheduleFloater() {
+        spawnFloater(false);
+        setTimeout(scheduleFloater, 5200 + Math.random() * 7200);
+      }
+      for (let i = 0; i < 3; ++i) spawnFloater(true);
+      setTimeout(scheduleFloater, 3200);
       let state = null,
         busy = false,
         page = "servers";
