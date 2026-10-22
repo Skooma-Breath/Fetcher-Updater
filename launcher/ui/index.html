@@ -843,6 +843,17 @@ Fetcher native launcher ready.
           return (
             `${d.name || d.id}${d.version ? " / " + d.version : ""}\n${source}\nSHA-256: ${d.sha256 || "resolved during review"}\nData directories: ${(d.dataDirs || ["package manifest"]).join(", ")}` +
             `\nArchive: ${d.archiveFormat || "auto-detect"}` +
+            (d.fomod
+              ? `\nFOMOD: ${d.fomod.config}\nServer-pinned installer choices:\n` +
+                (d.fomod.selections.length
+                  ? d.fomod.selections
+                      .map(
+                        (s) =>
+                          `${s.step} / ${s.group}: ${s.plugins.join(", ") || "(none)"}`,
+                      )
+                      .join("\n")
+                  : "No option groups pinned")
+              : "") +
             ((d.actions || []).length
               ? "\nFile layout operations:\n" +
                 d.actions

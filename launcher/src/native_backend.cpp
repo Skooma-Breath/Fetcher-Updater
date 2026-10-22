@@ -381,7 +381,7 @@ fs::path Backend::package(const Json &definition, bool repair) {
 }
 fs::path Backend::layout(const fs::path &raw, const Json &definition) {
     auto actions = normalizeModActions(definition.value("actions", Json::array()));
-    if (actions.empty())
+    if (actions.empty() && !definition.contains("fomod"))
         return raw;
     auto source = readJson(raw / ".fetcher-package.json");
     auto key = modLayoutKey(definition, source.at("sha256"));
@@ -395,17 +395,21 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition) {
     noLinks(stage);
     fs::create_directories(stage);
     try {
-        // Preserve empty directories, but copy only files from the verified source receipt.
-        for (const auto &entry : fs::recursive_directory_iterator(raw)) {
-            noLinks(entry.path());
-            if (entry.is_directory())
-                fs::create_directories(stage / entry.path().lexically_relative(raw));
-        }
-        for (const auto &record : source.at("files")) {
-            auto rel = safeRelative(record.at("path"));
-            need(rel != L".fetcher-package.json", "Archive uses reserved launcher metadata.");
-            fs::create_directories((stage / rel).parent_path());
-            fs::copy_file(raw / rel, stage / rel);
+        if (definition.contains("fomod"))
+            installFomod(raw, stage, definition.at("fomod"));
+        else {
+            // Preserve empty directories, but copy only files from the verified source receipt.
+            for (const auto &entry : fs::recursive_directory_iterator(raw)) {
+                noLinks(entry.path());
+                if (entry.is_directory())
+                    fs::create_directories(stage / entry.path().lexically_relative(raw));
+            }
+            for (const auto &record : source.at("files")) {
+                auto rel = safeRelative(record.at("path"));
+                need(rel != L".fetcher-package.json", "Archive uses reserved launcher metadata.");
+                fs::create_directories((stage / rel).parent_path());
+                fs::copy_file(raw / rel, stage / rel);
+            }
         }
         applyModActions(stage, actions);
         Json records = Json::array();
@@ -747,7 +751,7 @@ Json Backend::check(bool repair, bool install) {
             auto receipt = optional(dir / ".fetcher-package.json");
             bool current = receipt.value("sha256", "") == r.at("sha256") &&
                            verifyFiles(dir, receipt.value("files", Json::array()), repair);
-            if (current && !d.value("actions", Json::array()).empty()) {
+            if (current && (d.contains("fomod") || !d.value("actions", Json::array()).empty())) {
                 auto key = modLayoutKey(d, r.at("sha256"));
                 auto dir = mManaged / "layouts" / key;
                 auto receipt = optional(dir / ".fetcher-package.json");

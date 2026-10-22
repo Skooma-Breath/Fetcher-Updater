@@ -5,6 +5,8 @@ namespace fetcher {
 Json normalizeModActions(const Json &actions, const std::string &umoPrefix = "");
 std::string modLayoutKey(const Json &definition, const std::string &sourceSha256);
 void applyModActions(const fs::path &stage, const Json &actions);
+Json normalizeFomod(const Json &definition);
+void installFomod(const fs::path &raw, const fs::path &stage, const Json &definition);
 Json normalizeServerManifest(const Json &value);
 void validateModDefinition(const Json &definition);
 void validateModPayload(const fs::path &directory);

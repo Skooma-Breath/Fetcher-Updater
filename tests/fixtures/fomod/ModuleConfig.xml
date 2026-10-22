@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+  <moduleName>Fetcher authored FOMOD test</moduleName>
+  <requiredInstallFiles>
+    <folder source="core" destination="" />
+  </requiredInstallFiles>
+  <installSteps order="Explicit">
+    <installStep name="Sound">
+      <optionalFileGroups order="Explicit">
+        <group name="Variant" type="SelectExactlyOne">
+          <plugins order="Explicit">
+            <plugin name="Modern">
+              <description>Modern texture variant.</description>
+              <files><folder source="options\modern" destination="textures" priority="10" /></files>
+              <conditionFlags><flag name="voice">modern</flag></conditionFlags>
+              <typeDescriptor><type name="Recommended" /></typeDescriptor>
+            </plugin>
+            <plugin name="Classic">
+              <files><folder source="options/classic" destination="textures" priority="10" /></files>
+              <conditionFlags><flag name="voice">classic</flag></conditionFlags>
+              <typeDescriptor><type name="Optional" /></typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+    <installStep name="Patches">
+      <visible><flagDependency flag="voice" value="modern" /></visible>
+      <optionalFileGroups>
+        <group name="Extras" type="SelectAny">
+          <plugins order="Explicit">
+            <plugin name="Patch">
+              <files><file source="patch/Patch.esp" destination="Patch.esp" /></files>
+              <conditionFlags><flag name="patched">yes</flag></conditionFlags>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="NotUsable" />
+                  <patterns><pattern>
+                    <dependencies><flagDependency flag="voice" value="modern" /></dependencies>
+                    <type name="Required" />
+                  </pattern></patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Documentation">
+              <files>
+                <file source="docs/readme.txt" destination="docs/" alwaysInstall="true" />
+                <file source="docs/usable.txt" installIfUsable="true" />
+              </files>
+              <typeDescriptor><type name="Optional" /></typeDescriptor>
+            </plugin>
+            <plugin name="Unavailable">
+              <files><file source="docs/disabled.txt" destination="disabled.txt" installIfUsable="true" /></files>
+              <typeDescriptor><type name="NotUsable" /></typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+  </installSteps>
+  <conditionalFileInstalls>
+    <patterns><pattern>
+      <dependencies operator="And">
+        <flagDependency flag="voice" value="modern" />
+        <dependencies operator="Or">
+          <flagDependency flag="patched" value="yes" />
+          <flagDependency flag="missing" value="yes" />
+        </dependencies>
+      </dependencies>
+      <files><file source="patch/final.dds" destination="textures/tone.dds" priority="100" /></files>
+    </pattern></patterns>
+  </conditionalFileInstalls>
+</config>

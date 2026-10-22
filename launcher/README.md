@@ -13,10 +13,12 @@ Implemented in this candidate:
 - Local model/source/license/adaptation records and preserved content-bundle attribution notices.
 - Reviewed server manifests, owner/source isolation, previous-manifest selection and ordinary archive layouts.
 - Declarative pinned UMO lists with folder selection and native copy/rename/remove operations, Nexus API-key downloads where eligible and exact-file manual import.
+- Server-pinned XML FOMOD selections, option/flag validation and isolated selected-file layouts.
 - Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.
 - Existing-installation mode launches an already configured full mod setup unchanged.
 
-**Migration boundary:** encrypted/multipart archives, unsupported codec variants, plugin-cleaning/FOMOD choices, third-party tool bootstrap and legacy
+**Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
+plugin-cleaning, third-party tool bootstrap and legacy
 compatibility appliers have not yet been ported. Nexus authentication is fixture-tested; live account
 acceptance and public application registration remain required. Existing script entry points remain supported during
 migration. The native launcher does not claim to install/repair that entire historical mod list.

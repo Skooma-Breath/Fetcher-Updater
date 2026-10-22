@@ -75,9 +75,10 @@ release assets and passed a fresh native HTTPS download/preparation test. The or
 public launcher and public server configuration are unchanged.
 
 Reviewed server manifests now accept pinned declarative UMO lists, native ZIP/7z/RAR archives and contained
-copy/rename/remove layout operations.
+copy/rename/remove layout operations and server-pinned XML FOMOD selections.
 Nexus API-key downloads and exact-file manual import are implemented; live Nexus account trials,
-FOMOD/plugin-cleaning support and the full legacy compatibility pipeline remain migration work. Existing script entry points and existing-installation launch mode are preserved.
+advanced FOMOD dependencies/player wizard, plugin-cleaning and the full legacy compatibility pipeline
+remain migration work. Existing script entry points and existing-installation launch mode are preserved.
 
 Build, isolated preview instructions, acceptance evidence and profile format are documented in
 [launcher/README.md](launcher/README.md).

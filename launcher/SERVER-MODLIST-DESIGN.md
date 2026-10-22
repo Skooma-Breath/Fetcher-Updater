@@ -2,8 +2,9 @@
 
 Status: target design with a first native implementation now available. Reviewed/namespaced
 manifests, pinned declarative UMO ZIP/7z/RAR normalization and contained copy/rename/remove layouts, direct archives, protected Nexus API-key
-downloads, manual import and previous-manifest selection are implemented. See PROFILE-FORMAT.md
-for the current contract and TEST-REPORT.md for evidence. Advanced transforms/FOMOD, encrypted or
+downloads, manual import, server-pinned XML FOMOD selections and previous-manifest selection are
+implemented. See PROFILE-FORMAT.md for the current contract and TEST-REPORT.md for evidence.
+Advanced transforms/FOMOD dependencies and a player installer wizard, encrypted or
 multipart archives, SSO/NXM and live account/public-rollout acceptance remain outstanding.
 
 ## Operator and player workflow

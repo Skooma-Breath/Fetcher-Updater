@@ -118,8 +118,12 @@ Json normalizeModActions(const Json &actions, const std::string &prefix) {
 }
 std::string modLayoutKey(const Json &definition, const std::string &sourceSha256) {
     auto actions = normalizeModActions(definition.value("actions", Json::array()));
-    return textSha256(
-        Json{{"layoutVersion", 1}, {"sourceSha256", sourceSha256}, {"actions", actions}}.dump());
+    Json recipe = {{"layoutVersion", 1}, {"sourceSha256", sourceSha256}, {"actions", actions}};
+    if (definition.contains("fomod")) {
+        recipe["fomodVersion"] = 1;
+        recipe["fomod"] = normalizeFomod(definition.at("fomod"));
+    }
+    return textSha256(recipe.dump());
 }
 void applyModActions(const fs::path &directory, const Json &actions) {
     auto root = fs::absolute(directory).lexically_normal();

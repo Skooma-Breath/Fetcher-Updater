@@ -73,8 +73,9 @@ ZIP, 7z and RAR/RAR5 archives are decoded in-process. Set archiveFormat to auto 
 the download filename has a different suffix. The pinned static libarchive/LZMA/zlib/bzip2 build
 covers common LZMA/LZMA2, PPMd, Deflate and BZip2 7z codecs and stored/compressed/solid RAR cases.
 Encrypted archives, multipart archives, self-extracting executables and other unsupported codec
-variants fail without launching an external program. FOMOD choices, plugin-cleaning actions and
-the historical compatibility-applier pipeline remain migration work. The legacy installer remains usable.
+variants fail without launching an external program. Server-pinned XML FOMOD choices are supported
+below. Plugin-cleaning actions and the historical compatibility-applier pipeline remain migration
+work. The legacy installer remains usable.
 
 ## Native file layout operations
 
@@ -107,6 +108,58 @@ other. Verified derived layouts are reused and corrupted layouts rebuilt from th
 Failure before activation leaves the previous config/layout usable. Review displays file operations,
 including explicit replacements, before acceptance. Select a different dataDirs folder when moving
 a directory into its ancestor would otherwise be necessary.
+
+## Server-pinned XML FOMOD choices
+
+For a supported XML installer, add fomod to the package (or the UMO download_info entry):
+
+```json
+"dataDirs": ["."],
+"fomod": {
+  "config": "Wrapper/fomod/ModuleConfig.xml",
+  "selections": [
+    {"step":"Textures", "group":"Resolution", "plugins":["2K"]},
+    {"step":"Optional patches", "group":"Patches", "plugins":[]}
+  ]
+}
+```
+
+config is archive-relative, including any wrapper directory. XML source paths are relative to the
+directory containing fomod/. Selection names match the XML step/group/plugin names exactly. Every
+visible group needs an explicit selection, including an empty plugins list for no optional choices.
+Required and SelectAll options must be included explicitly. Unknown, hidden, unavailable, duplicate
+or missing selections and group-count violations fail preparation. There are no inferred defaults
+or player-specific choices. Change the manifest version and review it again to change the selection.
+The review panel shows the pinned choices without downloading the archive. Full XML/choice validation
+occurs during preparation, after its SHA-256 is verified.
+
+This candidate supports required files/folders, all five selection-group types, static and flag-based
+option types, step visibility, condition flags, nested And/Or flag dependencies, conditional file
+installs, alwaysInstall, installIfUsable and signed 32-bit file priorities. Step/group/option ordering
+obeys Explicit/Ascending/Descending (default Ascending). Higher priority installs last; equal-priority
+ties follow the resulting directive order (required files, ordered selected steps, conditional files).
+Flags from selected options become available to later steps. Conflicting flag values within one
+step are rejected. alwaysInstall/installIfUsable apply to options in visible steps. Display metadata
+is accepted without fetching images or schemas.
+
+The installer builds a new output tree containing only the chosen data files. dataDirs must be ["."];
+ordinary actions, if supplied, run afterward relative to that output. The source archive stays intact.
+The config path, canonical selections and interpreter version participate in the derived-cache key.
+An optional folder cannot leak into the game merely because it was present in the downloaded archive.
+FOMOD file paths accept either slash style, but cannot escape their package or use launcher metadata.
+Sources must be nonempty relative paths; destination="" installs a folder's contents at the data root
+or a file by its basename. An omitted destination retains the source path. Source files must belong
+to the verified archive receipt. Expansion is bounded by 100,000 output entries and 8 GiB, including
+overwritten copies. XML is limited to 4 MiB, 32 nesting levels and 100,000 reader nodes; DTDs, external
+entities, processing instructions and namespace extensions are rejected.
+
+This is a supported subset, not a general FOMOD wizard. Installed-file/plugin state, game/manager/
+script-extender version dependencies, C#/ModScript installers, nested archive installers and other
+unknown XML constructs are rejected, even in unselected branches. Use curated dataDirs/actions for
+those packages until support is added. No installer script, external XML resource or downloaded
+program runs. XML semantics were checked against the
+[Nexus XML installer schema](https://github.com/Nexus-Mods/Nexus-Mod-Manager/blob/master/Script%20Types/XmlScript/Schemas/XmlScript5.0.xsd)
+and [Nexus's FOMOD interface documentation](https://nexus-mods.github.io/NexusMods.App/developers/misc/AboutFomod/).
 
 ## Review, identity and updates
 

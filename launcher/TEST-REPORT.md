@@ -100,3 +100,28 @@ The live test report is retained in release-assets/server-profiles-github-test/l
 Encrypted/multipart archives, FOMOD choices, external plugin cleaners, complete historical UMO
 compatibility processing, Nexus registration/SSO/NXM handoff and live-account eligibility remain
 outside this slice. These tests do not launch a game or change the public launcher/server.
+
+## Server-pinned XML FOMOD candidate — 2026-10-22
+
+- MSVC x64 Release build and launcher self-test pass. Existing native tests retain 153 assertions;
+  a separate native FOMOD suite passes 79 assertions. The implementation uses Windows XmlLite
+  in-process; it neither adds an installer runtime nor executes FOMOD scripts.
+- Project-authored fixtures cover required files, wrapper roots, Unicode filenames, UTF-8/UTF-16LE
+  XML, all five group types, required/unavailable choices, flag-based option types and step visibility,
+  nested flag expressions, conditional files, alwaysInstall/installIfUsable and priority/tie ordering.
+- Tests reject invalid cardinality, unknown/missing/hidden/duplicate selections, unsafe paths, launcher
+  metadata targets, absent/unreceipted sources, malformed/deep XML, DTDs/entities, unknown XML and
+  unsupported environment dependencies. Unselected branches are validated as well.
+- `tests/test_fomod.py` passes 24 real-executable operations: reviewed/pinned choices, source hashes,
+  plugin-master order, post-install file operations, separate modern/classic layouts from one source,
+  same-size cache repair without redownload, stale-review rejection, failed-preparation preservation,
+  previous-manifest rollback and the UMO per-download extension. The local HTTP fixture confirms that
+  an external-entity URL is never requested. An XML mapping to an executable output is rejected.
+- The existing native backend, 54-operation manifest and 23-operation archive/layout integration
+  suites still pass. UI module syntax checking passes. No public assets or server settings change.
+- Native WebView2 review of a local developer fixture displays the config path and canonical
+  step/group/option choices before acceptance. No fixture profile or archive was installed.
+
+These are synthetic installer fixtures, not live third-party FOMOD compatibility certification.
+Installed-file/game/extender dependencies, a player-facing wizard, C#/ModScript and nested installers
+remain unsupported. See PROFILE-FORMAT.md for the exact subset, bounds and deterministic choices.

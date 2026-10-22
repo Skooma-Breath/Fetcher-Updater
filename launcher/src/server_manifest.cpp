@@ -56,6 +56,11 @@ void validateModDefinition(const Json &d) {
             dataPath(p.get<std::string>());
     }
     normalizeModActions(d.value("actions", Json::array()));
+    if (d.contains("fomod")) {
+        normalizeFomod(d.at("fomod"));
+        need(d.contains("dataDirs") && d.at("dataDirs") == Json::array({"."}),
+             "FOMOD output is a fresh data directory; specify dataDirs: [\".\"].");
+    }
 }
 Json normalizeServerManifest(const Json &value) {
     need(value.is_object(), "Publish a server manifest object wrapping the UMO "
@@ -98,6 +103,8 @@ Json normalizeServerManifest(const Json &value) {
                              {"author", m.value("author", "")},
                              {"sha256", d.at("sha256")},
                              {"archiveFormat", d.value("archiveFormat", "auto")}};
+                if (d.contains("fomod"))
+                    item["fomod"] = normalizeFomod(d.at("fomod"));
                 if (!d.value("actions", Json::array()).empty()) {
                     auto prefix = d.at("extract_to").get<std::string>();
                     safeRelative(prefix);
@@ -163,6 +170,8 @@ Json normalizeServerManifest(const Json &value) {
     for (auto &d : p.at("packages")) {
         if (d.contains("actions"))
             d["actions"] = normalizeModActions(d.at("actions"));
+        if (d.contains("fomod"))
+            d["fomod"] = normalizeFomod(d.at("fomod"));
         validateModDefinition(d);
     }
     return p;

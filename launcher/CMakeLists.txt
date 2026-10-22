@@ -4,7 +4,7 @@ if(POLICY CMP0174)
     cmake_policy(SET CMP0174 NEW)
 endif()
 
-project(FetcherLauncher VERSION 0.4.0 LANGUAGES C CXX RC)
+project(FetcherLauncher VERSION 0.5.0 LANGUAGES C CXX RC)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -43,10 +43,10 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(miniz GIT_REPOSITORY https://github.com/richgel999/miniz.git GIT_TAG 3.0.2 GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(json miniz)
 include(cmake/ArchiveDependencies.cmake)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)
-target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32)
+target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32 xmllite shlwapi)
 
 add_executable(FetcherLauncher WIN32
     src/main.cpp
@@ -78,6 +78,10 @@ add_executable(fetcher-native-tests tests/native_tests.cpp)
 target_link_libraries(fetcher-native-tests PRIVATE fetcher-native)
 target_compile_definitions(fetcher-native-tests PRIVATE FETCHER_ARCHIVE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/../tests/fixtures/archives")
 add_test(NAME fetcher-native COMMAND fetcher-native-tests)
+add_executable(fetcher-fomod-tests tests/fomod_tests.cpp)
+target_link_libraries(fetcher-fomod-tests PRIVATE fetcher-native)
+target_compile_definitions(fetcher-fomod-tests PRIVATE FETCHER_FOMOD_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/../tests/fixtures/fomod")
+add_test(NAME fetcher-fomod COMMAND fetcher-fomod-tests)
 
 add_custom_command(TARGET FetcherLauncher POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory
