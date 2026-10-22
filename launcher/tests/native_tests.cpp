@@ -379,6 +379,12 @@ int main() {
         backend.command({{"op", "selectServer"}, {"host", "163.192.106.225"}, {"port", 25569}});
         check(backend.state()["selectedProfile"] == "fetcher-vanilla",
               "known server selects dedicated profile");
+        const auto profiles = backend.state().at("profiles");
+        const auto &vanilla = profiles[1];
+        check(vanilla.at("packages").size() == 1 && vanilla.at("content").size() == 10 &&
+                  vanilla.at("content").back() == "FetcherVehicles.omwaddon" &&
+                  vanilla.at("requiredFiles").size() == 4,
+              "Vanilla cutover selects the complete surf/vehicle/Studio content and attribution");
         backend.command({{"op", "favorite"}, {"host", "example.org"}, {"port", 25565}});
         Backend reload(install);
         check(reload.state()["favorites"].size() == 1, "favorites persist");

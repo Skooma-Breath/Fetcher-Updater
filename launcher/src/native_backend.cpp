@@ -130,7 +130,7 @@ std::vector<std::string> masters(const fs::path &p) {
     return out;
 }
 Json builtinProfiles() {
-    return {{"schemaVersion", 1},
+    Json catalog = {{"schemaVersion", 1},
             {"profiles",
              Json::array(
                  {{{"id", "installed"},
@@ -145,8 +145,7 @@ Json builtinProfiles() {
                    {"mode", "managed"},
                    {"host", "163.192.106.225"},
                    {"port", 25569},
-                   {"description", "Current public vanilla content. Surf/truck/Studio rollout "
-                                   "is staged separately until the server is updated."},
+                   {"description", "Vanilla Morrowind with Fetcher surf maps, vehicles and Studio instruments."},
                    {"packages", Json::array()},
                    {"content", Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm"})}},
                   {{"id", "fetcher-vanilla-studio-preview"},
@@ -170,7 +169,13 @@ Json builtinProfiles() {
                                             "FetcherVehicles.omwaddon"})},
                    {"requiredFiles", Json::array({"meshes/fetcher/synth/keyboard-stand.nif",
                                                   "icons/fetcher/synth/keyboard.dds",
-                                                  "FetcherStudio/ATTRIBUTION.txt"})}}})}};
+                                                  "FetcherStudio/ATTRIBUTION.txt",
+                                                  "FetcherVehicles/CREDITS.txt"})}}})}};
+    auto &vanilla = catalog["profiles"][1];
+    const auto &studio = catalog["profiles"][2];
+    for (const auto *key : {"packages", "content", "requiredFiles"})
+        vanilla[key] = studio.at(key);
+    return catalog;
 }
 } // namespace
 bool protectedClientPath(const std::string &name, const Json &policy) {
