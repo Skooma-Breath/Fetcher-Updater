@@ -545,7 +545,7 @@ class LauncherApp {
                 {"ok", ok},
                 {"error", error},
                 {"state",
-                 state}}.dump());
+                 state}}.dump(-1, ' ', false, fetcher::Json::error_handler_t::replace));
         });
         return R"({"started":true})";
     }
@@ -590,7 +590,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
             return 0;
         } catch (const std::exception &e) {
             if (!options.logFile.empty())
-                fetcher::writeAtomic(options.logFile, fetcher::Json{{"error", e.what()}}.dump());
+                fetcher::writeAtomic(options.logFile, fetcher::Json{{"error", e.what()}}.dump(-1, ' ', false, fetcher::Json::error_handler_t::replace));
             return 1;
         }
     }
@@ -633,7 +633,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         webview::webview window(options.debug, nullptr);
         LauncherApp app(window, options.installRoot);
 
-        window.set_title("Fetcher Simulator Launcher");
+        window.set_title("Fetcher Launcher");
         SetLauncherWindowIcon(window);
         window.set_size(1120, 760, WEBVIEW_HINT_NONE);
         window.set_size(860, 620, WEBVIEW_HINT_MIN);
@@ -653,11 +653,11 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     } catch (const webview::exception &exception) {
         const std::wstring message = L"Fetcher Launcher could not start.\n\n" + Utf8ToWide(exception.what()) +
                                      L"\n\nMicrosoft Edge WebView2 Runtime may need to be installed.";
-        MessageBoxW(nullptr, message.c_str(), L"Fetcher Simulator Launcher", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, message.c_str(), L"Fetcher Launcher", MB_OK | MB_ICONERROR);
         return 1;
     } catch (const std::exception &exception) {
         const std::wstring message = Utf8ToWide(exception.what());
-        MessageBoxW(nullptr, message.c_str(), L"Fetcher Simulator Launcher", MB_OK | MB_ICONERROR);
+        MessageBoxW(nullptr, message.c_str(), L"Fetcher Launcher", MB_OK | MB_ICONERROR);
         return 1;
     }
 

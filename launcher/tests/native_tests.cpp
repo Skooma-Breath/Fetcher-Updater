@@ -5,6 +5,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <thread>
 #include <miniz.h>
 #include <windows.h>
 using namespace fetcher;
@@ -181,6 +182,19 @@ int main() {
     try {
         noLinks(root);
         fs::create_directories(root);
+        {
+            InstallLock lock(root);
+            bool refused = false;
+            std::thread contender([&] {
+                try {
+                    InstallLock alias(longPath(root / ""));
+                } catch (const std::exception &) {
+                    refused = true;
+                }
+            });
+            contender.join();
+            check(refused, "extended and trailing-separator aliases share the same update lock");
+        }
         check(lower("\xc3\x89") == "\xc3\xa9", "Windows Unicode filename case folding");
         rejects([&] { parseJson(std::string(512, '[') + std::string(512, ']')); },
                 "deep JSON metadata rejected");

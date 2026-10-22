@@ -264,3 +264,41 @@ and restoration actions before they can run.
 This verifies one owned GOG installation and isolated profile preparation, not all game editions
 or an experimental-server game join. Neither the optional layer nor any public launcher/server
 configuration was published or changed. The complete experimental preset remains separate work.
+
+## Native first installation and real local game join — 2026-10-22
+
+- FetcherSetup.exe is a standalone x64 C++ setup GUI/headless entry point. It downloads the
+  digest-backed Fetcher tools release and its declared client, verifies both inventories and
+  required x64 executables/UI/resources, and uses the existing journaled installation/recovery.
+  It requires neither WebView2 nor an existing game executable to open. The Microsoft runtime
+  download remains an explicit link; automatic prerequisite installation is not claimed.
+- tests/test_native_bootstrap.py passes 32 real-process operations: empty-folder setup, installed
+  launcher profile preparation and process handoff, per-server identity persistence, character
+  chooser arguments, cache reuse/corruption repair, running-client refusal (including the setup's
+  extended-path alias), bad/missing/duplicate release metadata, corrupt archives/inventories,
+  missing UI, wrong executable architecture, protected settings/setup and interrupted recovery.
+  The recording client is a test-only executable, absent from packaged tools/client payloads.
+- The live driver tests/test_bootstrap_game_live.py packages 510 explicit files from the local
+  matching engine build, then installs via native setup into a new folder using loopback release
+  metadata and verified archives. The installed launcher reviews/prepares the real 33,598,923-byte
+  combined surf/truck/Studio bundle, saves the local Synth test identity and launches normally.
+  The real client authenticated, selected Synth A, entered ToddTest and supplied the world actor
+  roster to a matching unlisted local server on 25570. Computer-use inspection confirmed the
+  character was in-world with the keyboard/stand. Owned ESM hashes and the read-only source test
+  database are unchanged. The test closes only its own client/server; ports 25567/25568 are untouched.
+  Evidence: release-assets/bga4/game-join-report.json and retained client/server logs.
+- This exposed and fixed two actual first-launch failures: --mp-profile-root without the required
+  account/character arguments, and absence of a base openmw.cfg anchor before following the
+  generated --config directory. Existing configurations are preserved. A blank character now uses
+  the in-game chooser; a named character receives isolated engine profiles and optional auto-entry.
+- Native path aliases share installation locks/running-game checks. Windows filesystem exception
+  messages with non-UTF-8 bytes are safely serialized in CLI/UI error responses instead of causing
+  an exception while reporting the original failure.
+- A deliberately deep real-engine fixture exceeded the engine's legacy path limit for a surf Lua
+  file. A shorter dedicated installation succeeds. Native file installation supports extended paths;
+  engine-wide long-path support remains open. See BOOTSTRAP.md for scope and repeatable tests.
+
+These checks ran on the development Windows machine, with the owned GOG game and a local engine
+build. They do not certify a clean Windows machine, every owned game edition, missing WebView2/
+client prerequisites, the current public engine release, a public server join or final release
+promotion. Nexus SSO still awaits staff registration. No public assets, tags or servers changed.

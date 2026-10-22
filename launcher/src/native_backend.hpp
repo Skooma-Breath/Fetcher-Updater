@@ -26,6 +26,8 @@ class Backend {
     fs::path layout(const fs::path &raw, const Json &definition, const fs::path &gameData);
     fs::path prepare();
     fs::path gameData() const;
+    Json identity() const;
+    void saveIdentity(const Json &request);
     void validateProfile(const Json &profile) const;
 };
 } // namespace fetcher

@@ -216,7 +216,10 @@ fs::path ordinaryPath(const fs::path &path) {
     return path;
 }
 fs::path longPath(const fs::path &path) {
-    auto value = fs::absolute(ordinaryPath(path)).lexically_normal().make_preferred().wstring();
+    auto normalized = fs::absolute(ordinaryPath(path)).lexically_normal().make_preferred();
+    if (normalized.filename().empty() && normalized != normalized.root_path())
+        normalized = normalized.parent_path();
+    auto value = normalized.wstring();
     if (value.rfind(L"\\\\", 0) == 0)
         return fs::path(L"\\\\?\\UNC\\" + value.substr(2));
     return fs::path(L"\\\\?\\" + value);
@@ -533,8 +536,9 @@ void assertGameStopped(const fs::path &root) {
                     CloseHandle(snap);
                     throw std::runtime_error("Cannot verify running client path.");
                 }
-                running = lower(utf8(fs::path(path).parent_path().wstring())) ==
-                          lower(utf8(fs::absolute(root).wstring()));
+                running =
+                    lower(utf8(ordinaryPath(longPath(fs::path(path).parent_path())).wstring())) ==
+                    lower(utf8(ordinaryPath(longPath(root)).wstring()));
                 CloseHandle(p);
                 if (running)
                     break;
@@ -551,7 +555,7 @@ std::string endpoint(const std::string &host, int port) {
            std::to_string(port);
 }
 InstallLock::InstallLock(const fs::path &root) {
-    auto path = lower(utf8(fs::absolute(root).lexically_normal().wstring()));
+    auto path = lower(utf8(ordinaryPath(longPath(root)).wstring()));
     std::uint64_t hash = 14695981039346656037ull;
     for (unsigned char c : path) {
         hash ^= c;

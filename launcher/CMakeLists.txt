@@ -43,10 +43,14 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(miniz GIT_REPOSITORY https://github.com/richgel999/miniz.git GIT_TAG 3.0.2 GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(json miniz)
 include(cmake/ArchiveDependencies.cmake)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)
 target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32 xmllite shlwapi)
+
+add_executable(FetcherSetup WIN32 src/bootstrap_main.cpp resources/FetcherLauncher.rc)
+target_link_libraries(FetcherSetup PRIVATE fetcher-native ole32 uuid)
+target_include_directories(FetcherSetup PRIVATE resources)
 
 add_executable(FetcherLauncher WIN32
     src/main.cpp
@@ -74,6 +78,8 @@ if(MSVC)
 endif()
 
 enable_testing()
+add_executable(fetcher-launch-fixture tests/launch_fixture.cpp)
+target_link_libraries(fetcher-launch-fixture PRIVATE nlohmann_json::nlohmann_json)
 add_executable(fetcher-native-tests tests/native_tests.cpp)
 target_link_libraries(fetcher-native-tests PRIVATE fetcher-native)
 target_compile_definitions(fetcher-native-tests PRIVATE FETCHER_ARCHIVE_FIXTURES="${CMAKE_CURRENT_SOURCE_DIR}/../tests/fixtures/archives")

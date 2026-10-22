@@ -55,7 +55,7 @@ bool validId(const std::string &id) {
 }
 fs::path backupPath(const fs::path &root, const std::string &id) {
     need(validId(id), "Invalid update backup identifier.");
-    auto path = root / "_fetcher_launcher/rollback" / id;
+    auto path = longPath(root / "_fetcher_launcher" / "rollback" / id);
     noLinks(path);
     return path;
 }
@@ -130,7 +130,7 @@ void restore(const fs::path &root, const fs::path &backup) {
     writeAtomic(backup / "rolled-back.json", "{\"rolledBack\":true}");
 }
 std::vector<fs::path> backups(const fs::path &root) {
-    auto path = root / "_fetcher_launcher/rollback";
+    auto path = longPath(root / "_fetcher_launcher" / "rollback");
     noLinks(path);
     std::vector<fs::path> result;
     if (!fs::exists(path))

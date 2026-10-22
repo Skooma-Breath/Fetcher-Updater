@@ -414,6 +414,18 @@
           </div>
         </div>
         <section id="servers" class="page">
+          <div id="firstRun" class="panel" hidden>
+            <h3>Set up your installation</h3>
+            <p id="setupState" class="muted"></p>
+            <div class="row">
+              <button id="setupClient">Install / check client</button>
+              <button id="setupGame">Set game folder / prepare profile</button>
+            </div>
+            <p class="muted">
+              Select a server and its matching mod profile before playing. Your
+              owned Morrowind files stay in their original folder.
+            </p>
+          </div>
           <div class="row between toolbar">
             <div>
               <h2>Find your next server</h2>
@@ -469,6 +481,30 @@
                   style="max-width: 110px"
                 /><button id="connect">Select server</button>
               </div>
+              <div class="row" style="margin-top: 12px">
+                <input
+                  id="account"
+                  placeholder="Multiplayer account"
+                  aria-label="Multiplayer account"
+                  autocomplete="off"
+                />
+                <input
+                  id="character"
+                  placeholder="Character (optional)"
+                  aria-label="Multiplayer character"
+                  autocomplete="off"
+                />
+                <button id="saveIdentity">Save for this server</button>
+              </div>
+              <label
+                ><input id="autoEnter" type="checkbox" checked /> Enter the
+                selected character automatically</label
+              >
+              <p class="muted">
+                Use your game-server account, not your Nexus account. Leave
+                character blank to choose or create one in-game. No password is
+                stored here.
+              </p>
             </div>
           </div>
           <p class="footer">
@@ -808,7 +844,27 @@ Fetcher native launcher ready.
         $("profileDescription").textContent = p?.description || "";
         $("host").value = state.host || "";
         $("port").value = state.port || 25565;
+        $("account").value = state.identity?.account || "";
+        $("character").value = state.identity?.character || "";
+        $("autoEnter").checked = state.identity?.autoEnter !== false;
         $("gameData").value = state.gameData || "";
+        const setup = state.setup || {};
+        $("firstRun").hidden = !!(
+          setup.clientInstalled &&
+          setup.gameDataReady &&
+          setup.profilePrepared
+        );
+        $("setupState").textContent = [
+          setup.clientInstalled
+            ? "Client installed."
+            : "Install the game client from Updates.",
+          setup.gameDataReady
+            ? "Owned game files located."
+            : "Set your Morrowind Data Files folder under Mods.",
+          setup.profilePrepared
+            ? "Selected profile configured."
+            : "Choose a matching server profile, then Prepare profile under Mods.",
+        ].join(" ");
         $("installRoot").textContent = state.installRoot;
         serverRows();
         $("modRows").replaceChildren();
@@ -1003,6 +1059,8 @@ Fetcher native launcher ready.
         .querySelectorAll("nav button")
         .forEach((b) => (b.onclick = () => showPage(b.dataset.page)));
       $("refresh").onclick = () => action("refreshServers");
+      $("setupClient").onclick = () => showPage("updates");
+      $("setupGame").onclick = () => showPage("mods");
       $("filter").oninput = serverRows;
       $("favoritesOnly").onchange = serverRows;
       $("profile").onchange = () =>
@@ -1012,7 +1070,14 @@ Fetcher native launcher ready.
           host: $("host").value.trim(),
           port: Number($("port").value),
         });
-      $("play").onclick = () => action("launch");
+      const identityFields = () => ({
+        account: $("account").value.trim(),
+        character: $("character").value.trim(),
+        autoEnter: $("autoEnter").checked,
+      });
+      $("saveIdentity").onclick = () => action("identity", identityFields());
+      $("play").onclick = () =>
+        action("launch", state?.host ? identityFields() : {});
       $("prepare").onclick = () => action("prepare");
       $("check").onclick = () => action("check");
       $("update").onclick = () => action("update");

@@ -93,6 +93,7 @@ if (Test-Path -LiteralPath $OutputDir) {
 }
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 Copy-Item -LiteralPath $launcherExe -Destination (Join-Path $OutputDir "FetcherLauncher.exe") -Force
+Copy-Item -LiteralPath (Join-Path $BuildDir 'bin/FetcherSetup.exe') -Destination (Join-Path $OutputDir 'FetcherSetup.exe') -Force
 Copy-Item -LiteralPath $launcherUi -Destination (Join-Path $OutputDir "ui") -Recurse -Force
 Copy-Item -LiteralPath $launcherNotices `
     -Destination (Join-Path $OutputDir "FetcherLauncher-THIRD-PARTY-NOTICES.txt") -Force
@@ -114,12 +115,15 @@ if ($LASTEXITCODE -ne 0) { throw "FOMOD integration tests failed." }
 if ($LASTEXITCODE -ne 0) { throw "Native compatibility authoring tests failed." }
 & python (Join-Path $repoRoot 'tests/test_owned_asset_authoring.py')
 if ($LASTEXITCODE -ne 0) { throw "Owned-game asset authoring tests failed." }
+& python (Join-Path $repoRoot 'tests/test_native_bootstrap.py') --setup (Join-Path $OutputDir 'FetcherSetup.exe') --launcher (Join-Path $OutputDir 'FetcherLauncher.exe') --client-fixture (Join-Path $BuildDir 'bin/fetcher-launch-fixture.exe')
+if ($LASTEXITCODE -ne 0) { throw "Native bootstrap integration tests failed." }
 
 Write-Host "Running launcher self-test..."
 $selfTest = Start-Process `
     -FilePath (Join-Path $OutputDir "FetcherLauncher.exe") `
     -ArgumentList @("--self-test", "--install-root", (Join-Path $repoRoot "release-root")) `
     -Wait `
+    -WindowStyle Hidden `
     -PassThru
 if ($selfTest.ExitCode -ne 0) {
     throw "Fetcher Launcher self-test failed with exit code $($selfTest.ExitCode)."

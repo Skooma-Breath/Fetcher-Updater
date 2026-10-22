@@ -12,8 +12,12 @@ The published legacy launcher has passed isolated old-to-native tools upgrade ac
 a running staged GUI, reopening, personal-file preservation and rejected invalid packages.
 Live Nexus validation with Hackle-Lo Pipes confirms the free-account automatic-download refusal
 and exact-file manual import. Fetcher application registration and browser entitlement tests remain.
+For local/private testing, use the implemented Personal API Key field. SSO/application registration
+is deferred to the public-release stage; it does not block further local launcher development.
 Native updates now journal complete backup/hash plans before mutation, recover interrupted process
 updates on restart, and expose completed client/tools snapshots in the Updates restore panel.
+Standalone native first installation now obtains verified launcher/client releases without PowerShell.
+First-run guidance and per-server account/character choices are implemented; see BOOTSTRAP.md.
 Hash-pinned native compatibility deltas and exact-version UMO cache authoring are implemented.
 The optional Fetcher experimental-server preset omits Mario Race and the Zelda beta mod at the operator's request;
 the existing installation and legacy list retain them. Its 90 remaining mods resolve to 99 archives.
@@ -27,10 +31,12 @@ locally and passes native integration. The web interface is retained; its backen
 1. Finish general server-list parity beyond the implemented reviewed manifests, pinned declarative
    UMO imports and basic native layouts, ZIP/7z/RAR extraction, Nexus API-key downloads and exact-file
    manual import. Add advanced FOMOD environment dependencies/player wizard, Nexus app registration/SSO/NXM
-   handoff and live eligible/free-account trials. Finish the native bootstrap. The legacy installer
+   handoff and live eligible/free-account trials. Native bootstrap integration passes; clean-Windows
+   prerequisite acceptance remains. The legacy installer
    remains available. Fetcher's experimental-server preset is separate optional work below.
-2. Validate a real game launch/join from the generated config with a staged matching server and clean
-   Windows bootstrap. Native process-interruption recovery and operator rollback are implemented;
+2. A fresh native install and real game join using the generated combined-content config now pass
+   against a matching staged local server. Validate clean Windows bootstrap/prerequisites and the
+   final published release sources. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.
 3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. The
    combined archive/credits and server manifest are published as separate candidate assets and pass

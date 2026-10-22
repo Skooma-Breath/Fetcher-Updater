@@ -133,6 +133,10 @@ try {
         -Destination (Join-Path $outputPath "Setup-Fetcher-Updater.bat") -Force
     Copy-Item -LiteralPath (Join-Path $SourceDir "fetcher-simulator-umo.json") `
         -Destination (Join-Path $outputPath "fetcher-simulator-umo.json") -Force
+    $nativeSetup = Join-Path $LauncherDir 'FetcherSetup.exe'
+    if (Test-Path -LiteralPath $nativeSetup -PathType Leaf) {
+        Copy-Item -LiteralPath $nativeSetup -Destination (Join-Path $outputPath 'FetcherSetup.exe') -Force
+    }
 }
 finally {
     if (Test-Path -LiteralPath $stage -PathType Container) {

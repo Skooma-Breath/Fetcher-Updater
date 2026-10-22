@@ -65,7 +65,7 @@ std::vector<fs::path> configuredData(const fs::path &root) {
 bool protectedPath(const std::string &path, const Json &policy) {
     auto p = lower(path);
     if (p == "openmw.cfg" || p == "settings.cfg" || p == "server.cfg" || p == "playerdata.db" ||
-        p == "server-lua-storage.bin" || p == "fetcherlauncher.exe" ||
+        p == "server-lua-storage.bin" || p == "fetcherlauncher.exe" || p == "fetchersetup.exe" ||
         p == "fetcher-launcher-profiles.json" || p == "fetcher-update-state.json")
         return true;
     for (auto prefix : {"_fetcher_launcher/", "_fetcher_update/", "profiles/", "mp-keys/",
@@ -198,6 +198,28 @@ Backend::Backend(fs::path root, Log log)
         mSettings["profile"] = mCatalog["profiles"].at(0).at("id");
 }
 void Backend::save() { writeAtomic(mManaged / "settings.json", mSettings.dump(2)); }
+Json Backend::identity() const {
+    auto host = mSettings.value("host", "");
+    if (host.empty())
+        return Json::object();
+    return mSettings.value("identities", Json::object())
+        .value(endpoint(host, mSettings.value("port", 25565)), Json::object());
+}
+void Backend::saveIdentity(const Json &request) {
+    auto host = mSettings.value("host", "");
+    need(!host.empty(), "Select a multiplayer server first.");
+    auto account = request.value("account", ""), character = request.value("character", "");
+    for (const auto &name : {account, character}) {
+        need(name.size() <= 128, "Account and character names support at most 128 UTF-8 bytes.");
+        for (unsigned char byte : name)
+            need(byte >= 32 && byte != 127, "Invalid account/character name.");
+    }
+    mSettings["identities"][endpoint(host, mSettings.value("port", 25565))] = {
+        {"account", account},
+        {"character", character},
+        {"autoEnter", request.value("autoEnter", true)}};
+    save();
+}
 void Backend::validateProfile(const Json &p) const {
     id(p.at("id"));
     need(p.at("name").get<std::string>().size() <= 160, "Profile name too long.");
@@ -244,6 +266,20 @@ Json Backend::state() const {
     for (const auto &p : mCatalog.at("profiles"))
         profiles.push_back(p);
     auto current = profile();
+    bool gameReady = false;
+    try {
+        gameData();
+        gameReady = true;
+    } catch (const std::exception &) {
+    }
+    bool existing = false;
+    if (fs::is_regular_file(mRoot / "openmw.cfg"))
+        for (const auto &line : lines(mRoot / "openmw.cfg"))
+            existing = existing || (line.rfind("content=", 0) == 0 && line.size() > 8);
+    bool prepared =
+        current.value("mode", "managed") == "installed"
+            ? existing
+            : fs::is_regular_file(mManaged / "profiles" / id(current.at("id")) / "openmw.cfg");
     Json mods = Json::array();
     for (const auto &name : current.value("content", Json::array()))
         mods.push_back({{"name", name}, {"required", true}, {"enabled", true}});
@@ -257,6 +293,11 @@ Json Backend::state() const {
         {"host", mSettings.value("host", "")},
         {"port", mSettings.value("port", 25565)},
         {"gameData", mSettings.value("gameData", "")},
+        {"identity", identity()},
+        {"setup",
+         {{"clientInstalled", fs::is_regular_file(mRoot / "openmw.exe")},
+          {"gameDataReady", gameReady},
+          {"profilePrepared", prepared}}},
         {"servers", mServers},
         {"favorites", mSettings.value("favorites", Json::array())},
         {"mods", mods},
@@ -756,6 +797,10 @@ Json Backend::command(const Json &q) {
         save();
         return state();
     }
+    if (op == "identity") {
+        saveIdentity(q);
+        return state();
+    }
     if (op == "addProfile" || op == "reviewProfile") {
         auto source = q.value("url", "");
         std::string text;
@@ -971,6 +1016,8 @@ Json Backend::command(const Json &q) {
     }
     if (op == "launch") {
         assertGameStopped(mRoot);
+        if (q.contains("account"))
+            saveIdentity(q);
         need(mStatus.is_null() || mStatus.empty() || mStatus.value("upToDate", false),
              "Install known available client/profile updates before launching.");
         auto cfg = prepare();
@@ -978,9 +1025,20 @@ Json Backend::command(const Json &q) {
         if (!cfg.empty())
             args.push_back(L"--config=" + cfg.wstring());
         auto host = mSettings.value("host", "");
-        if (!host.empty())
+        if (!host.empty()) {
+            auto selected = identity();
+            auto account = selected.value("account", ""),
+                 character = selected.value("character", "");
+            need(!account.empty(), "Enter your multiplayer account under Servers before playing.");
             args.push_back(L"--connect=" + wide(endpoint(host, mSettings.value("port", 25565))));
-        args.push_back(L"--mp-profile-root=" + (mRoot / "profiles").wstring());
+            args.push_back(L"--mp-account=" + wide(account));
+            if (!character.empty()) {
+                args.push_back(L"--mp-character=" + wide(character));
+                args.push_back(L"--mp-profile-root=" + (mRoot / "profiles").wstring());
+                if (selected.value("autoEnter", true))
+                    args.push_back(L"--mp-auto-enter=1");
+            }
+        }
         launch(mRoot / L"openmw.exe", args, mRoot);
         return state();
     }

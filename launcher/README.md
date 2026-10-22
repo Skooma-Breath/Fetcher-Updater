@@ -63,6 +63,8 @@ See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isol
 [TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.
 See [UPGRADE-ACCEPTANCE.md](UPGRADE-ACCEPTANCE.md) for the verified old-launcher update path and
 the repeatable isolated upgrade test. Players reopen the launcher after installing the update.
+See [BOOTSTRAP.md](BOOTSTRAP.md) for standalone native first installation and saved multiplayer
+identities. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATION.md) has the operator's SSO registration steps.
 
 ## Published direct-download candidate
 
