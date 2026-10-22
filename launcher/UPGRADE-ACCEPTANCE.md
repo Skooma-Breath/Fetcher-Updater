@@ -60,6 +60,37 @@ full compatibility pass is implied. Only test child processes receive a Windows 
 module path, preventing PowerShell 7 development modules from shadowing PS5.1 modules. User/machine
 environment settings stay unchanged.
 
+## Native interrupted updates and rollback
+
+From version 0.6, native updates hash/verify the complete inventory and back up every affected
+existing file before writing a transaction journal. Individual replacements use a temporary file
+inside the managed backup directory and an atomic Windows move. A journal without a completion
+marker is restored on restart. Recovery verifies backup hashes and refuses to replace a target
+whose bytes match neither the old nor planned new version. If recovery itself was interrupted,
+it resumes idempotently. Native GUI startup restarts the restored executable so its staged UI
+matches it. The old PowerShell-to-native migration does not gain this new transaction mechanism.
+
+Updates → Restore a previous update lists completed native tools/client snapshots. It preserves
+user configuration/data and refuses later edits to update-owned files. Close the game first and
+reopen after restoring launcher files. A failed/corrupt snapshot remains available for inspection;
+the launcher does not force an overwrite. Old pre-0.6 backup formats are retained but not offered
+as transactional snapshots. A client/tools rollback does not restore a project's saves, database,
+server configuration or mod-manifest version (use the separate manifest rollback for that).
+
+CTest runs actual child processes killed at file-write boundaries for both client and tools
+updates, then verifies startup recovery, idempotence, edit/corruption guards and manual rollback.
+For a real executable/UI restart check, use a fresh directory:
+
+```powershell
+python tests/test_launcher_gui_recovery.py --old-tools <previous-native-tools.zip> `
+  --new-launcher <new-launcher-build-directory> `
+  --transaction-helper launcher/build/bin/fetcher-transaction-tests.exe `
+  --root <new-test-directory>
+```
+
+These tests cover terminated processes and simulated interrupted restores, not sudden power loss,
+failed storage hardware or recovery from missing/corrupt backups. Retain an external stable package.
+
 ## Release requirements
 
 Keep the stable tools tag, release asset names and installed filenames compatible. The package's

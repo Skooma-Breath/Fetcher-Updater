@@ -1,5 +1,6 @@
 #include "native_backend.hpp"
 #include "server_manifest.hpp"
+#include "install_transaction.hpp"
 #include <windows.h>
 
 #include <algorithm>
@@ -169,10 +170,14 @@ Json builtinProfiles() {
                                                   "FetcherStudio/ATTRIBUTION.txt"})}}})}};
 }
 } // namespace
+bool protectedClientPath(const std::string &name, const Json &policy) {
+    return protectedPath(name, policy);
+}
 Backend::Backend(fs::path root, Log log)
     : mRoot(fs::absolute(root).lexically_normal()), mManaged(mRoot / L"_fetcher_launcher"),
       mLog(std::move(log)) {
     noLinks(mManaged);
+    recoverInstallTransactions(mRoot);
     mSettings = optional(mManaged / "settings.json", {{"schemaVersion", 1},
                                                       {"profile", "installed"},
                                                       {"host", ""},
@@ -258,6 +263,7 @@ Json Backend::state() const {
         {"status", mStatus},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
+        {"updateBackups", listInstallBackups(mRoot)},
         {"canRollbackProfile", fs::is_regular_file(mManaged / "profiles" / id(current.at("id")) /
                                                    "previous-profile.json")}};
 }
@@ -438,111 +444,11 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition) {
     }
     return dest;
 }
-namespace {
-void installPayload(const fs::path &root, const fs::path &stage, const Json &policy, bool tools) {
-    const std::string manifest = tools ? "fetcher-tester-tools.json" : "fetcher-client-files.json";
-    const std::set<std::string> toolNames = {"apply-fetcher-public-test-config.bat",
-                                             "apply-fetcher-public-test-config.ps1",
-                                             "fetcher-canonical-fallbacks.cfg",
-                                             "apply-fetcher-mod-compatibility.ps1",
-                                             "apply-fetcher-zhi-compatibility.ps1",
-                                             "fetcher-simulator-umo.json",
-                                             "fetcher-client-patches.json",
-                                             "fetcher-client-protection-policy.json",
-                                             "fetcher-mod-compatibility-patches.json",
-                                             "fetcher-update-channel.json",
-                                             "fetcher_simulator_readme.txt",
-                                             "install-fetcher-bardcraft-with-umo.bat",
-                                             "install-fetcher-bardcraft-with-umo.ps1",
-                                             "install-fetcher-client-mod-bundle.ps1",
-                                             "install-fetcher-tester-tools.ps1",
-                                             "setup-fetcher-updater.bat",
-                                             "launch-fetcher-character.bat",
-                                             "launch-fetcher-character.ps1",
-                                             "update-fetcher-simulator.bat",
-                                             "update-fetcher-simulator.ps1",
-                                             "fetcherlauncher.exe",
-                                             "fetcherlauncher-third-party-notices.txt",
-                                             "ui/index.html",
-                                             "ui/assets/fetcher-float.gif",
-                                             "ui/assets/fetcher-float-right.gif",
-                                             "ui/assets/potm2504a.jpg",
-                                             "fetcher-tester-tools.json"};
-    auto allowed = [&](const std::string &name) {
-        return tools ? toolNames.count(lower(name)) != 0
-                     : !protectedPath(name, policy) || name == manifest;
-    };
-    assertGameStopped(root);
-    noLinks(root);
-    auto inventory = readJson(stage / manifest);
-    need(inventory.value("schemaVersion", 0) == 1, "Unsupported client inventory.");
-    auto records = inventory.at("files");
-    need(verifyFiles(stage, records, true), "Client inventory hash/size verification failed.");
-    need(tools || fs::is_regular_file(stage / "openmw.exe"),
-         "Client archive is missing openmw.exe.");
-    const auto managed = root / "_fetcher_launcher";
-    const auto backup = managed / "rollback" / ((tools ? "tools-" : "client-") + stamp());
-    noLinks(backup);
-    fs::create_directories(backup);
-    Json journal = Json::array();
-    std::set<std::string> installed;
-    auto replace = [&](const std::string &name, const fs::path *source) {
-        auto rel = safeRelative(name);
-        auto target = root / rel;
-        noLinks(target);
-        need(allowed(name), "Update archive contains a protected/unowned file: " + name);
-        bool existed = fs::exists(target);
-        if (existed) {
-            fs::create_directories((backup / rel).parent_path());
-            fs::copy_file(target, backup / rel, fs::copy_options::overwrite_existing);
-        }
-        journal.push_back({{"path", name}, {"existed", existed}});
-        writeAtomic(backup / "journal.json", journal.dump(2));
-        if (source) {
-            fs::create_directories(target.parent_path());
-            auto temp = target;
-            temp += L".fetcher-new";
-            fs::copy_file(*source, temp, fs::copy_options::overwrite_existing);
-            need(MoveFileExW(temp.c_str(), target.c_str(),
-                             MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0,
-                 "Could not replace a client file; close the game.");
-        } else
-            fs::remove(target);
-    };
-    try {
-        for (const auto &r : records) {
-            auto name = r.at("path").get<std::string>();
-            need(installed.insert(lower(name)).second, "Duplicate inventory file.");
-            auto source = stage / safeRelative(name);
-            replace(name, &source);
-        }
-        auto old = optional(root / manifest);
-        for (const auto &r : old.value("files", Json::array())) {
-            auto name = r.at("path").get<std::string>();
-            if (!installed.count(lower(name)) && allowed(name))
-                replace(name, nullptr);
-        }
-        auto inv = stage / manifest;
-        replace(manifest, &inv);
-        writeAtomic(backup / "complete.json", "{\"complete\":true}");
-    } catch (...) {
-        for (auto i = journal.rbegin(); i != journal.rend(); ++i) {
-            auto rel = safeRelative(i->at("path"));
-            if (i->at("existed")) {
-                fs::copy_file(backup / rel, root / rel, fs::copy_options::overwrite_existing);
-            } else
-                fs::remove(root / rel);
-        }
-        writeAtomic(backup / "rolled-back.json", "{\"rolledBack\":true}");
-        throw;
-    }
-}
-} // namespace
 void Backend::installClient(const fs::path &root, const fs::path &stage, const Json &policy) {
-    installPayload(root, stage, policy, false);
+    installTransaction(root, stage, policy, false);
 }
 void Backend::installTools(const fs::path &root, const fs::path &stage) {
-    installPayload(root, stage, Json::object(), true);
+    installTransaction(root, stage, Json::object(), true);
 }
 fs::path Backend::gameData() const {
     std::vector<fs::path> candidates;
@@ -784,6 +690,12 @@ Json Backend::command(const Json &q) {
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if (op == "rollbackUpdate") {
+        restoreInstallBackup(mRoot, q.at("id"));
+        mStatus = {{"status", "restored"},
+                   {"message", "Update restored. Reopen the launcher before continuing."}};
+        return state();
+    }
     if (op == "refreshServers") {
         mServers = parseServers(parseJson(httpGet("https://master.fetchers.org/v1/servers")));
         return state();

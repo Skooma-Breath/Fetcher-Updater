@@ -16,6 +16,8 @@ Implemented in this candidate:
 - Server-pinned XML FOMOD selections, option/flag validation and isolated selected-file layouts.
 - Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.
 - Existing-installation mode launches an already configured full mod setup unchanged.
+- Interrupted native client/tools updates restore their journaled files on restart. Updates exposes
+  previous completed snapshots; restores refuse corrupt backups and post-update local edits.
 
 **Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
 plugin-cleaning, third-party tool bootstrap and legacy

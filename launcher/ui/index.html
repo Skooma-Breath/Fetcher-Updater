@@ -612,6 +612,19 @@
               updater scripts during migration.
             </p>
           </div>
+          <div class="panel">
+            <h3>Restore a previous update</h3>
+            <p class="muted">
+              Restore the files saved before a completed launcher or client
+              update. Close the game first. Reopen the launcher after restoring
+              its files. A restore stops if it would overwrite files edited
+              since the update.
+            </p>
+            <div class="row">
+              <select id="updateBackup" aria-label="Previous update"></select>
+              <button id="restoreUpdate">Restore selected update</button>
+            </div>
+          </div>
         </section>
         <section class="panel">
           <div class="row between">
@@ -932,6 +945,20 @@ Fetcher native launcher ready.
         $("updateMessage").textContent =
           status?.message ||
           "Compare the client and selected profile with published releases.";
+        const selectedBackup = $("updateBackup").value;
+        $("updateBackup").replaceChildren();
+        for (const backup of state.updateBackups || [])
+          $("updateBackup").append(
+            new Option(
+              `${backup.kind === "tools" ? "Launcher/tools" : "Client"} - ${backup.files} files - ${backup.id}`,
+              backup.id,
+            ),
+          );
+        if (
+          [...$("updateBackup").options].some((o) => o.value === selectedBackup)
+        )
+          $("updateBackup").value = selectedBackup;
+        $("restoreUpdate").disabled = busy || !$("updateBackup").value;
         document
           .querySelectorAll("#modRows button")
           .forEach((b) => (b.disabled = busy));
@@ -980,6 +1007,8 @@ Fetcher native launcher ready.
       $("check").onclick = () => action("check");
       $("update").onclick = () => action("update");
       $("repair").onclick = () => action("repair");
+      $("restoreUpdate").onclick = () =>
+        action("rollbackUpdate", { id: $("updateBackup").value });
       $("wizard").onclick = () => action("wizard");
       $("setGameData").onclick = () =>
         action("gameData", { path: $("gameData").value.trim() });

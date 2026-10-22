@@ -175,3 +175,23 @@ release-assets/nexus-hackle-lo-live/nexus-live-report.json. The opt-in driver is
 This establishes real free-account refusal plus exact-file import, not a successful premium
 download or browser-issued NXM entitlement. The user confirmed no known Fetcher application
 registration; Nexus application approval/SSO and eligible-account trials are still pending.
+
+## Native interrupted update recovery and operator restore — 2026-10-22
+
+- Native transaction tests pass 59 assertions. Real child processes terminate after writes 1, 2
+  and 3 for both client and tools updates. Backend startup restores executable/UI/resource/inventory
+  bytes and removes newly added files. Repeated recovery is a no-op. Personal config/settings/save
+  markers survive. Interrupted restore, corrupt-backup refusal, later-edit refusal and manual
+  rollback are also tested. The fault helper is a test executable, absent from distributed tools.
+- The native GUI recovery driver hard-kills an actual launcher/tools payload installation after
+  replacing its executable and UI, then starts the partially updated installation. It restores all
+  previous inventory files and restarts the previous native executable with the matching staged UI.
+  It uses spaces/Unicode paths and preserves personal file markers. No OpenMW game is started.
+- Native WebView2 inspection confirms the Updates restore panel lists the real completed snapshot.
+  A separate CLI rollback of that real payload restores every previous package byte while the
+  staged GUI remains open. The preview process is closed afterward. Evidence:
+  release-assets/gui-recovery-acceptance/gui-recovery-report.json.
+- The full build/self-test and existing native, server-manifest, archive/layout and FOMOD integration
+  suites pass. Recovery preflights current/backup hashes, path containment and file ownership.
+  Restoring an incompatible first installation reports that setup must be rerun. Public releases
+  and game servers remain unchanged. Sudden-power-loss/storage-failure acceptance remains open.

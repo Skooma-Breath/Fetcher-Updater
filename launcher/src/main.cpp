@@ -1,6 +1,7 @@
 #include "webview/webview.h"
 #include "resource.h"
 #include "native_backend.hpp"
+#include "install_transaction.hpp"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -620,6 +621,14 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
             return 0;
         }
         CleanupOldStagedLaunchers(executablePath);
+        if (!fetcher::recoverInstallTransactions(options.installRoot).empty()) {
+            if (!fs::is_regular_file(options.installRoot / L"FetcherLauncher.exe"))
+                throw std::runtime_error(
+                    "Interrupted first installation was restored. Run the setup/bootstrap again.");
+            fetcher::launch(options.installRoot / L"FetcherLauncher.exe",
+                            {L"--install-root", options.installRoot.wstring()}, options.installRoot);
+            return 0;
+        }
 
         webview::webview window(options.debug, nullptr);
         LauncherApp app(window, options.installRoot);

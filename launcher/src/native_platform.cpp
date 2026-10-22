@@ -93,7 +93,7 @@ void request(std::string url, std::uint64_t limit, Sink sink,
         const auto path =
             (c.dwUrlPathLength ? std::wstring(c.lpszUrlPath, c.dwUrlPathLength) : L"/") +
             (c.dwExtraInfoLength ? std::wstring(c.lpszExtraInfo, c.dwExtraInfoLength) : L"");
-        Internet session(WinHttpOpen(L"FetcherLauncher/0.5", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+        Internet session(WinHttpOpen(L"FetcherLauncher/0.6", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
                                      WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
         require(WinHttpSetTimeouts(session.h, 10000, 10000, 15000, 30000) != 0,
                 "Could not set HTTP timeouts.");
@@ -386,7 +386,7 @@ std::string nexusGet(const std::string &path, const std::string &key) {
     require(key.size() >= 10 && key.size() <= 512 && key.find_first_of("\r\n") == std::string::npos,
             "Invalid Nexus API key.");
     auto headers = L"Accept: application/json\r\nApplication-Name: Fetcher "
-                   L"Launcher\r\nApplication-Version: 0.5.0\r\napikey: " +
+                   L"Launcher\r\nApplication-Version: 0.6.0\r\napikey: " +
                    wide(key) + L"\r\n";
     std::string text;
     request((nexusFixture.empty() ? "https://api.nexusmods.com" : nexusFixture) + path,
