@@ -19,6 +19,8 @@ is restored after acceptance. Premium entitlement, broader browsers and missing-
 Fresh installation on PillowPC now passes with its existing Windows 11/WebView2/VC prerequisites:
 real desktop UI/bridge, live server browser, HTTPS combined-content preparation, client runtime,
 UMO runtime, cached repair, legacy upgrade and 32 bootstrap/recovery checks. See WINDOWS-ACCEPTANCE.md.
+The installed candidate also joins an isolated world on PillowPC using Intel HD Graphics 615:
+server Lua loads, Studio scripts stage, the keyboard arrives and the actor roster completes.
 Native updates now journal complete backup/hash plans before mutation, recover interrupted process
 updates on restart, and expose completed client/tools snapshots in the Updates restore panel.
 Standalone native first installation now obtains verified launcher/client releases without PowerShell.
@@ -41,8 +43,8 @@ locally and passes native integration. The web interface is retained; its backen
    fresh installation pass; missing-prerequisite acceptance remains. The legacy installer
    remains available. Fetcher's experimental-server preset is separate optional work below.
 2. A fresh native install and real game join using the generated combined-content config now pass
-   against a matching staged local server. Second-device fresh installation/UI/runtime acceptance
-   passes. Validate missing-prerequisite Windows installations and the
+   against a matching staged local server. Second-device fresh installation/UI/runtime and real
+   world-join acceptance pass, including server Lua/Studio delivery. Validate missing-prerequisite Windows installations and the
    final published release sources. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.
 3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. The

@@ -61,7 +61,9 @@ Only its own client/server processes are closed afterward; it never uses ports 2
 This local fixture is not a clean Windows machine or public download/deployment test.
 Fresh application installation also passes on a second Windows 11 device with existing WebView2/
 VC runtimes and owned game files; see WINDOWS-ACCEPTANCE.md for its real UI bridge, HTTPS content,
-runtime startup, repair and remote upgrade/recovery checks. Missing-prerequisite acceptance remains.
+runtime startup, repair and remote upgrade/recovery checks. Its installed client also joins a staged
+local world on Intel HD Graphics 615, with server Lua and Studio keyboard delivery verified in logs.
+Missing-prerequisite acceptance remains.
 Use a short installation path for the current engine: native setup can write extended-length paths,
 but this engine build failed to open a surf Lua script when a deeply nested acceptance fixture
 exceeded the legacy Windows path limit. The launcher's default folder avoids that extra nesting;

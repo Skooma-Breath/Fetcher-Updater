@@ -152,6 +152,8 @@ def main():
         assert 'FetcherVehicles.omwaddon' in config_text and 'surf_mesa_mw.omwaddon' in config_text
         shutil.copytree(source / 'server-scripts', server / 'server-scripts')
         shutil.copytree(source / 'server-lua-packages', server / 'server-lua-packages')
+        # A developer source-directory fallback otherwise masks missing deployed Lua libraries.
+        shutil.copytree(installed / 'resources/lua_libs', server / 'resources/lua_libs')
         (server / 'server-scripts/server.omwscripts').write_text('GLOBAL: core.lua\nGLOBAL: procedural_synth.lua\n', encoding='utf8')
         seeded = subprocess.run(['python', str(args.seed_script.resolve()), str(source_database),
                                  str(server / 'playerdata.db')], capture_output=True, text=True)
@@ -189,9 +191,11 @@ server_name=Native Bootstrap Local Acceptance
         deadline = time.monotonic() + 60
         while time.monotonic() < deadline:
             assert server_process.poll() is None, log_file.read_text(errors='replace')[-4000:]
+            startup = log_file.read_text(errors='replace')
+            assert '[LuaServerContext] Startup failed:' not in startup, startup[-4000:]
             listening = powershell(f"Get-NetUDPEndpoint -LocalPort {args.port} -ErrorAction SilentlyContinue | "
                 f"Where-Object OwningProcess -eq {server_process.pid} | Select-Object -ExpandProperty LocalPort")
-            if str(args.port) in listening.stdout:
+            if str(args.port) in listening.stdout and 'Loaded 2 global server Lua script(s)' in startup:
                 break
             time.sleep(.2)
         else:

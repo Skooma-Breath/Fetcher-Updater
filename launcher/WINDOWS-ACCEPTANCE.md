@@ -82,7 +82,61 @@ Evidence is retained under `release-assets/pillowpc-evidence-*` locally and the 
 `%LOCALAPPDATA%/FetcherAcceptance/20261022-pillowpc` directory on the test device. Reports distinguish
 development worktree trials from the final signed-source package.
 
-Still separate: an in-world game/rendering test on PillowPC, fresh/missing runtime prerequisites,
-real Premium entitlement and other browsers, storage hardware/power-loss failures, final production
-release URLs and the coordinated public client/server/content rollout. Earlier in-world acceptance
-on the development machine remains documented in `BOOTSTRAP.md` and `TEST-REPORT.md`.
+## In-world acceptance on PillowPC
+
+`tests/New-FetcherWorldFixture.ps1` builds a private input directory from a matching client/server
+runtime, server scripts, client Lua packages, a closed freshly seeded test database, and its matching
+local test key. It records every file hash and the expected client hash/revision. Seed the database
+with the engine's `scripts/seed-procedural-synth-test.py`, which reads its source database without
+changing it; do not copy a live database. The fixture contains an identity key and is not a release
+asset. Keep it in an ignored private test directory and transfer it over authenticated SSH.
+
+```powershell
+./tests/New-FetcherWorldFixture.ps1 `
+  -ServerRuntime C:/AcceptanceInputs/runtime `
+  -ServerScripts C:/AcceptanceInputs/server-scripts `
+  -LuaPackages C:/AcceptanceInputs/server-lua-packages `
+  -SeedDatabase C:/AcceptanceInputs/seeded-playerdata.db `
+  -IdentityKey C:/AcceptanceInputs/local-test.key `
+  -RuntimeRevision 13e46dce90 `
+  -OutputDir ./release-assets/private-world-fixture
+```
+
+On the test device, use the existing dedicated acceptance installation with its prepared loopback
+profile selected, then run:
+
+```powershell
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+  -File C:/FetcherAcceptance/Test-FetcherWorldWindows.ps1 `
+  -InstallRoot C:/Users/PLAYER/AppData/Local/Fetcher-Candidate `
+  -FixtureDir C:/FetcherAcceptance/private-world-fixture `
+  -EvidenceRoot C:/FetcherAcceptance/world-evidence
+```
+
+The driver requires `127.0.0.1` and the explicit test port (default 25570); it refuses ports
+25567/25568 and occupied ports/running clients. It verifies fixture/client hashes, copies the seed
+into a new server directory, and starts an unlisted server against the generated client config.
+Internal Lua libraries are copied from the installed client to the server's working directory:
+developer source-path fallbacks must not mask a missing deployed runtime. Server Lua must load
+successfully before a temporary limited desktop task invokes the installed launcher's saved-identity
+launch action. This uses the known `ass` / `Synth A` fixture, without entering or automating input.
+It seeds quiet windowed settings only for a new test identity; existing test settings are preserved
+and an existing different endpoint key is refused.
+
+PillowPC's installed candidate from signed source `5630808` passes with engine revision
+`13e46dce90`, Intel HD Graphics 615 and OpenGL 4.6. The real character enters ToddTest, supplies the
+complete actor roster, stages the server's Studio Lua package and receives the placed keyboard.
+Client logs confirm that surf and vehicle plugins load. Owned masters and the base configuration
+remain byte-identical. The runner closes only its own game/server and removes its temporary task.
+Evidence: `release-assets/pillowpc-world-evidence` and remote `world-3` under the acceptance root.
+
+The first remote trial exposed missing internal server Lua libraries in the test fixture; startup
+reported `module not found: util` even though the game connected. The fixture now supplies those
+libraries and rejects Lua startup failures before launching. The earlier local game-join harness
+also supplies them explicitly. This was a test-server staging correction, not a client change.
+
+This is log-based world/render-context acceptance, not visual inspection, music listening or an
+interactive Studio editing/band test. Still separate: fresh/missing runtime prerequisites, real
+Premium entitlement and other browsers, storage hardware/power-loss failures, final production
+release URLs and the coordinated public client/server/content rollout. Earlier local in-world
+acceptance remains documented in `BOOTSTRAP.md` and `TEST-REPORT.md`.

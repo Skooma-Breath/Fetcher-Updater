@@ -359,3 +359,24 @@ now performs its own sign-in, as validated below. No public assets, tags or serv
 - This certifies a fresh Fetcher directory on this device with existing prerequisites. In-world
   rendering/join on PillowPC, missing-prerequisite Windows installations, final production release
   URLs and coordinated public rollout remain separate. No public assets, tags or servers change.
+
+## Installed client world join on PillowPC — 2026-10-22
+
+- `tests/Test-FetcherWorldWindows.ps1` invokes the installed signed-source candidate `5630808`
+  through a temporary limited task in the signed-in desktop. Its matching engine/server revision
+  is `13e46dce90`. The isolated unlisted server uses a fresh copy of a seeded test database and
+  the launcher's already-prepared combined-content config on port 25570.
+- The real client initializes Intel HD Graphics 615 / OpenGL 4.6, selects Synth A, enters ToddTest
+  and supplies the complete actor roster. Server Lua loads both global scripts. Client logs confirm
+  Studio Lua staging, the synchronized keyboard placement, and loaded surf/vehicle plugins.
+- The initial fixture omitted internal Lua libraries; the server reported `module not found: util`.
+  Supplying the installed runtime's `resources/lua_libs` in the server working directory fixes this
+  test staging issue. The driver now requires successful server Lua startup before launching, and
+  the existing local bootstrap/game harness also supplies the directory explicitly.
+- `tests/New-FetcherWorldFixture.ps1` reproduces all 74 transferred payload hashes. Both PowerShell
+  drivers parse successfully; the modified Python driver passes syntax validation. The final remote
+  driver passes its real world/package/keyboard checks. Owned masters/base config are unchanged;
+  only owned client/server processes and the temporary task are stopped. Evidence is retained in
+  `release-assets/pillowpc-world-evidence` and the device's dedicated acceptance directory.
+- This is world/log/renderer-context validation, not visual inspection or interactive Studio/music
+  acceptance. No public release/server is changed; prerequisite and coordinated rollout work remains.
