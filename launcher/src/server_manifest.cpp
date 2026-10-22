@@ -176,12 +176,24 @@ Json normalizeServerManifest(const Json &value) {
     }
     return p;
 }
+Json readPackageReceipt(const fs::path &directory) {
+    auto path = longPath(directory / ".fetcher-package.json");
+    if (!fs::exists(path))
+        return Json::object();
+    // Receipts for supported 100k-entry archives can exceed the external JSON
+    // budget. Only locally generated package inventories receive this larger cap.
+    auto receipt = readJson(path, 128ull * 1024 * 1024);
+    need(receipt.is_object() && receipt.contains("files") && receipt.at("files").is_array() &&
+             receipt.at("files").size() <= 100000,
+         "Invalid package receipt file count.");
+    return receipt;
+}
 void validateModPayload(const fs::path &directory) {
     static const std::set<std::string> blocked = {".exe",  ".dll",  ".com", ".bat", ".cmd", ".ps1",
                                                   ".psm1", ".psd1", ".msi", ".msp", ".scr", ".cpl",
                                                   ".lnk",  ".url",  ".hta", ".vbs", ".vbe", ".wsf",
                                                   ".wsh",  ".pif",  ".reg", ".py",  ".jar"};
-    auto receipt = readJson(directory / ".fetcher-package.json");
+    auto receipt = readPackageReceipt(directory);
     for (const auto &record : receipt.at("files")) {
         auto path = safeRelative(record.at("path"));
         need(!blocked.count(lower(path.extension().string())),

@@ -211,10 +211,49 @@ int main() {
               "SHA-256 known answer");
         writeAtomic(root / L"test.txt", "updated");
         check(read(root / L"test.txt") == "updated", "atomic replacement");
+        // Real Tamriel Data inventories exceed the external manifest JSON budget.
+        Json receipt = {{"files", Json::array()}};
+        for (int i = 0; i < 50000; ++i)
+            receipt["files"].push_back(
+                {{"path", "textures/" + std::string(70, 'x') + std::to_string(i) + ".dds"},
+                 {"sha256", std::string(64, 'a')},
+                 {"size", 1}});
+        auto receiptPath = root / "receipt/.fetcher-package.json";
+        writeAtomic(receiptPath, receipt.dump(2));
+        check(fs::file_size(receiptPath) > 8 * 1024 * 1024, "large receipt fixture exceeds 8 MiB");
+        check(readPackageReceipt(root / "receipt").at("files").size() == 50000,
+              "bounded internal inventory supports large mod archives");
+        rejects([&] { readJson(receiptPath); }, "external JSON retains original 8 MiB limit");
+        receipt["files"] = Json::array();
+        for (int i = 0; i < 100001; ++i)
+            receipt["files"].push_back(Json::object());
+        writeAtomic(receiptPath, receipt.dump());
+        rejects([&] { readPackageReceipt(root / "receipt"); },
+                "internal receipt entry bound retained");
+        auto deep = root / std::string(100, 'a') / std::string(100, 'b') / std::string(100, 'c');
+        writeAtomic(deep / "note.txt", "long path bytes");
+        check(read(deep / "note.txt") == "long path bytes" &&
+                  sha256(deep / "note.txt") == textSha256("long path bytes"),
+              "extended-length file read/write/hash without registry changes");
+        noLinks(deep / "note.txt");
+        check(ordinaryPath(longPath(deep)) == deep,
+              "extended paths round-trip to ordinary config paths");
+        removeManaged(root, deep.parent_path().parent_path());
+        check(!fs::exists(longPath(deep)), "long-path cleanup keeps managed containment checks");
+        rejects([&] { removeManaged(root, longPath(root)); },
+                "extended alias cannot delete managed root");
         zip(root / "good.zip", "Data Files/test.txt");
         auto names = extractZip(root / "good.zip", root / "good");
         check(names.size() == 1 && read(root / "good/Data Files/test.txt") == "hello",
               "native ZIP extraction/CRC");
+        auto longZip = longPath(deep / "ZIP");
+        auto longSeven = longPath(deep / "7z");
+        check(extractArchive(root / "good.zip", longZip).size() == 1 &&
+                  read(longZip / safeRelative("Data Files/test.txt")) == "hello",
+              "ZIP extraction uses native separators in extended-length paths");
+        check(extractArchive(root / "sample.7z", longSeven).size() == 1 &&
+                  read(longSeven / safeRelative("Data Files/notes.txt")) == "native LZMA2 test",
+              "7z extraction supports extended-length destinations");
         zip(root / "bad.zip", "../escaped.txt");
         rejects([&] { extractZip(root / "bad.zip", root / "bad"); }, "ZIP traversal rejected");
         check(!fs::exists(root.parent_path() / "escaped.txt"),

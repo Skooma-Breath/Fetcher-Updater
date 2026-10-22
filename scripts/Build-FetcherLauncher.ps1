@@ -110,6 +110,8 @@ if ($LASTEXITCODE -ne 0) { throw "Server manifest integration tests failed." }
 if ($LASTEXITCODE -ne 0) { throw "Archive/layout integration tests failed." }
 & python (Join-Path $repoRoot 'tests/test_fomod.py') --exe (Join-Path $OutputDir 'FetcherLauncher.exe')
 if ($LASTEXITCODE -ne 0) { throw "FOMOD integration tests failed." }
+& python (Join-Path $repoRoot 'tests/test_native_compatibility_authoring.py')
+if ($LASTEXITCODE -ne 0) { throw "Native compatibility authoring tests failed." }
 
 Write-Host "Running launcher self-test..."
 $selfTest = Start-Process `

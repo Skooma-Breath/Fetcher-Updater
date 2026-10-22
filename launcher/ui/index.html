@@ -873,7 +873,9 @@ Fetcher native launcher ready.
                   .map((op) =>
                     op.action === "remove"
                       ? `Remove ${op.path}`
-                      : `${op.action === "copy" ? "Copy" : "Move"} ${op.src} -> ${op.dst}${op.force ? " (replace existing)" : ""}`,
+                      : op.action === "patch"
+                        ? `Patch ${op.path}${op.create ? " (create if absent)" : ""}\n  SHA-256 ${op.sourceSha256} -> ${op.outputSha256}`
+                        : `${op.action === "copy" ? "Copy" : "Move"} ${op.src} -> ${op.dst}${op.force ? " (replace existing)" : ""}`,
                   )
                   .join("\n")
               : "")

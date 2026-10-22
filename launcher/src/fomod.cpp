@@ -333,7 +333,7 @@ Json normalizeFomod(const Json &value) {
 void installFomod(const fs::path &raw, const fs::path &stage, const Json &value) {
     auto spec = normalizeFomod(value);
     std::set<std::string> verified;
-    auto receipt = readJson(raw / ".fetcher-package.json");
+    auto receipt = readPackageReceipt(raw);
     for (const auto &record : receipt.at("files")) {
         auto name = record.at("path").get<std::string>();
         safeRelative(name);

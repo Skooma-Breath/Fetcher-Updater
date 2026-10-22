@@ -1,0 +1,351 @@
+{
+  "formatVersion": 1,
+  "patchVersion": "2026.10.22-native.1",
+  "description": "Hash-gated port of the six installed Fetcher multiplayer fixes in Hookshot, ZHI, Follower Detection Util, Best Friends Forever and TakeControl. Source/output bytes audited against the authoritative local setup.",
+  "files": [
+    {
+      "sourceSha256": "5f8fdd574e13331d30b359423539cdd089d520fa896cee6f7b9aca3a85cb7e9b",
+      "sourceSize": 26294,
+      "outputSha256": "72da789c5d862a7ff7c683b1dffe938ae2bca11d67ccfc81c4d0ac176532658f",
+      "outputSize": 26194,
+      "path": "Data Files/fetcher-simulator/Gameplay/OpenMWHookshot/OpenMWHookshot/scripts/OpenMWHookshot/player.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 5606
+        },
+        {
+          "copyOffset": 5706,
+          "copyLength": 20588
+        }
+      ]
+    },
+    {
+      "sourceSha256": "14e873b949583815a173e13c81914cae11d5e2064a3d4f57d708b9d1209245c6",
+      "sourceSize": 28411,
+      "outputSha256": "45bd9e48b32df4cd4e8c20cd2dd5dd00d9c83527d0d48439663195defa3fb872",
+      "outputSize": 28373,
+      "path": "Data Files/fetcher-simulator/UserInterface/ZerkishHotkeysImproved/ZerkishHotkeysImproved/scripts/ZerkishHotkeysImproved/zhi_hotbarhud.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 8115
+        },
+        {
+          "copyOffset": 8153,
+          "copyLength": 20258
+        }
+      ]
+    },
+    {
+      "sourceSha256": "2341312a5a909f13faa52b490343630e595821c59c3b859110d196fc4b9bd0cc",
+      "sourceSize": 47102,
+      "outputSha256": "497500bfd5f33e810571840c46a30d82297504ad7e65655955211511d90b4760",
+      "outputSize": 47242,
+      "path": "Data Files/fetcher-simulator/UserInterface/ZerkishHotkeysImproved/ZerkishHotkeysImproved/scripts/ZerkishHotkeysImproved/zhi_player.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 39956
+        },
+        {
+          "data": "ICAgICAgICAgICAgaWYgZmFsc2UgYW5kIG5vdCAoWkhJU2F2ZURhdGEub25DbG9zZVF1aWNrS2V5TWVudUZpcnN0VGltZUZsYWcgb3Igc0Rpc2FibGVGaXJzdFRpbWVOb3RpZmljYXRpb24pIHRoZW4gLS0gRmV0Y2hlciBtdWx0aXBsYXllciBjb21wYXRpYmlsaXR5OiBzdXBwcmVzcyB0aGUgYXV0b21hdGljIGZpcnN0LXRpbWUgbW9kYWw7IG9uYm9hcmRpbmcgc3RpbGwgb2NjdXJzIHdoZW4gUXVpY2sgS2V5cyBpcyBvcGVuZWQuDQo="
+        },
+        {
+          "copyOffset": 40061,
+          "copyLength": 7041
+        }
+      ]
+    },
+    {
+      "sourceSha256": "683b2ab4cbf2bd5ade89a8c571b8d4d03c795a944011bd67a5edf99a98e5146b",
+      "sourceSize": 2699,
+      "outputSha256": "981918db2abc2e088362c23f043fbd980769e05c6d387ec35e46ef5d493f753e",
+      "outputSize": 2931,
+      "path": "Data Files/fetcher-simulator/ModdingResources/FollowerDetectionUtil/scripts/FollowerDetectionUtil/actor.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 866
+        },
+        {
+          "data": "bG9jYWwgdXBkYXRlVGltZSA9IG1hdGgucmFuZG9tKCkgKiAoc2V0dGluZ3MuY2hlY2tGb2xsb3dlcnNFdmVyeSBvciAwLjIpIC0tIEZldGNoZXIgbXVsdGlwbGF5ZXIgY29tcGF0aWJpbGl0eTogc3RvcmFnZSBkZWZhdWx0cyBjYW4gYmUgdW5hdmFpbGFibGUgYmVmb3JlIHRoZSBzZXJ2ZXIgbWlycm9yIGFycml2ZXMuDQo="
+        },
+        {
+          "copyOffset": 931,
+          "copyLength": 234
+        },
+        {
+          "data": "ICAgIGxvY2FsIGludGVydmFsID0gc2V0dGluZ3MuY2hlY2tGb2xsb3dlcnNFdmVyeSBvciAwLjIgLS0gRmV0Y2hlciBtdWx0aXBsYXllciBjb21wYXRpYmlsaXR5OiBzdG9yYWdlIGRlZmF1bHRzIGNhbiBiZSB1bmF2YWlsYWJsZSBiZWZvcmUgdGhlIHNlcnZlciBtaXJyb3IgYXJyaXZlcy4NCg=="
+        },
+        {
+          "copyOffset": 1216,
+          "copyLength": 1483
+        }
+      ]
+    },
+    {
+      "sourceSha256": "33c833a3e1b8c17d251638fd2081c385d13b24b3d57649d1d6f2149b46a2b8a6",
+      "sourceSize": 9962,
+      "outputSha256": "5a285961367b78b7c37132c32fe1b2d9bd40081614e62f8743d8b83b56096ce6",
+      "outputSize": 10889,
+      "path": "Data Files/fetcher-simulator/Gameplay/BestFriendsForever/scripts/BestFriendsForever/settingsPlayer.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 102
+        },
+        {
+          "data": "bG9jYWwgc3RvcmFnZSA9IHJlcXVpcmUoJ29wZW5tdy5zdG9yYWdlJykgLS0gRmV0Y2hlciBtdWx0aXBsYXllciBjb21wYXRpYmlsaXR5OiB3YWl0IGZvciBtaXJyb3JlZCBnbG9iYWwgc2V0dGluZ3MgZ3JvdXBzIGJlZm9yZSByZWdpc3RlcmluZyB0aGlzIHBhZ2UuDQo="
+        },
+        {
+          "copyOffset": 102,
+          "copyLength": 510
+        },
+        {
+          "data": "bG9jYWwgYmZmR2xvYmFsR3JvdXBzID0gc3RvcmFnZS5nbG9iYWxTZWN0aW9uKCdPbXdTZXR0aW5nR3JvdXBzJykNCmxvY2FsIGJmZlJlcXVpcmVkR2xvYmFsR3JvdXBzID0gew0KICAgICdTZXR0aW5nc0Jlc3RGcmllbmRzRm9yZXZlcl90b2dnbGVzJywNCiAgICAnU2V0dGluZ3NCZXN0RnJpZW5kc0ZvcmV2ZXJfYmxhY2tsaXN0JywNCiAgICAnU2V0dGluZ3NCZXN0RnJpZW5kc0ZvcmV2ZXJfaW1tb3J0YWxpdHknLA0KICAgICdTZXR0aW5nc0Jlc3RGcmllbmRzRm9yZXZlcl9jYXRjaFVwJywNCg=="
+        },
+        {
+          "copyOffset": 770,
+          "copyLength": 3
+        },
+        {
+          "data": "bG9jYWwgYmZmUGFnZVJlZ2lzdGVyZWQgPSBmYWxzZQ0KbG9jYWwgZnVuY3Rpb24gdHJ5UmVnaXN0ZXJCZXN0RnJpZW5kc0ZvcmV2ZXJQYWdlKCkNCiAgICBpZiBiZmZQYWdlUmVnaXN0ZXJlZCB0aGVuIHJldHVybiBlbmQNCiAgICBmb3IgXywgZ3JvdXBLZXkgaW4gaXBhaXJzKGJmZlJlcXVpcmVkR2xvYmFsR3JvdXBzKSBkbw0KICAgICAgICBpZiBub3QgYmZmR2xvYmFsR3JvdXBzOmdldChncm91cEtleSkgdGhlbiByZXR1cm4gZW5kDQogICAgZW5kDQogICAgSS5TZXR0aW5ncy5yZWdpc3RlclBhZ2Ugew0KICAgICAgICBrZXkgPSAnQmVzdEZyaWVuZHNGb3JldmVyJywNCiAgICAgICAgbDEwbiA9ICdCZXN0RnJpZW5kc0ZvcmV2ZXInLA0KICAgICAgICBuYW1lID0gJ3BhZ2VfbmFtZScsDQogICAgICAgIGRlc2NyaXB0aW9uID0gJ3BhZ2VfZGVzY3JpcHRpb24nLA0KICAgIH0NCiAgICBiZmZQYWdlUmVnaXN0ZXJlZCA9IHRydWUNCmVuZA0KdHJ5UmVnaXN0ZXJCZXN0RnJpZW5kc0ZvcmV2ZXJQYWdlKCkNCg=="
+        },
+        {
+          "copyOffset": 773,
+          "copyLength": 9189
+        },
+        {
+          "data": "DQpyZXR1cm4gew0KICAgIGVuZ2luZUhhbmRsZXJzID0gew0KICAgICAgICBvblVwZGF0ZSA9IGZ1bmN0aW9uKCkNCiAgICAgICAgICAgIHRyeVJlZ2lzdGVyQmVzdEZyaWVuZHNGb3JldmVyUGFnZSgpDQogICAgICAgIGVuZCwNCiAgICB9LA0KfQ=="
+        }
+      ]
+    },
+    {
+      "sourceSha256": "2f6cac48416eae171b2f6b633f58e999249c9efffe61be24a59de8a092465ebb",
+      "sourceSize": 11782,
+      "outputSha256": "f8a783a3e789a514f17bce5ac68e8f4127a12ef9b8c399060647bfc07880c9b5",
+      "outputSize": 12050,
+      "path": "Data Files/fetcher-simulator/Gameplay/TakeControl/TakeControl/Data_Files/Scripts/TakeControl/Player.lua",
+      "operations": [
+        {
+          "copyOffset": 0,
+          "copyLength": 559
+        },
+        {
+          "data": "LS0gRmV0Y2hlciBtdWx0aXBsYXllciBjb21wYXRpYmlsaXR5OiBvYmplY3QgaGFuZGxlcyBhcmUgc2Vzc2lvbi1sb2NhbCBhbmQgbXVzdCBub3Qgc3Vydml2ZSByZWNvbm5lY3RzLg0KbG9jYWwgZnVuY3Rpb24gY2hhbmdlSW50ZXJmYWNlQWN0b3IoYWN0b3IpDQoJaWYgSS5JbnZlbnRvcnlFeHRlbmRlciB0aGVuIEkuSW52ZW50b3J5RXh0ZW5kZXIuQ2hhbmdlQWN0b3IoYWN0b3IpIGVuZA0KCWlmIEkuTWFnaWNXaW5kb3cgdGhlbiBJLk1hZ2ljV2luZG93LkNoYW5nZUFjdG9yKGFjdG9yKSBlbmQNCglpZiBJLlN0YXRzV2luZG93IHRoZW4gSS5TdGF0c1dpbmRvdy5DaGFuZ2VBY3RvcihhY3RvcikgZW5kDQoJaWYgSS5ZZXRBbm90aGVySFVEIHRoZW4gSS5ZZXRBbm90aGVySFVELkNoYW5nZUFjdG9yKGFjdG9yKSBlbmQNCmVuZA0KDQpsb2NhbCBmdW5jdGlvbiByZXNldENvbnRyb2xUb1BsYXllcigpDQoJQ29vcEFjdG9yPXNlbGYNCglJLkNvbnRyb2xzLm92ZXJyaWRlTW92ZW1lbnRDb250cm9scyhmYWxzZSkNCglJLkNvbnRyb2xzLm92ZXJyaWRlQ29tYmF0Q29udHJvbHMoZmFsc2UpDQoJSS5VSS5zZXRIdWRWaXNpYmlsaXR5KHRydWUpDQoJY29yZS5zZW5kR2xvYmFsRXZlbnQoIkFjdGl2YXRpb25zIix7c3RhdGU9dHJ1ZSwgcGxheWVyPXNlbGZ9KQ0KCWNoYW5nZUludGVyZmFjZUFjdG9yKHNlbGYpDQplbmQNCg0KbG9jYWwgZnVuY3Rpb24gaXNDb250cm9sbGluZ090aGVyQWN0b3IoKQ0KCWlmIG5vdCBDb29wQWN0b3Igb3Igbm90IENvb3BBY3Rvcjppc1ZhbGlkKCkNCgkJb3Igbm90IHR5cGVzLkFjdG9yLm9iamVjdElzSW5zdGFuY2UoQ29vcEFjdG9yKSB0aGVuDQoJCWNhbWVyYS5zZXRNb2RlKGNhbWVyYS5NT0RFLlRoaXJkUGVyc29uKQ0KCQlyZXNldENvbnRyb2xUb1BsYXllcigpDQoJCXJldHVybiBmYWxzZQ0KCWVuZA0KCXJldHVybiBDb29wQWN0b3IuaWQgfj0gc2VsZi5pZA0KZW5kCg0K"
+        },
+        {
+          "copyOffset": 559,
+          "copyLength": 27
+        },
+        {
+          "data": "CS0tIE9iamVjdCBoYW5kbGVzIGFyZSBzZXNzaW9uLWxvY2FsLiBQZXJzaXN0aW5nIGEgY29udHJvbGxlZCBhY3RvciBjYW4gcmVzdG9yZQ0KCS0tIGEgc3RhbGUgb2JqZWN0IGFmdGVyIHJlY29ubmVjdCBhbmQgbWFrZSBldmVyeSBkZXBlbmRlbnQgVUkgc2NyaXB0IGZhaWwuDQoJcmV0dXJuIHsgQ2FtRGlzdGFuY2VTYXZlZD1DYW1EaXN0YW5jZSB9DQo="
+        },
+        {
+          "copyOffset": 656,
+          "copyLength": 7
+        },
+        {
+          "copyOffset": 665,
+          "copyLength": 29
+        },
+        {
+          "copyOffset": 696,
+          "copyLength": 15
+        },
+        {
+          "data": "CQlDYW1EaXN0YW5jZT1kYXRhLkNhbURpc3RhbmNlU2F2ZWQgb3IgMA0K"
+        },
+        {
+          "copyOffset": 875,
+          "copyLength": 6
+        },
+        {
+          "data": "CS0tIE5ldmVyIHJlc3VtZSBjb250cm9sIG9mIGEgc2F2ZWQgb2JqZWN0IGhhbmRsZSBhY3Jvc3MgYSBsb2FkL3JlY29ubmVjdC4NCglyZXNldENvbnRyb2xUb1BsYXllcigpDQo="
+        },
+        {
+          "copyOffset": 1292,
+          "copyLength": 5
+        },
+        {
+          "copyOffset": 1299,
+          "copyLength": 503
+        },
+        {
+          "data": "CWlmIG5vdCBkYXRhIG9yIG5vdCBkYXRhLmFjdG9yIG9yIG5vdCBkYXRhLmFjdG9yOmlzVmFsaWQoKQ0KCQlvciBub3QgdHlwZXMuQWN0b3Iub2JqZWN0SXNJbnN0YW5jZShkYXRhLmFjdG9yKSB0aGVuDQoJCXJlc2V0Q29udHJvbFRvUGxheWVyKCkNCgkJcmV0dXJuDQoJZW5kDQoJaWYgaXNDb250cm9sbGluZ090aGVyQWN0b3IoKSB0aGVuDQo="
+        },
+        {
+          "copyOffset": 1842,
+          "copyLength": 67
+        },
+        {
+          "copyOffset": 2072,
+          "copyLength": 152
+        },
+        {
+          "data": "CWNoYW5nZUludGVyZmFjZUFjdG9yKENvb3BBY3RvcikNCg=="
+        },
+        {
+          "copyOffset": 2500,
+          "copyLength": 96
+        },
+        {
+          "data": "CUNhbURpc3RhbmNlPUNvb3BBY3RvcjpnZXRCb3VuZGluZ0JveCgpLmhhbGZTaXplLnoqMw0K"
+        },
+        {
+          "copyOffset": 2644,
+          "copyLength": 24
+        },
+        {
+          "copyOffset": 2670,
+          "copyLength": 31
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbg0KCQlDb29wQWN0b3I6c2VuZEV2ZW50KCJTdG9wQ29udHJvbCIpDQoJZW5kDQo="
+        },
+        {
+          "copyOffset": 2883,
+          "copyLength": 42
+        },
+        {
+          "data": "CXJlc2V0Q29udHJvbFRvUGxheWVyKCkNCg=="
+        },
+        {
+          "copyOffset": 3271,
+          "copyLength": 77
+        },
+        {
+          "copyOffset": 3350,
+          "copyLength": 85
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 3461,
+          "copyLength": 137
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 3624,
+          "copyLength": 137
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 3787,
+          "copyLength": 137
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 3950,
+          "copyLength": 137
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 4113,
+          "copyLength": 137
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 4276,
+          "copyLength": 139
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 4441,
+          "copyLength": 139
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 4606,
+          "copyLength": 135
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 4767,
+          "copyLength": 260
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 5053,
+          "copyLength": 146
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 5225,
+          "copyLength": 483
+        },
+        {
+          "data": "CWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 5734,
+          "copyLength": 111
+        },
+        {
+          "data": "CQlpZiBpc0NvbnRyb2xsaW5nT3RoZXJBY3RvcigpIHRoZW4K"
+        },
+        {
+          "copyOffset": 5892,
+          "copyLength": 2047
+        },
+        {
+          "data": "CQkJaWYgY2FtZXJhLmdldE1vZGUoKSB+PSBjYW1lcmEuTU9ERS5TdGF0aWMgdGhlbiByZXR1cm4gZW5kIC0tIEZldGNoZXIgbXVsdGlwbGF5ZXIgY29tcGF0aWJpbGl0eTogc2V0U3RhdGljUG9zaXRpb24gcmVxdWlyZXMgU3RhdGljIG1vZGUgdG8gYmUgYWN0aXZlLgo="
+        },
+        {
+          "copyOffset": 7939,
+          "copyLength": 923
+        },
+        {
+          "data": "CQkJCWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 8891,
+          "copyLength": 379
+        },
+        {
+          "data": "CQkJCWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 9299,
+          "copyLength": 189
+        },
+        {
+          "data": "CQkJCWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 9517,
+          "copyLength": 197
+        },
+        {
+          "data": "CQkJCWlmIGlzQ29udHJvbGxpbmdPdGhlckFjdG9yKCkgdGhlbgo="
+        },
+        {
+          "copyOffset": 9743,
+          "copyLength": 2039
+        }
+      ]
+    }
+  ]
+}

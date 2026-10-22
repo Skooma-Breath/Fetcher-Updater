@@ -109,6 +109,35 @@ Failure before activation leaves the previous config/layout usable. Review displ
 including explicit replacements, before acceptance. Select a different dataDirs folder when moving
 a directory into its ancestor would otherwise be necessary.
 
+### Hash-gated compatibility patches
+
+For a Fetcher-owned compatibility change, an action can reconstruct a file from bounded source
+ranges and Base64 literals. This ports known byte deltas without invoking a script or plugin cleaner:
+
+```json
+{"action":"patch", "path":"scripts/example.lua",
+ "sourceSha256":"<64 hex source digest>", "sourceSize":15,
+ "outputSha256":"<64 hex output digest>", "outputSize":15,
+ "operations":[{"copyOffset":0,"copyLength":6}, {"data":"bmV3"},
+               {"copyOffset":9,"copyLength":6}]}
+```
+
+Both exact file sizes and SHA-256 digests are required. Unknown source bytes fail before that file
+changes; the complete reconstructed output is verified before its atomic write. Already matching
+output is a no-op. A missing file requires create=true, sourceSize=0 and the empty-source SHA-256;
+an existing unexpected file is still refused. The 64 MiB source/output limit, 100,000-operation limit,
+strict Base64 and copy bounds apply during review. Unknown fields/commands are rejected. Binary
+files, null bytes and UTF-8 BOMs are handled as raw bytes. Patch actions share the ordinary 128-action
+limit and package containment rules; server patches cannot address engine resources or another mod.
+The recipe participates in the derived-layout cache key and is shown before acceptance.
+
+An upstream archive can contain an optional helper tool only when the reviewed layout explicitly
+removes it, or a FOMOD selects an output that excludes it. The complete final tree is checked for
+blocked programs/scripts before activation, including files outside dataDirs. Folder selection
+alone cannot bypass this check. Original archive/cache bytes can retain such inert files; the
+launcher never invokes them. For example, the Simulation authoring curation discards Tamriel Data's
+Java file patcher and Ashlander Architect's Python build helper by their exact paths.
+
 ## Server-pinned XML FOMOD choices
 
 For a supported XML installer, add fomod to the package (or the UMO download_info entry):
@@ -187,7 +216,7 @@ Known built-in Fetcher endpoints continue to select their original profiles unti
 
 Production requests require HTTPS and validate each redirect; local/private/reserved address
 resolution and embedded URL credentials are rejected. Bounded extraction rejects path escapes,
-symlinks and collisions. Server mod payloads cannot include Windows programs or installer scripts.
+symlinks and collisions. Activated server mod payloads cannot include Windows programs or installer scripts.
 These controls do not certify game content as harmless: OpenMW Lua and assets retain the engine's
 mod trust and sandbox limits. A broader untrusted-server review remains a public-rollout requirement.
 

@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from threading import Thread
 import argparse
+import base64
 import hashlib
 import json
 import struct
@@ -104,6 +105,30 @@ def main():
                 'packages':[{'id':'variant','url':origin+'/mod.7z','sha256':digest(base/'mod.7z'),'dataDirs':['Options/Classic']}]}
             selected=review(selection,'select.json')['selectedProfile'];command({'op':'prepare'})
             assert any(p==raw/'Options/Classic' for p in data_roots(config(selected)))
+            # Compatibility bytes are reconstructed inside an independent derived cache.
+            source=b'modern texture fixture';output=b'modern texture corrected'
+            patch={'action':'patch','path':'Options/Modern/texture.dds',
+                'sourceSha256':hashlib.sha256(source).hexdigest(),'sourceSize':len(source),
+                'outputSha256':hashlib.sha256(output).hexdigest(),'outputSize':len(output),
+                'operations':[{'copyOffset':0,'copyLength':15},
+                    {'data':base64.b64encode(b'corrected').decode()}]}
+            patched=json.loads(json.dumps(selection));patched['id']='patched';patched['host']='patched.example'
+            patched['packages'][0]['dataDirs']=['Options/Modern'];patched['packages'][0]['actions']=[patch]
+            accepted=review(patched,'patched.json');patched_id=accepted['selectedProfile']
+            command({'op':'prepare'});patched_cfg=config(patched_id);saved_cfg=patched_cfg.read_bytes()
+            target=next(p for p in data_roots(patched_cfg) if (p/'texture.dds').exists())
+            assert (target/'texture.dds').read_bytes()==output
+            assert (raw/'Options/Modern/texture.dds').read_bytes()==source
+            count=len(requests);command({'op':'prepare'});assert len(requests)==count
+            (target/'texture.dds').write_bytes(b'locally changed')
+            command({'op':'prepare'});assert (target/'texture.dds').read_bytes()==output
+            assert len(requests)==count, 'Delta repair redownloaded immutable source'
+            for field in ['sourceSha256','outputSha256']:
+                invalid=json.loads(json.dumps(patched));invalid['version']=field
+                invalid['packages'][0]['actions'][0][field]='0'*64
+                review(invalid,'patched.json');command({'op':'prepare'},ok=False)
+                assert patched_cfg.read_bytes()==saved_cfg and (target/'texture.dds').read_bytes()==output
+                command({'op':'rollbackProfile'})
             # Exact manual Nexus archive import accepts 7z by signature, despite cache suffixes.
             manual_root=base/'manual player';manual_root.mkdir()
             command({'op':'gameData','path':str(data)},install=manual_root)
@@ -115,7 +140,7 @@ def main():
             count=len(requests);command({'op':'prepare'},install=manual_root);assert len(requests)==count
             assert not (manual_root/'_fetcher_launcher/nexus-key.bin').exists()
             assert (root/'openmw.cfg').read_bytes()==personal
-            print(f'PASS native archive/layout integration: {operations} executable operations; mixed 7z/RAR UMO list, exact plugin order, independent recipes, raw-cache preservation, repair, rollback, folder selection and Nexus manual 7z import')
+            print(f'PASS native archive/layout integration: {operations} executable operations; mixed 7z/RAR UMO list, exact plugin order, independent recipes, raw-cache preservation, hash-gated byte patches, repair, rollback, folder selection and Nexus manual 7z import')
         finally:
             server.shutdown();server.server_close();thread.join()
 

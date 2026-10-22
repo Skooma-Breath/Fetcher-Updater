@@ -18,11 +18,13 @@ Implemented in this candidate:
 - Existing-installation mode launches an already configured full mod setup unchanged.
 - Interrupted native client/tools updates restore their journaled files on restart. Updates exposes
   previous completed snapshots; restores refuse corrupt backups and post-update local edits.
+- Hash-gated compatibility deltas reconstruct verified files in isolated layouts without running
+  legacy scripts. Read-only preset authoring binds exact installed cache identities and audits sources.
 
 **Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
-plugin-cleaning, third-party tool bootstrap and legacy
-compatibility appliers have not yet been ported. Nexus authentication is fixture-tested; live account
-acceptance and public application registration remain required. Existing script entry points remain supported during
+plugin-cleaning, third-party tool bootstrap and complete legacy
+compatibility recipes have not yet been ported. Real free-account Nexus refusal/manual import passes;
+SSO application registration and eligible-download trials remain required. Existing script entry points remain supported during
 migration. The native launcher does not claim to install/repair that entire historical mod list.
 
 ## Build and validate

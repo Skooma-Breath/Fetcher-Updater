@@ -43,7 +43,7 @@ set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(miniz GIT_REPOSITORY https://github.com/richgel999/miniz.git GIT_TAG 3.0.2 GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(json miniz)
 include(cmake/ArchiveDependencies.cmake)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)
 target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32 xmllite shlwapi)
@@ -85,6 +85,9 @@ add_test(NAME fetcher-fomod COMMAND fetcher-fomod-tests)
 add_executable(fetcher-transaction-tests tests/transaction_tests.cpp)
 target_link_libraries(fetcher-transaction-tests PRIVATE fetcher-native)
 add_test(NAME fetcher-transactions COMMAND fetcher-transaction-tests)
+add_executable(fetcher-compatibility-tests tests/compatibility_tests.cpp)
+target_link_libraries(fetcher-compatibility-tests PRIVATE fetcher-native)
+add_test(NAME fetcher-compatibility COMMAND fetcher-compatibility-tests)
 
 add_custom_command(TARGET FetcherLauncher POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory

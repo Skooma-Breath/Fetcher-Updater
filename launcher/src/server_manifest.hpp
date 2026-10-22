@@ -10,5 +10,6 @@ void installFomod(const fs::path &raw, const fs::path &stage, const Json &defini
 Json normalizeServerManifest(const Json &value);
 void validateModDefinition(const Json &definition);
 void validateModPayload(const fs::path &directory);
+Json readPackageReceipt(const fs::path &directory);
 std::vector<fs::path> modDataRoots(const fs::path &directory, const Json &definition);
 }

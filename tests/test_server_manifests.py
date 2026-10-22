@@ -182,12 +182,25 @@ def main():
             assert not command({'op':'nexusKey','key':''})['nexusKeySaved']
             # Refuse desktop executables and bad redirects before activating their content.
             evil=base/'evil.zip'
-            with ZipFile(evil,'w') as z: z.writestr('Data Files/installer.exe',b'never execute')
+            with ZipFile(evil,'w') as z:
+                z.writestr('Data Files/installer.exe',b'never execute')
+                z.writestr('Data Files/textures/allowed.dds',b'fixture asset')
             bad=json.loads(json.dumps(manifest)); bad['content']=manifest['content'][:-1]
             bad['packages'][0].update(url=origin+'/evil.zip',sha256=hashlib.sha256(evil.read_bytes()).hexdigest())
             accepted=accept(publish(bad,'evil.json'))
             command({'op':'prepare'},ok=False)
             assert not (root/'_fetcher_launcher/profiles'/accepted['selectedProfile']/'openmw.cfg').exists()
+            # A reviewed exact removal can discard an optional bundled tool. Merely
+            # selecting a data folder never bypasses the final payload policy.
+            bad['version']='curated'
+            bad['packages'][0]['actions']=[{'action':'remove','path':'Data Files/installer.exe'}]
+            curated=accept(publish(bad,'evil.json')); command({'op':'prepare'})
+            cfg=root/'_fetcher_launcher/profiles'/curated['selectedProfile']/'openmw.cfg'
+            paths=[Path(line.split('=',1)[1].strip('"')) for line in cfg.read_text().splitlines() if line.startswith('data=')]
+            final=next(path for path in paths if (path/'textures/allowed.dds').exists())
+            assert not (final/'installer.exe').exists()
+            raw=root/'_fetcher_launcher/packages'/bad['packages'][0]['sha256']
+            assert (raw/'Data Files/installer.exe').read_bytes()==b'never execute'
             redirect=json.loads(json.dumps(manifest)); redirect['packages'][0]['url']=origin+'/downgrade'
             # Use a different expected digest so verified cached downloads cannot mask a network request.
             redirect['packages'][0]['sha256']='1'*64

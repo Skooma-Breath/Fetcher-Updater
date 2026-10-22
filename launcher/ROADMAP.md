@@ -14,6 +14,11 @@ Live Nexus validation with Hackle-Lo Pipes confirms the free-account automatic-d
 and exact-file manual import. Fetcher application registration and browser entitlement tests remain.
 Native updates now journal complete backup/hash plans before mutation, recover interrupted process
 updates on restart, and expose completed client/tools snapshots in the Updates restore panel.
+Hash-pinned native compatibility deltas and exact-version UMO cache authoring are implemented.
+The new Simulation preset omits Mario Race and the Zelda beta mod at the operator's request;
+the existing installation and legacy list retain them. Its 90 remaining mods resolve to 99 archives.
+All 99 source archives pass native preparation. Native application of 19 existing Fetcher fixes and
+18 Bardcraft multiplayer fixes passes; remaining installed overrides/full preset parity are open.
 Model attribution is retained in local records and content packages. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 
@@ -22,8 +27,9 @@ locally and passes native integration. The web interface is retained; its backen
 1. Finish general server-list parity beyond the implemented reviewed manifests, pinned declarative
    UMO imports and basic native layouts, ZIP/7z/RAR extraction, Nexus API-key downloads and exact-file
    manual import. Add advanced FOMOD environment dependencies/player wizard, Nexus app registration/SSO/NXM
-   handoff and live eligible/free-account trials. Then port the legacy tool/bootstrap, hash-gated compatibility fixes
-   and complete Fetcher Simulation preset. The separate legacy installer remains available.
+   handoff and live eligible/free-account trials. Finish the native bootstrap, remaining compatibility
+   recipes/Starwind owned-game assets and complete Fetcher Simulation preset. Source acceptance and
+   37 native compatibility fixes are complete; see PRESET-AUTHORING.md. The legacy installer remains available.
 2. Validate a real game launch/join from the generated config with a staged matching server and clean
    Windows bootstrap. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.

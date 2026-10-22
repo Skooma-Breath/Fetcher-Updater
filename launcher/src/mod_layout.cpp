@@ -1,4 +1,5 @@
 #include "server_manifest.hpp"
+#include "compatibility_patch.hpp"
 #include <set>
 namespace fetcher {
 namespace {
@@ -84,9 +85,17 @@ Json normalizeModActions(const Json &actions, const std::string &prefix) {
     for (const auto &item : actions) {
         need(item.is_object(), "Invalid layout operation.");
         auto type = item.at("action").get<std::string>();
-        need(type == "copy" || type == "rename" || type == "move" || type == "remove",
+        need(type == "copy" || type == "rename" || type == "move" || type == "remove" ||
+                 type == "patch",
              "Unsupported mod action: " + type +
-                 ". Only copy, move/rename and remove are allowed.");
+                 ". Only copy, move/rename, remove and hash-pinned patches are allowed.");
+        if (type == "patch") {
+            auto patch = item;
+            patch["path"] = actionPath(item.at("path"), prefix);
+            normalized.push_back(normalizeFilePatch(patch));
+            need(normalized.size() <= 128, "Too many normalized layout operations.");
+            continue;
+        }
         std::set<std::string> keys =
             type == "remove" ? std::set<std::string>{"action", "path", "paths", "tes3cmd"}
                              : std::set<std::string>{"action", "src", "dst", "force", "tes3cmd"};
@@ -132,6 +141,11 @@ void applyModActions(const fs::path &directory, const Json &actions) {
     usage(root);
     for (const auto &item : normalizeModActions(actions)) {
         auto type = item.at("action").get<std::string>();
+        if (type == "patch") {
+            applyFilePatch(inside(root, item.at("path")), item);
+            usage(root);
+            continue;
+        }
         if (type == "remove") {
             auto target = inside(root, item.at("path"));
             need(fs::exists(target),

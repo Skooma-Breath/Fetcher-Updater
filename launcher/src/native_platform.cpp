@@ -207,7 +207,22 @@ std::string lower(std::string s) {
             "Filename case mapping failed.");
     return utf8(mapped);
 }
-std::string read(const fs::path &p, std::uintmax_t limit) {
+fs::path ordinaryPath(const fs::path &path) {
+    auto value = path.wstring();
+    if (value.rfind(L"\\\\?\\UNC\\", 0) == 0)
+        return fs::path(L"\\\\" + value.substr(8));
+    if (value.rfind(L"\\\\?\\", 0) == 0)
+        return fs::path(value.substr(4));
+    return path;
+}
+fs::path longPath(const fs::path &path) {
+    auto value = fs::absolute(ordinaryPath(path)).lexically_normal().make_preferred().wstring();
+    if (value.rfind(L"\\\\", 0) == 0)
+        return fs::path(L"\\\\?\\UNC\\" + value.substr(2));
+    return fs::path(L"\\\\?\\" + value);
+}
+std::string read(const fs::path &path, std::uintmax_t limit) {
+    auto p = longPath(path);
     require(fs::is_regular_file(p), "Required file is missing.");
     require(fs::file_size(p) <= limit, "Metadata file is too large.");
     std::ifstream f(p, std::ios::binary);
@@ -219,26 +234,28 @@ std::string read(const fs::path &p, std::uintmax_t limit) {
         text.erase(0, 3);
     return text;
 }
-Json parseJson(const std::string &text) {
-    require(text.size() <= 8 * 1024 * 1024, "JSON metadata exceeds size limit.");
+Json parseJson(const std::string &text, std::uintmax_t limit) {
+    require(text.size() <= limit, "JSON metadata exceeds size limit.");
     return Json::parse(text, [](int depth, Json::parse_event_t, Json &) {
         require(depth <= 64, "JSON nesting exceeds limit.");
         return true;
     });
 }
-Json readJson(const fs::path &p) { return parseJson(read(p)); }
+Json readJson(const fs::path &p, std::uintmax_t limit) { return parseJson(read(p, limit), limit); }
 void noLinks(const fs::path &p) {
-    auto full = fs::absolute(p).lexically_normal();
+    auto full = fs::absolute(ordinaryPath(p)).lexically_normal();
     fs::path at;
     for (const auto &part : full) {
         at /= part;
-        DWORD flags = GetFileAttributesW(at.c_str());
+        DWORD flags = GetFileAttributesW(longPath(at).c_str());
         if (flags != INVALID_FILE_ATTRIBUTES && (flags & FILE_ATTRIBUTE_REPARSE_POINT))
             throw std::runtime_error("Managed paths cannot contain symlinks/junctions: " +
                                      utf8(at.wstring()));
     }
 }
 fs::path safeRelative(const std::string &value) {
+    static const std::regex reserved("(con|prn|aux|nul|com[1-9]|lpt[1-9])(\\..*)?",
+                                     std::regex::icase);
     require(!value.empty() && value.size() < 1024, "Invalid archive path length.");
     require(value.front() != '/' && value.find('\\') == std::string::npos &&
                 value.find(':') == std::string::npos,
@@ -253,13 +270,12 @@ fs::path safeRelative(const std::string &value) {
             require(c >= 32 && c != 127 &&
                         std::string("<>\"|?*").find(char(c)) == std::string::npos,
                     "Unsafe filename.");
-        require(!std::regex_match(part, std::regex("(con|prn|aux|nul|com[1-9]|lpt[1-9])(\\..*)?",
-                                                   std::regex::icase)),
-                "Reserved Windows filename.");
+        require(!std::regex_match(part, reserved), "Reserved Windows filename.");
     }
-    return fs::path(wide(value));
+    return fs::path(wide(value)).make_preferred();
 }
-void writeAtomic(const fs::path &p, const std::string &text) {
+void writeAtomic(const fs::path &path, const std::string &text) {
+    auto p = longPath(path);
     noLinks(p);
     if (!p.parent_path().empty())
         fs::create_directories(p.parent_path());
@@ -277,7 +293,7 @@ void writeAtomic(const fs::path &p, const std::string &text) {
 void removeManaged(const fs::path &root, const fs::path &child) {
     noLinks(root);
     noLinks(child);
-    auto r = fs::absolute(root).lexically_normal(), c = fs::absolute(child).lexically_normal();
+    auto r = longPath(root), c = longPath(child);
     auto rel = c.lexically_relative(r);
     require(!rel.empty() && rel != L"." && *rel.begin() != L"..",
             "Refusing deletion outside managed staging.");
@@ -300,7 +316,7 @@ std::string sha256(const fs::path &p) {
     } cleanup{a, h};
     require(BCryptCreateHash(a, &h, nullptr, 0, nullptr, 0, 0) >= 0,
             "SHA-256 initialization failed.");
-    std::ifstream f(p, std::ios::binary);
+    std::ifstream f(longPath(p), std::ios::binary);
     require(bool(f), "Hash input missing.");
     std::array<char, 65536> b{};
     while (f) {

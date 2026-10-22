@@ -195,3 +195,34 @@ registration; Nexus application approval/SSO and eligible-account trials are sti
   suites pass. Recovery preflights current/backup hashes, path containment and file ownership.
   Restoring an incompatible first installation reports that setup must be rerun. Public releases
   and game servers remain unchanged. Sudden-power-loss/storage-failure acceptance remains open.
+
+## Native compatibility and full-preset source acceptance — 2026-10-22
+
+- Native byte deltas validate exact source/output hashes and sizes, copy ranges, strict Base64,
+  explicit creation, metadata containment and binary/BOM/null handling. The compatibility suite
+  passes 16 assertions. Archive/layout integration now passes 36 real-executable operations,
+  including derived-cache repair and preservation after wrong source/output hashes.
+- A reviewed exact removal can discard an unused bundled helper; the entire final activated tree
+  still rejects native programs/scripts. Merely selecting a data directory does not bypass it.
+  Server-manifest integration passes 57 operations, including refusal without the removal and
+  success with it. Original compressed/extracted cache bytes remain unchanged.
+- Real Tamriel Data testing exposed a >8 MiB generated inventory and MAX_PATH failures after a
+  longer hashed-cache move. Internal inventories now have a separate 128 MiB/100,000-file bound;
+  external manifests retain 8 MiB. Extended paths/native separators support cache I/O/cleanup
+  while ordinary paths remain in game configs. Reserved-name checks reuse a compiled expression.
+- Source authoring resolves the operator's revised 90-mod list to 99 exact cached ZIP/7z/RAR
+  archives. All pass native extraction/layout preparation: 5,065,202,678 source bytes. Mario Race
+  and the Zelda beta mod are omitted only from the new preset, with explicit operator direction.
+  No original game/config/list/database or public server is changed. Evidence:
+  release-assets/umo-source-3/source-layout-report.json.
+- Native application of 37 known fixes (19 Fetcher + 18 Bardcraft multiplayer 2.0.24) produces the
+  exact installed output hashes. Engine resources remain excluded from server mod recipes.
+  Evidence: release-assets/umo-source-3/compatibility-report.json. Read-only authoring tests cover
+  exact-version binding, cache-name aliases, pin/hash mismatches, credential-URL exclusion,
+  renamed plugin sources, new-file prerequisites and exclusion of client resources. The installed
+  override audit compares 94,508 VFS paths; all 30 changed gameplay files are covered, with seven
+  additional new outputs. Two shader-version differences remain distinct from compatibility fixes.
+
+This is not full Simulation preset or game-join acceptance. Remaining installed overrides,
+Starwind owned-game asset restoration and the full plugin/groundcover order still need curation
+and testing. See PRESET-AUTHORING.md for repeatable commands and boundaries.

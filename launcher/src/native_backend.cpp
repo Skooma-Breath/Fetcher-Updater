@@ -31,7 +31,7 @@ std::string stamp() {
     return std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
 }
 std::string cfgString(const fs::path &p) {
-    auto s = utf8(fs::absolute(p).generic_wstring());
+    auto s = utf8(fs::absolute(ordinaryPath(p)).generic_wstring());
     need(s.find_first_of("\"\r\n") == std::string::npos, "Invalid configuration path.");
     return "\"" + s + "\"";
 }
@@ -327,9 +327,9 @@ Json Backend::resolve(const Json &d) {
 fs::path Backend::package(const Json &definition, bool repair) {
     auto ref = resolve(definition);
     auto hash = ref.at("sha256").get<std::string>();
-    auto dest = mManaged / "packages" / hash;
+    auto dest = longPath(mManaged / "packages" / hash);
     noLinks(dest);
-    auto receipt = optional(dest / ".fetcher-package.json");
+    auto receipt = readPackageReceipt(dest);
     if (!repair && receipt.value("sha256", "") == hash &&
         verifyFiles(dest, receipt.value("files", Json::array()), true)) {
         auto declared = definition.value("archiveFormat", "auto");
@@ -363,7 +363,7 @@ fs::path Backend::package(const Json &definition, bool repair) {
         }
         download(ref.at("url"), archive, hash, mLog);
     }
-    auto stage = mManaged / "staging" / ("package-" + stamp());
+    auto stage = longPath(mManaged / "staging" / ("package-" + stamp()));
     try {
         auto kind = detectArchiveFormat(archive);
         auto names = extractArchive(archive, stage, definition.value("archiveFormat", "auto"));
@@ -389,15 +389,15 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition) {
     auto actions = normalizeModActions(definition.value("actions", Json::array()));
     if (actions.empty() && !definition.contains("fomod"))
         return raw;
-    auto source = readJson(raw / ".fetcher-package.json");
+    auto source = readPackageReceipt(raw);
     auto key = modLayoutKey(definition, source.at("sha256"));
-    auto dest = mManaged / "layouts" / key;
+    auto dest = longPath(mManaged / "layouts" / key);
     noLinks(dest);
-    auto previous = optional(dest / ".fetcher-package.json");
+    auto previous = readPackageReceipt(dest);
     if (previous.value("layoutKey", "") == key &&
         verifyFiles(dest, previous.value("files", Json::array()), true))
         return dest;
-    auto stage = mManaged / "staging" / ("layout-" + stamp());
+    auto stage = longPath(mManaged / "staging" / ("layout-" + stamp()));
     noLinks(stage);
     fs::create_directories(stage);
     try {
@@ -515,8 +515,10 @@ fs::path Backend::prepare() {
     std::vector<fs::path> roots = {mRoot / "resources/vfs-mw", data};
     for (const auto &d : p.at("packages")) {
         auto dir = package(d, false);
-        validateModPayload(dir);
         dir = layout(dir, d);
+        // Helpers may exist in an upstream archive, but only an explicitly curated
+        // layout/FOMOD output without native programs can enter a game profile.
+        validateModPayload(dir);
         for (const auto &root : modDataRoots(dir, d))
             roots.push_back(root);
     }
@@ -653,14 +655,14 @@ Json Backend::check(bool repair, bool install) {
     if (p.value("mode", "managed") != "installed")
         for (const auto &d : p.at("packages")) {
             auto r = resolve(d);
-            auto dir = mManaged / "packages" / r.at("sha256").get<std::string>();
-            auto receipt = optional(dir / ".fetcher-package.json");
+            auto dir = longPath(mManaged / "packages" / r.at("sha256").get<std::string>());
+            auto receipt = readPackageReceipt(dir);
             bool current = receipt.value("sha256", "") == r.at("sha256") &&
                            verifyFiles(dir, receipt.value("files", Json::array()), repair);
             if (current && (d.contains("fomod") || !d.value("actions", Json::array()).empty())) {
                 auto key = modLayoutKey(d, r.at("sha256"));
-                auto dir = mManaged / "layouts" / key;
-                auto receipt = optional(dir / ".fetcher-package.json");
+                auto dir = longPath(mManaged / "layouts" / key);
+                auto receipt = readPackageReceipt(dir);
                 current = receipt.value("layoutKey", "") == key &&
                           verifyFiles(dir, receipt.value("files", Json::array()), repair);
             }
