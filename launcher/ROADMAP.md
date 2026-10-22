@@ -9,9 +9,14 @@ locally and passes native integration. The web interface is retained; its backen
 
 ## Remaining work before replacing the public launcher
 
-1. Finish parity with the separate UMO/Nexus workflow: third-party tool/bootstrap handling, missing-mod
-   downloads and user-authenticated Nexus flow, current UMO fixes, hash-gated compatibility appliers,
-   and the complete Fetcher Simulation load-order preset. Existing installations remain usable meanwhile.
+1. Generalize server-owned mod lists before completing the Fetcher-specific migration. Add reviewed,
+   versioned server manifests with UMO import, pinned Nexus file identities and hashes, authenticated
+   Nexus downloads/manual fallback, and HTTPS archives for non-Nexus content. Keep each server's
+   configuration isolated. Implement only validated declarative install operations, never arbitrary
+   UMO actions or owner-supplied commands. See `SERVER-MODLIST-DESIGN.md` for the planned contract.
+   Then finish parity with the separate legacy workflow: third-party tool/bootstrap handling,
+   current UMO fixes, hash-gated compatibility appliers, and the complete Fetcher Simulation preset.
+   Existing installations remain usable meanwhile.
 2. Validate a real game launch/join from the generated config with a staged matching server and clean
    Windows bootstrap. Exercise update interruption/recovery and provide an operator rollback UI.
 3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. Publish
