@@ -4,3 +4,5 @@
 *.md text eol=lf
 *.json text eol=lf
 *.txt text eol=crlf
+launcher/umo/adapter.py text eol=lf
+launcher/umo/LICENSE text eol=lf

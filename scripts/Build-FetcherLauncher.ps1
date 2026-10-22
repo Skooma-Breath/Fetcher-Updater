@@ -117,6 +117,8 @@ if ($LASTEXITCODE -ne 0) { throw "Native compatibility authoring tests failed." 
 if ($LASTEXITCODE -ne 0) { throw "Owned-game asset authoring tests failed." }
 & python (Join-Path $repoRoot 'tests/test_native_bootstrap.py') --setup (Join-Path $OutputDir 'FetcherSetup.exe') --launcher (Join-Path $OutputDir 'FetcherLauncher.exe') --client-fixture (Join-Path $BuildDir 'bin/fetcher-launch-fixture.exe')
 if ($LASTEXITCODE -ne 0) { throw "Native bootstrap integration tests failed." }
+& python (Join-Path $repoRoot 'tests/test_umo_helper.py') --exe $launcherExe
+if ($LASTEXITCODE -ne 0) { throw "UMO handoff integration tests failed." }
 
 Write-Host "Running launcher self-test..."
 $selfTest = Start-Process `

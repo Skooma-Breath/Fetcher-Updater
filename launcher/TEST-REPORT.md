@@ -301,4 +301,40 @@ configuration was published or changed. The complete experimental preset remains
 These checks ran on the development Windows machine, with the owned GOG game and a local engine
 build. They do not certify a clean Windows machine, every owned game edition, missing WebView2/
 client prerequisites, the current public engine release, a public server join or final release
-promotion. Nexus SSO still awaits staff registration. No public assets, tags or servers changed.
+promotion. A standalone Fetcher SSO route would need staff registration; the selected UMO helper
+now performs its own sign-in, as validated below. No public assets, tags or servers changed.
+
+## External UMO helper — 2026-10-22
+
+- The native launcher installs upstream UMO 0.11.2 from its fixed GitLab package URL, validates
+  SHA-256 `18dcd4a33171b6ca5b8afd8286e4917906f4a108df52f60cb2e718914ec057e4`, and obtains the
+  corresponding source archive for commit `2805e59ca4b627768fdd8e409a3d70a920225afc` with its own
+  pinned hash. The AGPL adapter/license/source record are installed alongside the unchanged runtime.
+- `tests/test_umo_helper.py` runs 18 native process operations for default provider selection,
+  independent personal-key testing, malformed/duplicate/expired/mismatched NXM callbacks, private
+  token-free callback results and actual Windows DPAPI encryption/decryption. It verifies the real
+  user's NXM association is unchanged by automated tests.
+- Optional upstream-runtime acceptance runs 23 launcher commands, compares all 3,848 upstream
+  distribution files byte-for-byte, imports the actual modules, and exercises UMO's Premium and
+  free-account downloader paths against a local archive fixture. The real native callback and UMO's
+  legacy forwarding function both reach the waiting helper. An occupied private port exercises
+  the fallback port. Tests never occupy the user's real UMO port. Mocked API responses exist only
+  in the test harness; production has no fake authentication or alternate helper execution endpoint.
+- Native preparation independently imports/verifies/extracts the returned archive; changed helper
+  source is refused before execution. The registry fixture uses a process-private overridden hive
+  to verify explicit registration, idempotence, exact prior-value restoration, unrelated-value/MOMW
+  preservation and protection of an intervening handler owner.
+- Live native WinHTTP installation from GitLab passes in `release-assets/umo-live-review`.
+  The user authorised actual UMO SSO in Nexus. Its encrypted credential stayed in that isolated
+  helper; no key was imported from the existing `_fetcher_umo` setup or exposed to the C++ API path.
+- Live **free-account** Hackle-Lo Pipes v4 download and native profile preparation pass: mod 56939,
+  file 1000064599, 4,276,766 bytes, SHA-256
+  `a4211504a66587218c3ffd830a680ef33c0654110afbb503fb7d91b61e945970`.
+  The first handoff exposed Chrome retaining the old UMO handler command. Supporting UMO's
+  standard loopback forwarding port fixed the real test; automated legacy-forwarding coverage was
+  added. The saved Windows NXM handler was restored exactly after the test, and all owned test
+  helper/launcher processes exited. Evidence: `release-assets/umo-live-review/live-test-report.json`.
+- No public server was joined or changed. Native launcher/tools promotion remains separate.
+  Real Premium-account entitlement, clean Windows/WebView2 prerequisites and broader browser/
+  simultaneous-manager acceptance remain open. Premium/free fixtures are not substitutes for
+  those live environment checks.

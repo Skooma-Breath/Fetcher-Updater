@@ -12,7 +12,8 @@ Implemented in this candidate:
 - Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.
 - Local model/source/license/adaptation records and preserved content-bundle attribution notices.
 - Reviewed server manifests, owner/source isolation, previous-manifest selection and ordinary archive layouts.
-- Declarative pinned UMO lists with folder selection and native copy/rename/remove operations, Nexus API-key downloads where eligible and exact-file manual import.
+- Declarative pinned UMO lists with folder selection and native copy/rename/remove operations;
+  external UMO Nexus sign-in/download helper and exact-file manual import.
 - Server-pinned XML FOMOD selections, option/flag validation and isolated selected-file layouts.
 - Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.
 - Existing-installation mode launches an already configured full mod setup unchanged.
@@ -26,7 +27,8 @@ Implemented in this candidate:
 **Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
 plugin-cleaning, third-party tool bootstrap and complete legacy
 compatibility recipes have not yet been ported. Real free-account Nexus refusal/manual import passes;
-SSO application registration and eligible-download trials remain required. Existing script entry points remain supported during
+Live Nexus entitlement trials and clean-machine acceptance remain. A future standalone Fetcher SSO
+route would need its own application registration; UMO is the selected helper now. Existing script entry points remain supported during
 migration. The native launcher does not claim to install/repair that entire historical mod list.
 
 ## Build and validate
@@ -64,7 +66,9 @@ See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isol
 See [UPGRADE-ACCEPTANCE.md](UPGRADE-ACCEPTANCE.md) for the verified old-launcher update path and
 the repeatable isolated upgrade test. Players reopen the launcher after installing the update.
 See [BOOTSTRAP.md](BOOTSTRAP.md) for standalone native first installation and saved multiplayer
-identities. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATION.md) has the operator's SSO registration steps.
+identities. [UMO-HELPER.md](UMO-HELPER.md) describes Nexus setup, distribution/source delivery and
+the optional browser link association. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATION.md) retains
+the future standalone Fetcher SSO registration steps.
 
 ## Published direct-download candidate
 

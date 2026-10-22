@@ -1,6 +1,7 @@
 #include "native_backend.hpp"
-#include "server_manifest.hpp"
 #include "install_transaction.hpp"
+#include "server_manifest.hpp"
+#include "umo_helper.hpp"
 #include <windows.h>
 
 #include <algorithm>
@@ -304,6 +305,8 @@ Json Backend::state() const {
         {"status", mStatus},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
+        {"nexusProvider", mSettings.value("nexusProvider", "umo")},
+        {"umo", umoStatus(mRoot)},
         {"updateBackups", listInstallBackups(mRoot)},
         {"canRollbackProfile", fs::is_regular_file(mManaged / "profiles" / id(current.at("id")) /
                                                    "previous-profile.json")}};
@@ -381,28 +384,34 @@ fs::path Backend::package(const Json &definition, bool repair) {
     auto archive = mManaged / "downloads" / (hash + ".zip");
     if (!fs::is_regular_file(archive) || sha256(archive) != hash) {
         if (ref.contains("nexus")) {
-            need(fs::is_regular_file(mManaged / "nexus-key.bin"),
-                 "This Nexus file needs your Nexus API key, or download its exact "
-                 "file on Nexus and import the archive below.");
-            auto n = ref.at("nexus");
-            auto path = "/v1/games/" + n.at("game").get<std::string>() + "/mods/" +
-                        std::to_string(n.at("modId").get<std::uint64_t>()) + "/files/" +
-                        std::to_string(n.at("fileId").get<std::uint64_t>()) + "/download_link.json";
-            Json links;
-            try {
-                links =
-                    parseJson(nexusGet(path, unprotectSecret(read(mManaged / "nexus-key.bin"))));
-            } catch (const std::exception &e) {
-                throw std::runtime_error(std::string(e.what()) +
-                                         ". You can use the exact-file manual "
-                                         "download/import route instead.");
+            if (mSettings.value("nexusProvider", "umo") == "umo") {
+                downloadUmo(mRoot, ref.at("nexus"), hash, archive, mLog);
+            } else {
+                need(fs::is_regular_file(mManaged / "nexus-key.bin"),
+                     "This Nexus file needs your Nexus API key, or download its exact "
+                     "file on Nexus and import the archive below.");
+                auto n = ref.at("nexus");
+                auto path = "/v1/games/" + n.at("game").get<std::string>() + "/mods/" +
+                            std::to_string(n.at("modId").get<std::uint64_t>()) + "/files/" +
+                            std::to_string(n.at("fileId").get<std::uint64_t>()) +
+                            "/download_link.json";
+                Json links;
+                try {
+                    links = parseJson(
+                        nexusGet(path, unprotectSecret(read(mManaged / "nexus-key.bin"))));
+                } catch (const std::exception &e) {
+                    throw std::runtime_error(std::string(e.what()) +
+                                             ". You can use the exact-file manual "
+                                             "download/import route instead.");
+                }
+                need(links.is_array() && !links.empty(), "Nexus returned no eligible "
+                                                         "download link; use manual "
+                                                         "archive import.");
+                ref["url"] = links.at(0).at("URI");
             }
-            need(links.is_array() && !links.empty(), "Nexus returned no eligible "
-                                                     "download link; use manual "
-                                                     "archive import.");
-            ref["url"] = links.at(0).at("URI");
         }
-        download(ref.at("url"), archive, hash, mLog);
+        if (!fs::is_regular_file(archive) || sha256(archive) != hash)
+            download(ref.at("url"), archive, hash, mLog);
     }
     auto stage = longPath(mManaged / "staging" / ("package-" + stamp()));
     try {
@@ -907,6 +916,33 @@ Json Backend::command(const Json &q) {
         save();
         return state();
     }
+    if (op == "umoInstall") {
+        installUmo(mRoot, mLog);
+        return state();
+    }
+    if (op == "umoConnect") {
+        connectUmo(mRoot, mLog);
+        mSettings["nexusProvider"] = "umo";
+        save();
+        return state();
+    }
+    if (op == "umoForget") {
+        forgetUmo(mRoot);
+        mSettings["nexusProvider"] = "umo";
+        save();
+        return state();
+    }
+    if (op == "umoProtocol") {
+        umoProtocol(mRoot, q.at("enable").get<bool>());
+        return state();
+    }
+    if (op == "nexusProvider") {
+        auto provider = q.at("provider").get<std::string>();
+        need(provider == "umo" || provider == "personal-testing", "Unknown Nexus provider.");
+        mSettings["nexusProvider"] = provider;
+        save();
+        return state();
+    }
     if (op == "nexusKey") {
         auto key = q.at("key").get<std::string>();
         if (key.empty())
@@ -917,6 +953,8 @@ Json Backend::command(const Json &q) {
                  "Invalid Nexus API key.");
             writeAtomic(mManaged / "nexus-key.bin", protectSecret(key));
         }
+        mSettings["nexusProvider"] = key.empty() ? "umo" : "personal-testing";
+        save();
         return state();
     }
     if (op == "importArchive") {

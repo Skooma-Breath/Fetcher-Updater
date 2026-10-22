@@ -10,10 +10,12 @@ routes and external archives. Server-pinned XML FOMOD choices install required/s
 isolated layouts with option, flag and priority validation.
 The published legacy launcher has passed isolated old-to-native tools upgrade acceptance, including
 a running staged GUI, reopening, personal-file preservation and rejected invalid packages.
-Live Nexus validation with Hackle-Lo Pipes confirms the free-account automatic-download refusal
-and exact-file manual import. Fetcher application registration and browser entitlement tests remain.
-For local/private testing, use the implemented Personal API Key field. SSO/application registration
-is deferred to the public-release stage; it does not block further local launcher development.
+Live Nexus validation with Hackle-Lo Pipes confirms the earlier native free-account automatic-download
+refusal and exact-file manual import. The selected normal route now uses a pinned external UMO
+helper for Nexus sign-in/downloads, with source/license delivery and opt-in NXM handoff. Native
+personal keys remain under advanced private testing. Standalone Fetcher SSO is a future option.
+Actual UMO SSO and the free-account Hackle-Lo download/preparation pass; the original NXM handler
+is restored after acceptance. Premium entitlement, broader browsers and clean-machine trials remain.
 Native updates now journal complete backup/hash plans before mutation, recover interrupted process
 updates on restart, and expose completed client/tools snapshots in the Updates restore panel.
 Standalone native first installation now obtains verified launcher/client releases without PowerShell.
@@ -30,8 +32,9 @@ locally and passes native integration. The web interface is retained; its backen
 
 1. Finish general server-list parity beyond the implemented reviewed manifests, pinned declarative
    UMO imports and basic native layouts, ZIP/7z/RAR extraction, Nexus API-key downloads and exact-file
-   manual import. Add advanced FOMOD environment dependencies/player wizard, Nexus app registration/SSO/NXM
-   handoff and live eligible/free-account trials. Native bootstrap integration passes; clean-Windows
+   manual import. Add advanced FOMOD environment dependencies/player wizard and finish live Nexus
+   Premium-account, broader-browser and clean-machine UMO-helper acceptance. UMO sign-in/free-account
+   NXM download handoff passes live acceptance and isolated fixtures. Native bootstrap integration passes; clean-Windows
    prerequisite acceptance remains. The legacy installer
    remains available. Fetcher's experimental-server preset is separate optional work below.
 2. A fresh native install and real game join using the generated combined-content config now pass

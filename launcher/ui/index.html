@@ -387,6 +387,7 @@
       </div>
       <div class="row">
         <span id="busy" class="status">Ready</span
+        ><button id="cancelUmo" hidden>Cancel Nexus operation</button
         ><button id="folder">Open folder</button
         ><button id="play" class="primary">Play / Join server</button>
       </div>
@@ -598,16 +599,53 @@
             </div>
             <p id="nexusState" class="muted"></p>
             <div class="row">
-              <input
-                id="nexusKey"
-                type="password"
-                autocomplete="off"
-                placeholder="Nexus API key (optional for eligible automatic downloads)"
-                aria-label="Nexus API key"
-              />
-              <button id="saveNexusKey">Save key locally</button>
-              <button id="forgetNexusKey">Forget key</button>
+              <button id="installUmo">
+                Install / repair UMO helper (50 MB)
+              </button>
+              <button id="connectUmo">Connect Nexus through UMO</button>
+              <button id="forgetUmo">Disconnect Nexus</button>
+              <button id="useUmo">Use UMO downloads</button>
             </div>
+            <p class="muted">
+              UMO opens Nexus sign-in in your browser. Free accounts approve
+              each file with Mod manager download / Slow download; Premium
+              eligibility is checked by UMO. Fetcher verifies and installs the
+              exact server files. Manual import also works. If Nexus says the
+              download is starting but nothing happens, click its “Start
+              download manually” link to send it to the helper.
+            </p>
+            <div class="row">
+              <button id="enableNxm">
+                Use Fetcher for Nexus browser download links
+              </button>
+              <button id="restoreNxm">
+                Restore previous Nexus link handler
+              </button>
+            </div>
+            <p class="muted">
+              Browser links are opt-in: this changes this Windows user's NXM
+              handler, which may currently belong to another mod manager.
+              Restore it here when finished. Only the file currently requested
+              by Fetcher is accepted.
+            </p>
+            <details>
+              <summary>Personal API key testing (advanced)</summary>
+              <p class="muted">
+                For private testing of Fetcher's separate native Nexus API path.
+                UMO sign-in credentials stay inside the external helper.
+              </p>
+              <div class="row">
+                <input
+                  id="nexusKey"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Personal Nexus API key (private testing only)"
+                  aria-label="Nexus API key"
+                />
+                <button id="saveNexusKey">Save key locally</button>
+                <button id="forgetNexusKey">Forget key</button>
+              </div>
+            </details>
           </div>
           <div class="panel">
             <h3>Your Morrowind installation</h3>
@@ -835,6 +873,8 @@ Fetcher native launcher ready.
           .querySelectorAll("button,select")
           .forEach((b) => (b.disabled = busy));
         $("busy").textContent = busy ? "Working…" : "Ready";
+        $("cancelUmo").hidden = !busy;
+        $("cancelUmo").disabled = false;
         $("profile").replaceChildren();
         for (const p of state?.profiles || [])
           $("profile").append(new Option(p.name, p.id));
@@ -998,9 +1038,20 @@ Fetcher native launcher ready.
           !(p?.packages || []).find((d) => d.id === $("archivePackage").value)
             ?.nexus;
         $("importArchive").disabled = busy || !(p?.packages || []).length;
-        $("nexusState").textContent = state.nexusKeySaved
-          ? "A Nexus key is saved for this Windows user. Download eligibility is checked when needed."
-          : "No Nexus key saved. Manual archive import works without one.";
+        const umo = state.umo || {};
+        $("nexusState").textContent =
+          state.nexusProvider === "personal-testing"
+            ? "Personal API key testing mode. Choose Use UMO downloads for the normal Nexus flow."
+            : !umo.installed
+              ? "Install the UMO helper to connect Nexus."
+              : umo.connected
+                ? `UMO ${umo.version}: Nexus connected. Browser links ${umo.browserLinks ? "enabled" : "disabled"}.`
+                : `UMO ${umo.version} installed. Connect Nexus to authorise UMO.`;
+        $("connectUmo").disabled = busy || !umo.installed;
+        $("forgetUmo").disabled = busy || !umo.connected;
+        $("useUmo").disabled = busy || state.nexusProvider === "umo";
+        $("enableNxm").disabled = busy || !umo.installed || umo.browserLinks;
+        $("restoreNxm").disabled = busy || !umo.browserLinks;
         const status = state.status;
         $("updateTitle").textContent =
           status?.status === "current"
@@ -1112,6 +1163,13 @@ Fetcher native launcher ready.
         action("nexusKey", { key });
       };
       $("forgetNexusKey").onclick = () => action("nexusKey", { key: "" });
+      $("installUmo").onclick = () => action("umoInstall");
+      $("connectUmo").onclick = () => action("umoConnect");
+      $("forgetUmo").onclick = () => action("umoForget");
+      $("useUmo").onclick = () => action("nexusProvider", { provider: "umo" });
+      $("cancelUmo").onclick = () => window.fetcherCommand({ op: "cancelUmo" });
+      $("enableNxm").onclick = () => action("umoProtocol", { enable: true });
+      $("restoreNxm").onclick = () => action("umoProtocol", { enable: false });
       $("addMod").onclick = () =>
         action("addMod", {
           directory: $("modDir").value.trim(),

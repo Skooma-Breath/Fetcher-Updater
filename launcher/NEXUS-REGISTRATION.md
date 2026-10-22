@@ -1,15 +1,20 @@
-# Nexus Mods application registration
+# Nexus Mods provider and future application registration
 
-For current local/private testing, use a Nexus Personal API Key. Registration and SSO are deferred
-until public rollout, as requested on 2026-10-22. Generate a personal key on Nexus's API Access
-page, then paste it into Fetcher Launcher under Mods > Nexus API key > Save key locally. Do not
-paste it into chat or put it in a shared server manifest. Native Fetcher identifies its API requests
-as Fetcher Launcher; it does not borrow UMO's application identity. Download eligibility remains
-controlled by Nexus. This testing route is already implemented; no SSO slug is needed to use it.
+The selected normal flow is now the external **UMO helper**, requested on 2026-10-22. See
+[UMO-HELPER.md](UMO-HELPER.md). UMO performs its own browser sign-in and download requests in its
+separate runtime. Its credentials are not supplied to Fetcher's native API implementation.
+
+The advanced Personal API Key controls remain for local/private testing of that independent native
+path. Generate a personal key on Nexus's API Access page and use Mods > Personal API key testing.
+Do not paste keys into chat or shared manifests. Native Fetcher identifies those requests as Fetcher;
+download eligibility remains controlled by Nexus. Choose **Use UMO downloads** to return to the
+normal helper flow. This does not add a standalone Fetcher SSO registration or borrow another
+application's identity for native Fetcher requests.
 
 API Access: https://next.nexusmods.com/settings/api-keys
 
-The registration steps below remain the public-release plan, not a blocker for local testing.
+The steps below are retained for a future standalone Fetcher SSO/API application, should that
+direction be chosen. They are not the implementation used by the UMO helper.
 
 Nexus staff issue the SSO application slug. This is not a self-service account API key.
 The operator sends the request; the launcher never impersonates UMO or another registered app.

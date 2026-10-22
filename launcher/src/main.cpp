@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "native_backend.hpp"
 #include "install_transaction.hpp"
+#include "umo_helper.hpp"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -299,6 +300,7 @@ struct Options {
     bool debug = false;
     bool allowLocalFixtures = false;
     std::string nexusFixture;
+    std::string umoNxm;
 };
 
 Options ParseOptions() {
@@ -333,6 +335,8 @@ Options ParseOptions() {
             options.allowLocalFixtures = true;
         } else if (argument == L"--nexus-fixture-url" && index + 1 < argumentCount) {
             options.nexusFixture = WideToUtf8(arguments[++index]);
+        } else if (argument == L"--umo-nxm" && index + 1 < argumentCount) {
+            options.umoNxm = WideToUtf8(arguments[++index]);
         } else if (argument == L"--debug") {
             options.debug = true;
         }
@@ -520,10 +524,15 @@ class LauncherApp {
         } catch (const std::exception &e) {
             return fetcher::Json{{"started", false}, {"error", e.what()}}.dump();
         }
+        if (request.value("op", "") == "cancelUmo") {
+            fetcher::cancelUmo();
+            return "{\"accepted\":true}";
+        }
         if (mBusy.exchange(true))
             return R"({"started":false,"error":"Wait for the current operation to finish."})";
         if (mWorker.joinable())
             mWorker.join();
+        fetcher::resetUmoCancellation();
         mWorker = std::thread([this, request] {
             bool ok = true;
             std::string error;
@@ -552,7 +561,7 @@ class LauncherApp {
     std::string OpenInstallFolder() {
         return OpenPath(mRoot, mRoot) ? R"({"ok":true})" : R"({"ok":false,"error":"Could not open folder."})";
     }
-    void Close() { mClosing = true; }
+    void Close() { mClosing = true; fetcher::cancelUmo(); }
 
   private:
     void PostEvent(const std::string &event) {
@@ -576,6 +585,25 @@ class LauncherApp {
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     const Options options = ParseOptions();
+    // Browser callbacks bypass the worker/update lock and never open another launcher window.
+    if (!options.umoNxm.empty()) {
+        const auto callbackResult = options.installRoot / "_fetcher_launcher" / "umo" / "callback-result.json";
+        try {
+            fetcher::writeAtomic(callbackResult, "{\"received\":true,\"forwarded\":false}");
+            auto publicLink = fetcher::parseUmoLink(options.umoNxm);
+            publicLink.erase("query");
+            publicLink["received"] = true;
+            publicLink["forwarded"] = false;
+            fetcher::writeAtomic(callbackResult, publicLink.dump());
+            fetcher::forwardUmoLink(options.installRoot, options.umoNxm);
+            publicLink["forwarded"] = true;
+            fetcher::writeAtomic(callbackResult, publicLink.dump());
+            return 0;
+        } catch (...) {
+            // Tokens and signed URLs must never reach a log or error report.
+            return 1;
+        }
+    }
     fetcher::allowLocalFixtures(options.allowLocalFixtures && !options.requestFile.empty());
     if (!options.nexusFixture.empty()) fetcher::nexusFixtureUrl(options.nexusFixture);
     const fs::path executablePath = GetExecutablePath();

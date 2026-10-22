@@ -1,0 +1,5 @@
+#pragma once
+namespace fetcher {
+inline constexpr char umoAdapterSource[] = R"fetcherumo(@UMO_ADAPTER_SOURCE@)fetcherumo";
+inline constexpr char umoLicenseSource[] = R"fetcherumo(@UMO_LICENSE_SOURCE@)fetcherumo";
+}
