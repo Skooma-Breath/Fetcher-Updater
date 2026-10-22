@@ -52,3 +52,21 @@ pins a distinct combined candidate archive; it cannot silently use the older pub
 
 See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isolation,
 [TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.
+
+## Published direct-download candidate
+
+The first public server-owned manifest is available at:
+https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/openmw-client-mods-mp-clients/fetcher-vanilla-studio.json
+
+The distinct openmw-client-mods-studio-candidate.zip asset is pinned by that manifest. Both were
+added with explicit operator approval; openmw-client-mods.zip was not replaced. A fresh native
+HTTPS test downloaded 33,598,923 bytes, verified SHA-256, extracted 354 files and validated the
+surf/truck/Studio assets, credits and plugin order. No public launcher or server was deployed.
+
+An opt-in repeatable test is available; choose a new test directory for each run:
+
+```powershell
+python tests/test_server_manifest_live.py --exe <candidate-Launcher.exe> `
+  --root <new-test-directory> --game-data <owned-Data-Files-directory> `
+  --url https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/openmw-client-mods-mp-clients/fetcher-vanilla-studio.json
+```

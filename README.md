@@ -70,7 +70,9 @@ separate from optional local mods and the user's main configuration.
 
 This is a local candidate. The current public vanilla profile remains separate from the new
 surf/truck/Studio preview. Publishing the package and changing server content are coordinated
-rollout steps; no public release or server change was performed while preparing this candidate.
+rollout steps. The combined candidate archive and its server manifest are now published as separate
+release assets and passed a fresh native HTTPS download/preparation test. The original mod archive,
+public launcher and public server configuration are unchanged.
 
 Reviewed server manifests now accept pinned declarative UMO ZIP lists and external archives.
 Nexus API-key downloads and exact-file manual import are implemented; live Nexus account trials,

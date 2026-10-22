@@ -18,8 +18,10 @@ locally and passes native integration. The web interface is retained; its backen
    and complete Fetcher Simulation preset. The separate legacy installer remains available.
 2. Validate a real game launch/join from the generated config with a staged matching server and clean
    Windows bootstrap. Exercise update interruption/recovery and provide an operator rollback UI.
-3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. Publish
-   the combined mod archive with its credits, then promote the matching profile. Keep rollback copies.
+3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. The
+   combined archive/credits and server manifest are published as separate candidate assets and pass
+   real HTTPS preparation. Promote the matching profile only with the coordinated server/client
+   rollout. Keep the original archive and rollback copies.
 4. Release the native launcher candidate to a small public test group before replacing the stable tag.
 
 ## Subsequent mod-manager/browser improvements
@@ -28,5 +30,6 @@ locally and passes native integration. The web interface is retained; its backen
 - Rich dependency/conflict view, optional-mod presets, package removal/cache management and disk-space UI.
 - More server operators/profile formats, connection diagnostics and large-list UX checks.
 
-This roadmap does not authorize an automatic public deployment. The candidate build and content ZIP
-are reviewable local artifacts; the public releases and servers remain unchanged.
+The launcher build remains local. Two additional content-test assets were published with explicit
+approval; the original release assets and public server configuration are unchanged. This roadmap
+does not authorize an automatic launcher or public-server deployment.

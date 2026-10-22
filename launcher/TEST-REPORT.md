@@ -1,6 +1,7 @@
 # Native launcher candidate validation — 2026-10-21
 
-This is a local candidate, not a published release or public-server deployment.
+The launcher executable is a local candidate. The approved combined content candidate and server
+manifest were subsequently published as separate assets; the public launcher/server remain unchanged.
 
 - MSVC 2022 x64 Release build; static native backend, nlohmann/json 3.11.3 and miniz 3.0.2.
 - CTest exercises SHA-256, atomic metadata replacement, bounded ZIP extraction, traversal rejection,
@@ -52,3 +53,18 @@ The tested rollback is exception/failure rollback, not a claim of power-loss tra
   Vanilla manifest through the real UI. Acceptance selected its managed profile without downloading
   archives. The Webb image and floating rockets remain visible. An independent development preview
   was used; the earlier DevTools window was preserved.
+
+## Public GitHub download acceptance
+
+With explicit approval, uploaded only openmw-client-mods-studio-candidate.zip and
+fetcher-vanilla-studio.json to the existing openmw-client-mods-mp-clients release. GitHub's API
+reported the expected SHA-256 values. The original openmw-client-mods.zip retained its asset ID,
+size and digest (1b4908ee52c05639d7dac00d62c085ffdd43413828f51f795dd5b6cbd9da53c4).
+
+`tests/test_server_manifest_live.py` then ran the real candidate executable in a new installation
+root with no caches and no local-fixture flags. It imported the manifest over public HTTPS,
+reviewed/accepted its fingerprint, followed GitHub's archive redirect, downloaded 33,598,923 bytes,
+verified SHA-256 8ad68f4741d08560cb5e6cb7887fc834ca7ad6408847fcf182499e638a822fdb,
+extracted 354 files and validated the declared plugin order, keyboard model/icon and both credit files.
+The test preserved its personal-config marker. No game was launched and no server settings changed.
+The live test report is retained in release-assets/server-profiles-github-test/live-test-report.json.
