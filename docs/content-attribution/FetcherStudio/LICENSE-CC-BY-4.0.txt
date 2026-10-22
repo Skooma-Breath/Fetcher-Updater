@@ -1,0 +1,6 @@
+The keyboard models, stand and derived textures in this bundle are licensed
+under Creative Commons Attribution 4.0 International (CC BY 4.0).
+See ATTRIBUTION.txt for the original authors, source links and changes.
+License: https://creativecommons.org/licenses/by/4.0/
+Full legal terms: https://creativecommons.org/licenses/by/4.0/legalcode.en
+This notice supplies the license URI; it is not a reproduction of the legal text.

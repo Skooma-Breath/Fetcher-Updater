@@ -10,7 +10,7 @@ Implemented in this candidate:
 - Native WinHTTP release checks/downloads, GitHub SHA-256 validation, ZIP extraction, file receipts/cache,
   client and launcher/tools installation, update mutex and exception rollback with retained backups.
 - Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.
-- Explicit model/artist credits, source links, CC BY 4.0 links and adaptation descriptions.
+- Local model/source/license/adaptation records and preserved content-bundle attribution notices.
 - Reviewed server manifests, owner/source isolation, previous-manifest selection and ordinary archive layouts.
 - Declarative pinned UMO ZIP lists, Nexus API-key downloads where eligible and exact-file manual import.
 - Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.

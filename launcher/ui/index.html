@@ -322,28 +322,6 @@
       .modlist button {
         padding: 3px 9px;
       }
-      .credits {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 14px;
-      }
-      .credits article {
-        background: #101c2b;
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        padding: 18px;
-      }
-      .credits p {
-        font-size: 13px;
-        line-height: 1.65;
-      }
-      .link {
-        padding: 0;
-        background: none;
-        border: 0;
-        color: var(--green);
-        text-decoration: underline;
-      }
       .log {
         white-space: pre-wrap;
         overflow-wrap: anywhere;
@@ -417,8 +395,7 @@
       <nav>
         <button data-page="servers" class="active">Servers</button
         ><button data-page="mods">Mods &amp; load order</button
-        ><button data-page="updates">Updates</button
-        ><button data-page="credits">Credits</button>
+        ><button data-page="updates">Updates</button>
         <div class="version">NATIVE C++ BACKEND<br />Windows / WebView2</div>
       </nav>
       <main>
@@ -633,34 +610,6 @@
               UMO mod-list installation remains available through the separate
               updater scripts during migration.
             </p>
-          </div>
-        </section>
-        <section id="credits" class="page" hidden>
-          <h2>Creators &amp; credits</h2>
-          <p class="description">
-            Thank you to the artists whose work appears in Fetcher. Adapted
-            assets preserve their original attribution and license notices.
-          </p>
-          <div class="credits" id="creditCards"></div>
-          <div class="panel" style="margin-top: 18px">
-            <h3>Adaptations and licenses</h3>
-            <p class="muted" style="line-height: 1.7; font-size: 13px">
-              Studio models were converted to Morrowind NIF, scaled, and given
-              DDS textures and collision geometry. The Yamaha keyboard and
-              X-stand were combined; the inventory icon was rendered from that
-              model. The truck was reoriented, converted and adapted into parked
-              and attached models, with simplified collision and profile
-              measurements. Original artists do not endorse Fetcher.
-            </p>
-            <p class="muted" style="font-size: 13px">
-              Full Studio notices ship in FetcherStudio/ATTRIBUTION.txt and
-              LICENSE-CC-BY-4.0.txt inside the content package. Truck notices
-              ship in FetcherVehicles/CREDITS.txt. Launcher dependency and
-              background-image notices ship beside the executable.
-            </p>
-            <button class="link" id="ccLicense">
-              Creative Commons Attribution 4.0 International
-            </button>
           </div>
         </section>
         <section class="panel">
@@ -1050,46 +999,6 @@ Fetcher native launcher ready.
           notice(String(e));
         }
       };
-      const credits = [
-        [
-          "Yamaha Keyboard",
-          "Rapunzel123",
-          "https://sketchfab.com/3d-models/yamaha-keyboard-ed15fc0df2d244a583e2ac0929b57045",
-        ],
-        [
-          "Keyboard X-Stand",
-          "Michael Perez (pixelflygraphics)",
-          "https://sketchfab.com/3d-models/keyboard-x-stand-d76fd9cba4234dd1891581c2df6b7b00",
-        ],
-        [
-          "Keyboard (Casio VL-Tone)",
-          "AleixoAlonso",
-          "https://sketchfab.com/3d-models/keyboard-casio-vl-tone-be22fbe1ef0044f3bedc6e3edf459593",
-        ],
-        [
-          "Lightbody Lifted ’85",
-          "Daniel Zhabotinsky",
-          "https://sketchfab.com/3d-models/lightbody-lifted-85-low-poly-model-67beae18c3d24be68f9c8f0ec382d8e3",
-        ],
-      ];
-      for (const [name, author, url] of credits) {
-        const card = element("article");
-        card.append(
-          element("h3", name),
-          element("p", author),
-          element("p", "CC BY 4.0"),
-        );
-        const link = button("View original model", () =>
-          action("openUrl", { url }),
-        );
-        link.className = "link";
-        card.append(link);
-        $("creditCards").append(card);
-      }
-      $("ccLicense").onclick = () =>
-        action("openUrl", {
-          url: "https://creativecommons.org/licenses/by/4.0/",
-        });
       try {
         state = await window.fetcherGetStatus();
         render();

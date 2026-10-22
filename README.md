@@ -64,7 +64,7 @@ The canonical source and guide live in the Fetcher Simulator repository under `f
 
 The launcher now has a C++17 backend for client/tools updates, verified package downloads,
 server browsing, per-server mod profiles and generated plugin load orders. Its web interface
-is retained and reorganized into Servers, Mods, Updates and Credits. It invokes no PowerShell
+is retained and reorganized into Servers, Mods and Updates. It invokes no PowerShell
 for these actions. Server owners can provide a generic profile URL; required content is kept
 separate from optional local mods and the user's main configuration.
 
@@ -98,3 +98,7 @@ The builder preserves the surf-map content, adds the vehicle runtime and `Fetche
 ## Rollback
 
 Release assets use stable prerelease tags, so rollback means rebuilding a known-good commit and replacing the affected release assets together. Installed users continue launching the same updater BAT file.
+
+Model/source/license/adaptation records are retained locally in
+[docs/content-attribution](docs/content-attribution/README.md) and in the distributed content bundle.
+The general launcher has no Fetcher-specific Credits tab; a content-specific display is a roadmap item.

@@ -1,0 +1,19 @@
+Fetcher Vehicles - Asset Credits
+
+Pickup model:
+  "Lightbody Lifted '85 - Low poly model"
+  Creator: Daniel Zhabotinsky
+  Source: https://sketchfab.com/3d-models/lightbody-lifted-85-low-poly-model-67beae18c3d24be68f9c8f0ec382d8e3
+  License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+  License URL: https://creativecommons.org/licenses/by/4.0/
+
+Modifications:
+  - Removed license plate and badge geometry.
+  - Reoriented and scaled the model for OpenMW/Morrowind units.
+  - Converted materials and texture paths for Morrowind NIF.
+  - Created separate parked and player-attached visual models.
+  - Added a simplified parked collision mesh.
+  - Added driver-seat, camera, axle, and collision profile measurements.
+  - Exported with Greatness7's io_scene_mw Blender add-on.
+
+The adapted model must retain this attribution when redistributed.

@@ -5,8 +5,8 @@
 Native client/tools updater, verified package cache/install, exception rollback, public server browser,
 favorites/direct connect, imported server profiles, isolated mod configurations, plugin master ordering,
 optional local mod controls, reviewed/namespaced server manifests and previous-manifest rollback,
-UMO ZIP-list normalization, Nexus API-key/manual archive routes, external archives and visible
-Sketchfab credits. A combined surf/truck/Studio bundle is built
+UMO ZIP-list normalization, Nexus API-key/manual archive routes and external archives.
+Model attribution is retained in local records and content packages. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 
 ## Remaining work before replacing the public launcher
@@ -29,6 +29,9 @@ locally and passes native integration. The web interface is retained; its backen
 - Server-advertised profile URLs, manifest identity/version display and protocol/build compatibility.
 - Rich dependency/conflict view, optional-mod presets, package removal/cache management and disk-space UI.
 - More server operators/profile formats, connection diagnostics and large-list UX checks.
+- Choose a content-specific attribution display (in-game Studio Help/Credits or server-profile
+  content details). Local source/license/adaptation records live in docs/content-attribution;
+  bundled notices remain in each content package. The general launcher has no model Credits tab.
 
 The launcher build remains local. Two additional content-test assets were published with explicit
 approval; the original release assets and public server configuration are unchanged. This roadmap

@@ -1002,17 +1002,6 @@ Json Backend::command(const Json &q) {
         launch(mRoot / L"openmw-wizard.exe", {}, mRoot);
         return state();
     }
-    if (op == "openUrl") {
-        auto url = q.at("url").get<std::string>();
-        need(std::regex_match(url, std::regex("https://(sketchfab\\.com|creativecommons\\.org)/"
-                                              "[A-Za-z0-9/_?=.#%-]*")),
-             "Only model/license source links are allowed here.");
-        auto w = wide(url);
-        need(reinterpret_cast<INT_PTR>(
-                 ShellExecuteW(nullptr, L"open", w.c_str(), nullptr, nullptr, SW_SHOWNORMAL)) > 32,
-             "Could not open the source page in your browser.");
-        return state();
-    }
     throw std::runtime_error("Unknown launcher action.");
 }
 } // namespace fetcher

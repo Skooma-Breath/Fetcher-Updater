@@ -1,0 +1,47 @@
+Keyboard (Casio VL-Tone)
+Original author: AleixoAlonso
+Author: https://sketchfab.com/AleixoAlonso
+Source: https://sketchfab.com/3d-models/keyboard-casio-vl-tone-be22fbe1ef0044f3bedc6e3edf459593
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License URL: https://creativecommons.org/licenses/by/4.0/
+License confirmed using the model's public Sketchfab API metadata on 2026-10-16.
+
+Adaptation for OpenMW:
+- FBX transformed to Morrowind NIF 4.0.0.2 using Blender 4.5 and io_scene_mw.
+- Enlarged to 48 game units across for in-world readability; centered horizontally,
+  with the bottom at local Z=0. Separate key/button geometry is retained.
+- Original UV atlas and 6,896 visual triangles retained. Added a 12-triangle box collider.
+- Original 2K color texture converted to mipmapped DXT1 DDS. Original normal map
+  resized to 1K mipmapped DXT5 DDS, optionally detected by OpenMW's normal-map setting.
+- PBR materials adapted to two conventional NIF materials; LCD glass approximated
+  with alpha blending. Metalness/roughness are not used by this legacy material setup.
+
+The model and derived textures remain under CC BY 4.0. Preserve this credit,
+the license link/text and the indication of changes when redistributing the assets.
+No endorsement by AleixoAlonso or Casio is implied. The engine and Lua code are
+separate works under their own repository licenses.
+
+Combined Yamaha keyboard and X-stand adaptation for OpenMW
+=========================================================
+Yamaha Keyboard by Rapunzel123
+Author: https://sketchfab.com/Rapunzel123
+Source: https://sketchfab.com/3d-models/yamaha-keyboard-ed15fc0df2d244a583e2ac0929b57045
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+Keyboard X-Stand by Michael Perez
+Author: https://sketchfab.com/pixelflygraphics
+Source: https://sketchfab.com/3d-models/keyboard-x-stand-d76fd9cba4234dd1891581c2df6b7b00
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+Changes: combined the keyboard OBJ and the stand's static ASCII FBX into one
+Morrowind NIF 4.0.0.2; converted Y-up geometry, centered at the stand's feet;
+keyboard width 104 game units, stand top height 84. Preserved the original UVs,
+adapted materials to legacy NIF, resized textures to 1K/2K mipmapped DDS, and
+added seven simple collision boxes. Export removed one zero-area triangle;
+total visual surface area was checked unchanged. Keys remain static geometry.
+No endorsement by either author or Yamaha is implied.
+
+Inventory icon: rendered from the credited combined Yamaha keyboard and X-stand
+NIF, with transparent background, square framing and mipmapped DXT5 alpha.
