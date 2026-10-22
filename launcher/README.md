@@ -71,6 +71,8 @@ the optional browser link association. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATIO
 the future standalone Fetcher SSO registration steps.
 See [WINDOWS-ACCEPTANCE.md](WINDOWS-ACCEPTANCE.md) for the second-device fresh-install and UI bridge
 checks, and the repeatable SSH acceptance tools.
+See [RELEASE-REVIEW.md](RELEASE-REVIEW.md) for independent launcher publication, the separate Studio
+cutover and the existing VPS build/deployment path; no ARM server GitHub asset is required.
 
 ## Published direct-download candidate
 

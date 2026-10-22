@@ -47,12 +47,14 @@ locally and passes native integration. The web interface is retained; its backen
    world-join acceptance pass, including server Lua/Studio delivery. Validate missing-prerequisite Windows installations and the
    final published release sources. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.
-3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. The
+3. Stage the vanilla-server content/authority and Studio Lua/native-client release together, separately
+   from the independent launcher release against the existing public client/server. No ARM server
+   GitHub asset is needed: the VPS push hook builds/deploys its own binary. See RELEASE-REVIEW.md. The
    combined archive/credits and server manifest are published as separate candidate assets and pass
    real HTTPS preparation. Promote the matching profile only with the coordinated server/client
    rollout. Keep the original archive and rollback copies.
 4. Legacy upgrade acceptance passes on the development PC and PillowPC. Repeat it for the final
-   coordinated release payload, then release the native launcher candidate
+   launcher payload and current public client, then release the native launcher candidate
    to a small public test group before replacing the stable tag. Tell players to reopen after updating.
 
 ## Optional Fetcher experimental-server preset

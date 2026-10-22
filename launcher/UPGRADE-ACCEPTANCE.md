@@ -97,5 +97,6 @@ Keep the stable tools tag, release asset names and installed filenames compatibl
 sourceCommit must match the commit used for the release tag. The existing publishing script replaces
 assets before advancing that tag. Retain the verified legacy ZIP and its hash, the candidate archive,
 upgrade-report.json, and a rollback copy of stable assets before promotion. Changing these local files
-or passing this test does not authorize publication. A coordinated client/server rollout and a small
-test group still precede general release.
+or passing this test does not authorize publication. Test the launcher with a small group against
+the existing public client/server. The separate Studio client/server/content cutover does not require
+an ARM GitHub server asset; see RELEASE-REVIEW.md.

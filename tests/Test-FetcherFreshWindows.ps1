@@ -23,6 +23,8 @@ foreach($entry in $expected.files) {
     $actual=(Get-FileHash -LiteralPath (Join-Path $payload $entry.name) -Algorithm SHA256).Hash.ToLowerInvariant()
     if($actual -ne $entry.sha256) {throw "Transferred payload changed: $($entry.name)"}
 }
+$profileInput=Get-Content -LiteralPath (Join-Path $payload 'profile.json') -Raw | ConvertFrom-Json
+$hasHttpsPackage=@($profileInput.packages | Where-Object {$_.url -like 'https://*'}).Count -gt 0
 function Quote-NativeArgument([string]$value) {
     if($value.Contains('"') -or $value.Contains("`n") -or $value.EndsWith('\')) {throw 'Unsupported diagnostic argument.'}
     return '"'+$value+'"'
@@ -144,10 +146,12 @@ try {
     $null=Invoke-Launcher @{op='gameData';path=$GameData} 'owned-game'
     $review=Invoke-Launcher @{op='reviewProfile';url="$origin/profile.json"} 'review-profile'
     $null=Invoke-Launcher @{op='confirmProfile';token=$review.profileReview.token} 'accept-profile'
-    Write-Output 'Downloading and preparing the real combined content over HTTPS...'
+    if($hasHttpsPackage) {Write-Output 'Downloading and preparing the profile content over HTTPS...'}
+    else {Write-Output 'Preparing the selected profile with the installed client...'}
     $prepared=Invoke-Launcher @{op='prepare'} 'prepare-profile' 240
     if(-not $prepared.setup.gameDataReady -or -not $prepared.setup.profilePrepared) {throw 'Prepared profile is not ready.'}
-    $report.checks.realHttpsContentPreparation=$true
+    $report.checks.profilePreparation=$true
+    if($hasHttpsPackage) {$report.checks.realHttpsContentPreparation=$true}
     Invoke-Native (Join-Path $install 'openmw.exe') @('--version') 30 'real client runtime startup'
     $report.checks.realClientRuntimeStartup=$true
     $beforeRepair=(Get-FileHash -LiteralPath (Join-Path $install 'openmw.cfg')).Hash
