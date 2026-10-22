@@ -42,6 +42,7 @@
     "ui/assets/potm2504a.jpg"
   ],
   "prefixes": [
+    "_fetcher_launcher/",
     "_fetcher_umo/",
     "_fetcher_update/",
     "bardcraft/",

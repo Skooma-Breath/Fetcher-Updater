@@ -4,6 +4,7 @@ param(
     [string] $BaseArchivePath,
     [Parameter(Mandatory = $true)]
     [string] $VehicleDataRoot,
+    [string] $StudioAssetsRoot = "",
     [Parameter(Mandatory = $true)]
     [string] $OutputPath
 )
@@ -16,6 +17,11 @@ $vehicleRoot = (Resolve-Path -LiteralPath $VehicleDataRoot).Path
 $output = [IO.Path]::GetFullPath($OutputPath)
 $workRoot = Join-Path ([IO.Path]::GetTempPath()) ("fetcher-client-mods-vehicles-" + [Guid]::NewGuid().ToString("N"))
 $stage = Join-Path $workRoot "stage"
+$resolvedWorkRoot = [IO.Path]::GetFullPath($workRoot)
+if ((Split-Path -Parent $resolvedWorkRoot).TrimEnd('\') -ne ([IO.Path]::GetFullPath([IO.Path]::GetTempPath())).TrimEnd('\') -or
+    (Split-Path -Leaf $resolvedWorkRoot) -notlike 'fetcher-client-mods-vehicles-*') {
+    throw 'Bundle staging directory escaped its dedicated temporary location.'
+}
 
 $requiredVehicleFiles = @(
     "FetcherVehicles.omwaddon",
@@ -85,6 +91,31 @@ try {
         $content.Add("FetcherVehicles.omwaddon")
     }
     $manifest.content = @($content)
+    if (-not [string]::IsNullOrWhiteSpace($StudioAssetsRoot)) {
+        $studioRoot = (Resolve-Path -LiteralPath $StudioAssetsRoot).Path
+        $studioManifest = Get-Content -LiteralPath (Join-Path $studioRoot "asset-manifest.json") -Raw | ConvertFrom-Json
+        if ($studioManifest.version -ne 1 -or $studioManifest.packageId -ne 'fetcher.procedural-synth.assets') {
+            throw 'Unsupported Studio asset manifest.'
+        }
+        foreach ($record in $studioManifest.files) {
+            $relative = [string]$record.path
+            if ($relative -match '(^/|\\|:|(^|/)\.\.?(/|$))') { throw "Unsafe Studio asset path: $relative" }
+            $source = Join-Path $studioRoot $relative
+            if ((Get-Item -LiteralPath $source).Length -ne $record.bytes -or
+                (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $record.sha256) {
+                throw "Studio asset verification failed: $relative"
+            }
+            $assetPath = if ($relative -match '^(meshes|textures|icons)/') { $relative } else { "FetcherStudio/$relative" }
+            $destination = Join-Path $dataRoot $assetPath
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
+            Copy-Item -LiteralPath $source -Destination $destination -Force
+        }
+        Copy-Item -LiteralPath (Join-Path $studioRoot 'asset-manifest.json') -Destination (Join-Path $dataRoot 'FetcherStudio/asset-manifest.json') -Force
+        foreach ($notice in @('ATTRIBUTION.txt','LICENSE-CC-BY-4.0.txt')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $dataRoot "FetcherStudio/$notice"))) { throw "Missing Studio credit: $notice" }
+        }
+        $manifest | Add-Member -NotePropertyName optionalAssets -NotePropertyValue @('fetcher.procedural-synth.assets') -Force
+    }
     $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $manifestPath -Encoding UTF8
 
     $parent = Split-Path -Parent $output

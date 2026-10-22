@@ -5,7 +5,7 @@ This repository owns the independently released Fetcher Simulator updater and te
 ## Layout
 
 - `release-root/` contains the files installed beside `openmw.exe`.
-- `launcher/` contains the Windows C++/WebView launcher prototype.
+- `launcher/` contains the Windows C++/WebView launcher with the native backend candidate.
 - `scripts/` contains package, client-inventory, launcher-build, and stable-prerelease publishing scripts.
 - `.github/actions/build-client-inventory/` exposes the pinned inventory generator used by the client repository.
 - `tests/` contains package and installer validation.
@@ -60,28 +60,23 @@ The Fetcher Simulator client/server releases themselves ship `Build-OpenMWServer
 
 The canonical source and guide live in the Fetcher Simulator repository under `files/server/`. The full guide covers UDP port forwarding, host firewalls, `server.cfg`, public listing, authority generation/deployment, updates, and hash-mismatch troubleshooting.
 
-## Windows launcher prototype
+## Native community launcher candidate
 
-The initial launcher uses C++17 and `webview/webview` with the installed Microsoft Edge WebView2 Runtime. It deliberately keeps `Update-Fetcher-Simulator.ps1` as the update backend instead of reimplementing updater behavior.
+The launcher now has a C++17 backend for client/tools updates, verified package downloads,
+server browsing, per-server mod profiles and generated plugin load orders. Its web interface
+is retained and reorganized into Servers, Mods, Updates and Credits. It invokes no PowerShell
+for these actions. Server owners can provide a generic profile URL; required content is kept
+separate from optional local mods and the user's main configuration.
 
-On startup, the launcher performs a read-only release check for the client, tester tools/launcher, client-mod bundle, and installed multiplayer compatibility patches. Normal Play is enabled only when those components are current; a known update blocks Play, while an unreachable release service exposes **Play Anyway**. The HTML interface uses a steampunk/dystopian treatment with periodically spawned transparent Fetcher animations.
+This is a local candidate. The current public vanilla profile remains separate from the new
+surf/truck/Studio preview. Publishing the package and changing server content are coordinated
+rollout steps; no public release or server change was performed while preparing this candidate.
 
-The normal **Check for Updates** action uses `-QuickCheck`: an unchanged successful UMO scan is reused for up to 24 hours, and an unchanged client-mod bundle is validated from its digest-backed receipt rather than reinstalled. **Full Mod Check / Repair** omits `-QuickCheck` and always runs the complete UMO workflow.
+The complete legacy UMO/Nexus installer and compatibility pipeline remain separate migration
+work. Existing script entry points and existing-installation launch mode are preserved.
 
-Build and validate it with:
-
-```powershell
-.\scripts\Build-FetcherLauncher.ps1 -Clean
-```
-
-The build performs a synthetic PowerShell backend smoke test, validates the packaged UI, and writes the prototype to `release-assets\fetcher-launcher`. Run it beside a Fetcher installation or supply an explicit development path:
-
-```powershell
-.\release-assets\fetcher-launcher\FetcherLauncher.exe `
-  --install-root "C:\Games\Fetcher-Simulator-Test"
-```
-
-The launcher is included in `fetcher-tester-tools.zip`. Existing testers receive `FetcherLauncher.exe` and `ui\index.html` the next time `Update-Fetcher-Simulator.bat` refreshes tester tools.
+Build, isolated preview instructions, acceptance evidence and profile format are documented in
+[launcher/README.md](launcher/README.md).
 
 ## Vehicle client-mod bundle
 
@@ -91,10 +86,11 @@ Build a candidate bundle by overlaying the redistributable vehicle runtime files
 .\scripts\Build-FetcherClientModBundle.ps1 `
   -BaseArchivePath .\release-assets\client-mod-base\openmw-client-mods.zip `
   -VehicleDataRoot "C:\serena_workspaces_directory\fetcher-simulator\Data Files\fetcher-simulator\Gameplay\FetcherVehicles" `
-  -OutputPath .\release-assets\openmw-client-mods.zip
+  -StudioAssetsRoot "C:\serena_workspaces_directory\openmw\files\server\optional-assets\fetcher.procedural-synth" `
+  -OutputPath .\release-assets\openmw-client-mods-studio-candidate.zip
 ```
 
-The builder excludes development source JSON, preserves the truck's CC BY 4.0 attribution, and adds `FetcherVehicles.omwaddon` to the package manifest.
+The builder preserves the surf-map content, adds the vehicle runtime and `FetcherVehicles.omwaddon`, and optionally overlays the manifest-verified Studio meshes, textures and icon. Studio attribution/license/change notices ship under `Data Files/FetcherStudio`; truck credits remain under `Data Files/FetcherVehicles`. The candidate archive is not published automatically.
 
 ## Rollback
 

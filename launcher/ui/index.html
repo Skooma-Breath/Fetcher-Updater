@@ -1,1216 +1,863 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fetcher Simulator Launcher</title>
-
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family: Georgia, "Times New Roman", serif;
-      --panel: rgba(9, 12, 20, 0.55);
-      --panel-deep: rgba(3, 5, 10, 0.70);
-      --paper: #ececf2;
-      --muted: #abb1c0;
-      --gold: #d2b16c;
-      --green: #82b797;
-      --red: #c87870;
-      --line: rgba(205, 214, 243, 0.16);
-      --line-strong: rgba(215, 223, 251, 0.27);
-      --shadow: 0 22px 56px rgba(0, 0, 0, 0.58);
-    }
-
-    * { box-sizing: border-box; min-width: 0; }
-    html, body { margin: 0; min-height: 100%; overflow-x: hidden; }
-
-    body {
-      min-height: 100vh;
-      color: var(--paper);
-      background:
-        linear-gradient(rgba(1, 2, 7, 0.11), rgba(1, 2, 7, 0.24)),
-        url("assets/potm2504a.jpg") center center / cover no-repeat fixed,
-        #020308;
-    }
-
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::before {
-      background:
-        radial-gradient(circle at 14% 18%, rgba(125, 170, 255, 0.055), transparent 17rem),
-        radial-gradient(circle at 84% 12%, rgba(255, 190, 112, 0.045), transparent 15rem),
-        radial-gradient(circle at 76% 74%, rgba(126, 169, 255, 0.04), transparent 18rem),
-        linear-gradient(180deg, rgba(255,255,255,.018), transparent 38%, rgba(0,0,0,.12));
-      mix-blend-mode: screen;
-    }
-
-    body::after {
-      background:
-        radial-gradient(ellipse at center, transparent 47%, rgba(0, 1, 5, 0.52) 100%),
-        linear-gradient(90deg, rgba(0,0,0,.15), transparent 13%, transparent 87%, rgba(0,0,0,.15));
-    }
-
-    .float-layer {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .floater {
-      position: absolute;
-      left: 0;
-      top: var(--top);
-      width: var(--size);
-      opacity: 0;
-      image-rendering: auto;
-      filter:
-        saturate(1.04)
-        contrast(1.10)
-        brightness(1.04)
-        drop-shadow(0 0 14px rgba(116, 189, 255, 0.22))
-        drop-shadow(0 12px 19px rgba(0,0,0,.75));
-      mix-blend-mode: normal;
-      animation: drift var(--duration) linear forwards;
-      will-change: transform, opacity;
-    }
-
-    @keyframes drift {
-      0% { opacity: 0; transform: translate3d(var(--start), 14px, 0) rotate(var(--tilt)); }
-      12% { opacity: var(--opacity); }
-      49% { transform: translate3d(var(--mid), -13px, 0) rotate(var(--mid-tilt)); }
-      87% { opacity: var(--opacity); }
-      100% { opacity: 0; transform: translate3d(var(--end), 9px, 0) rotate(var(--end-tilt)); }
-    }
-
-    .app {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      max-width: 1160px;
-      min-height: 100vh;
-      margin: 0 auto;
-      padding: 29px;
-      display: grid;
-      grid-template-rows: auto auto minmax(270px, 1fr);
-      gap: 17px;
-    }
-
-    .masthead {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      flex-wrap: wrap;
-      padding: 15px 17px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: linear-gradient(180deg, rgba(17, 21, 31, .55), rgba(5, 8, 15, .66));
-      box-shadow: inset 0 1px rgba(255,255,255,.035), var(--shadow);
-      backdrop-filter: blur(3px);
-    }
-
-    .brand { display: flex; align-items: center; gap: 14px; }
-
-    .seal {
-      position: relative;
-      width: 54px;
-      height: 54px;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(213, 221, 251, .23);
-      border-radius: 8px;
-      color: #f0f1f7;
-      font: 800 25px/1 Georgia, serif;
-      background:
-        radial-gradient(circle at 30% 22%, rgba(185, 205, 255, .20), transparent 42%),
-        linear-gradient(145deg, #30374d, #171c29 68%, #0b0f17);
-      box-shadow: inset 0 0 0 4px rgba(6, 9, 16, .30), 0 8px 18px rgba(0,0,0,.38);
-      text-shadow: 0 2px 2px rgba(0,0,0,.72);
-    }
-
-    .seal::after {
-      content: "";
-      position: absolute;
-      inset: 8px;
-      border: 1px solid rgba(181, 198, 255, .29);
-      border-radius: 4px;
-    }
-
-    h1 {
-      margin: 0;
-      color: #f1f2f8;
-      font-size: clamp(25px, 3.2vw, 37px);
-      letter-spacing: .025em;
-      text-shadow: 0 2px 4px rgba(0,0,0,.76);
-    }
-
-    .tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 11px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: #dce1ef;
-      background: rgba(7, 10, 18, .61);
-      box-shadow: inset 0 1px rgba(255,255,255,.03);
-      font: 700 11px/1 "Cascadia Mono", Consolas, monospace;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      backdrop-filter: blur(3px);
-    }
-
-    .status-tag::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #72798a;
-      box-shadow: 0 0 0 3px rgba(255,255,255,.025);
-    }
-    .status-tag.checking::before { background: var(--gold); animation: blink 1s ease-in-out infinite; }
-    .status-tag.current::before { background: var(--green); box-shadow: 0 0 9px rgba(130,183,151,.74); }
-    .status-tag.outdated::before { background: var(--red); box-shadow: 0 0 9px rgba(200,120,112,.72); }
-    .status-tag.error::before { background: #bba879; }
-    @keyframes blink { 50% { opacity: .35; } }
-
-    .plate {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: linear-gradient(180deg, var(--panel), var(--panel-deep));
-      box-shadow: inset 0 1px rgba(255,255,255,.026), var(--shadow);
-      backdrop-filter: blur(4px);
-    }
-
-    .plate::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      height: 1px;
-      background: linear-gradient(90deg,
-        transparent,
-        rgba(211, 220, 255, .27) 20%,
-        rgba(255, 208, 131, .15) 50%,
-        rgba(173, 205, 255, .20) 78%,
-        transparent);
-      pointer-events: none;
-    }
-    .plate::after { content: none; }
-
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(285px, .6fr);
-      gap: 17px;
-    }
-
-    .command {
-      padding: 27px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 23px;
-      background: linear-gradient(180deg, rgba(13, 17, 26, .43), rgba(4, 7, 12, .56));
-    }
-
-    .eyebrow {
-      margin-bottom: 8px;
-      color: #b5bdd0;
-      font: 700 11px/1 "Cascadia Mono", Consolas, monospace;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-    }
-
-    .command h2 {
-      margin: 0 0 9px;
-      color: #f0f1f7;
-      font-size: clamp(23px, 3vw, 31px);
-      text-shadow: 0 2px 4px rgba(0,0,0,.64);
-    }
-
-    .command p {
-      max-width: 720px;
-      margin: 0;
-      color: #c6ccda;
-      font: 15px/1.58 "Segoe UI", sans-serif;
-    }
-
-    .actions { display: flex; flex-wrap: wrap; gap: 9px; }
-
-    button {
-      appearance: none;
-      min-height: 42px;
-      padding: 10px 15px;
-      border: 1px solid rgba(187, 198, 232, .18);
-      border-radius: 6px;
-      color: #e0e4f0;
-      background: linear-gradient(180deg, rgba(54, 62, 84, .72), rgba(17, 22, 33, .86));
-      box-shadow: inset 0 1px rgba(255,255,255,.035), 0 5px 12px rgba(0,0,0,.28);
-      font: 750 13px/1 "Segoe UI", sans-serif;
-      letter-spacing: .02em;
-      cursor: pointer;
-      transition: transform 100ms ease, filter 100ms ease, border-color 100ms ease;
-    }
-    button:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.09); border-color: rgba(209, 221, 255, .35); }
-    button:active:not(:disabled) { transform: translateY(0); }
-    button:disabled { cursor: not-allowed; opacity: .43; }
-
-    .primary {
-      color: #181913;
-      border-color: rgba(220, 193, 126, .42);
-      background: linear-gradient(180deg, #d7bf88, #9b8556);
-      text-shadow: 0 1px rgba(255,255,255,.16);
-    }
-
-    .play {
-      color: #e9edf7;
-      border-color: rgba(128, 183, 158, .34);
-      background: linear-gradient(180deg, #47746a, #23433e);
-    }
-
-    .repair { border-color: rgba(177, 188, 219, .22); color: #d3d8e7; }
-
-    .gauges {
-      padding: 17px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-    }
-
-    .gauge {
-      min-height: 86px;
-      padding: 14px;
-      border: 1px solid rgba(183, 195, 225, .10);
-      border-radius: 4px;
-      background: rgba(3, 6, 11, .32);
-      box-shadow: inset 0 0 14px rgba(0,0,0,.12);
-    }
-
-    .gauge-label {
-      color: #9fa8bc;
-      font: 10px/1.2 "Cascadia Mono", Consolas, monospace;
-      letter-spacing: .10em;
-      text-transform: uppercase;
-    }
-
-    .gauge-value {
-      margin-top: 9px;
-      color: #e5e8f0;
-      font: 700 14px/1.35 "Segoe UI", sans-serif;
-      overflow-wrap: anywhere;
-    }
-
-    .console {
-      min-height: 280px;
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: auto minmax(0,1fr);
-      background: linear-gradient(180deg, rgba(9, 13, 21, .49), rgba(2, 5, 9, .60));
-    }
-
-    .console-head {
-      padding: 13px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(185, 197, 227, .13);
-      background: rgba(76, 90, 124, .06);
-    }
-
-    .console-title {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      color: #d7dcea;
-      font: 700 12px/1 "Cascadia Mono", Consolas, monospace;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .lamp {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #72798a;
-      box-shadow: 0 0 0 4px rgba(255,255,255,.02);
-    }
-    .lamp.running { background: var(--gold); animation: blink 1s infinite; }
-    .lamp.success { background: var(--green); box-shadow: 0 0 9px rgba(130,183,151,.68); }
-    .lamp.failed { background: var(--red); box-shadow: 0 0 9px rgba(200,120,112,.68); }
-
-    .small { min-height: 29px; padding: 6px 10px; font-size: 11px; background: rgba(15, 20, 31, .44); }
-
-    #log {
-      margin: 0;
-      padding: 17px;
-      min-height: 245px;
-      max-height: 43vh;
-      overflow: auto;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      color: #dbe0ed;
-      background: rgba(1, 3, 7, .22);
-      font: 12px/1.55 "Cascadia Mono", Consolas, monospace;
-    }
-
-    #log::selection { color: #f6f7fb; background: rgba(95, 134, 213, .52); }
-
-    .notice {
-      position: fixed;
-      z-index: 10;
-      left: 50%;
-      bottom: 22px;
-      max-width: min(660px, calc(100vw - 34px));
-      padding: 11px 14px;
-      transform: translate(-50%, 16px);
-      opacity: 0;
-      pointer-events: none;
-      color: #edf0f8;
-      border: 1px solid rgba(191, 203, 233, .24);
-      border-radius: 6px;
-      background: rgba(12, 16, 25, .94);
-      box-shadow: var(--shadow);
-      transition: .16s ease;
-    }
-    .notice.visible { opacity: 1; transform: translate(-50%, 0); }
-
-    @media (max-width: 850px) {
-      .app { padding: 20px; }
-      .hero { grid-template-columns: 1fr; }
-      .gauges { grid-template-columns: repeat(4, minmax(0,1fr)); }
-      .gauge { min-height: 76px; }
-    }
-
-    @media (max-width: 680px) {
-      .app { padding: 14px; gap: 14px; }
-      .masthead { padding: 14px; }
-      .gauges { grid-template-columns: 1fr 1fr; }
-      .command { padding: 22px 20px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) { .floater { display: none; } }
-  </style>
-</head>
-
-<body>
-  <div
-    id="floatLayer"
-    class="float-layer"
-    aria-hidden="true"
-  ></div>
-
-  <main class="app">
-    <header class="masthead">
-      <div class="brand">
-        <div class="seal">F</div>
-
-        <div>
-          <h1>Fetcher Simulator</h1>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'"
+    />
+    <title>Fetcher Launcher</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family:
+          Segoe UI,
+          system-ui,
+          sans-serif;
+        --bg: #0c121c;
+        --panel: #141d2be8;
+        --line: #344155;
+        --muted: #a3b3c7;
+        --ink: #eef4fa;
+        --gold: #d9b66f;
+        --green: #63d6ae;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background:
+          linear-gradient(110deg, #090f19f5, #101b2bd4),
+          url(assets/potm2504a.jpg) center/cover fixed;
+        color: var(--ink);
+        min-width: 820px;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button {
+        background: #26364b;
+        color: var(--ink);
+        border: 1px solid #465a73;
+        border-radius: 5px;
+        padding: 9px 14px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #344d69;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .primary {
+        background: var(--gold);
+        color: #141a20;
+        font-weight: 650;
+        border-color: var(--gold);
+      }
+      .primary:hover {
+        background: #f2ce85;
+      }
+      input,
+      select {
+        background: #0d1622;
+        border: 1px solid #43556b;
+        border-radius: 4px;
+        color: var(--ink);
+        padding: 9px;
+        min-width: 0;
+      }
+      input {
+        flex: 1;
+      }
+      header {
+        height: 88px;
+        padding: 19px 26px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #0a101adb;
+      }
+      h1 {
+        font-size: 25px;
+        letter-spacing: 3px;
+        margin: 0;
+        color: var(--gold);
+      }
+      header small {
+        color: var(--muted);
+        letter-spacing: 2px;
+        font-size: 11px;
+      }
+      header .row {
+        gap: 12px;
+      }
+      .shell {
+        display: grid;
+        grid-template-columns: 172px minmax(0, 1fr);
+        min-height: calc(100vh - 88px);
+      }
+      nav {
+        padding: 24px 13px;
+        border-right: 1px solid var(--line);
+        background: #0a101aaf;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      nav button {
+        text-align: left;
+        background: transparent;
+        border-color: transparent;
+        padding: 12px;
+      }
+      nav button.active {
+        color: var(--gold);
+        background: #243042;
+        border-color: #4a5363;
+      }
+      .version {
+        margin-top: auto;
+        color: var(--muted);
+        font-size: 11px;
+        padding: 16px 9px;
+      }
+      main {
+        padding: 25px;
+        max-width: 1650px;
+        width: 100%;
+        margin: auto;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        flex-wrap: wrap;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .muted,
+      small {
+        color: var(--muted);
+      }
+      h2 {
+        font-size: 22px;
+        margin: 0 0 8px;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 0 0 12px;
+      }
+      .description {
+        margin: 0 0 22px;
+        color: var(--muted);
+        line-height: 1.55;
+        max-width: 900px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 17px;
+      }
+      .toolbar {
+        margin-bottom: 17px;
+      }
+      .tablewrap {
+        overflow: auto;
+        max-height: 420px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 12px;
+        background: #111d2d;
+        position: sticky;
+        top: 0;
+      }
+      td {
+        padding: 13px 12px;
+        border-bottom: 1px solid #29384b;
+      }
+      tr.selected {
+        background: #334a64;
+      }
+      tr.selected td:first-child {
+        border-left: 3px solid var(--gold);
+      }
+      tbody tr:hover {
+        background: #293d55;
+      }
+      td button {
+        padding: 5px 9px;
+      }
+      .server-name {
+        font-weight: 600;
+      }
+      .server-address {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .status {
+        font-size: 13px;
+        color: var(--green);
+      }
+      .status.error {
+        color: #ffaf9e;
+      }
+      .details {
+        margin-top: 16px;
+        padding-top: 15px;
+        border-top: 1px solid var(--line);
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .labelblock {
+        display: block;
+        margin: 13px 0 7px;
+      }
+      .wide {
+        width: 100%;
+      }
+      .mono {
+        font-family: Consolas, monospace;
+        font-size: 12px;
+      }
+      .modlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .modlist li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid #2b394c;
+        padding: 11px 0;
+      }
+      .modlist input {
+        flex: 0;
+      }
+      .modlist .name {
+        flex: 1;
+      }
+      .badge {
+        font-size: 10px;
+        border: 1px solid #4b5b70;
+        border-radius: 3px;
+        padding: 3px 6px;
+        color: var(--gold);
+      }
+      .modlist button {
+        padding: 3px 9px;
+      }
+      .credits {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+      }
+      .credits article {
+        background: #101c2b;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 18px;
+      }
+      .credits p {
+        font-size: 13px;
+        line-height: 1.65;
+      }
+      .link {
+        padding: 0;
+        background: none;
+        border: 0;
+        color: var(--green);
+        text-decoration: underline;
+      }
+      .log {
+        white-space: pre-wrap;
+        overflow: auto;
+        max-height: 180px;
+        min-height: 85px;
+        font-size: 12px;
+        line-height: 1.55;
+        color: #b4c6d9;
+        margin-bottom: 0;
+      }
+      #notice {
+        padding: 13px 17px;
+        border: 1px solid #b78b50;
+        background: #342c20;
+        line-height: 1.5;
+        border-radius: 5px;
+        margin-bottom: 18px;
+      }
+      #notice:empty {
+        display: none;
+      }
+      .page[hidden] {
+        display: none;
+      }
+      .footer {
+        padding-top: 7px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      @media (max-width: 1000px) {
+        main {
+          padding: 18px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        header h1 {
+          font-size: 20px;
+        }
+        .shell {
+          grid-template-columns: 145px minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>FETCHER</h1>
+        <small>COMMUNITY LAUNCHER</small>
       </div>
-
-      <div class="tags">
-        <div
-          id="channelPill"
-          class="tag"
-        >
-          Loading channel
-        </div>
-
-        <div
-          id="statusBadge"
-          class="tag status-tag checking"
-        >
-          Checking releases
-        </div>
+      <div class="row">
+        <span id="busy" class="status">Ready</span
+        ><button id="folder">Open folder</button
+        ><button id="play" class="primary">Play / Join server</button>
       </div>
     </header>
-
-    <section class="hero">
-      <article class="plate command">
-        <div>
-          <div class="eyebrow">Status</div>
-
-          <h2 id="headline">
-            Checking for updates…
-          </h2>
-
-          <p id="summary">
-            Comparing this installation with the current published release.
+    <div class="shell">
+      <nav>
+        <button data-page="servers" class="active">Servers</button
+        ><button data-page="mods">Mods &amp; load order</button
+        ><button data-page="updates">Updates</button
+        ><button data-page="credits">Credits</button>
+        <div class="version">NATIVE C++ BACKEND<br />Windows / WebView2</div>
+      </nav>
+      <main>
+        <div id="notice" role="status"></div>
+        <div class="panel">
+          <div class="row between">
+            <div>
+              <label for="profile">ACTIVE MOD PROFILE</label>
+              <p
+                id="profileDescription"
+                class="muted"
+                style="font-size: 12px; margin: 6px 0 0"
+              ></p>
+            </div>
+            <select id="profile" aria-label="Active mod profile"></select>
+          </div>
+        </div>
+        <section id="servers" class="page">
+          <div class="row between toolbar">
+            <div>
+              <h2>Find your next server</h2>
+              <span class="muted"
+                >Public community servers and direct connections.</span
+              >
+            </div>
+            <button id="refresh">Refresh servers</button>
+          </div>
+          <div class="panel">
+            <div class="row toolbar">
+              <input
+                id="filter"
+                placeholder="Search servers or game modes"
+                aria-label="Filter servers"
+              /><label
+                ><input id="favoritesOnly" type="checkbox" /> Favorites
+                only</label
+              >
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Server</th>
+                    <th>Players</th>
+                    <th>Game mode</th>
+                    <th>Region</th>
+                    <th>Protocol</th>
+                  </tr>
+                </thead>
+                <tbody id="serverRows"></tbody>
+              </table>
+            </div>
+            <p id="serverEmpty" class="muted">
+              Refresh to browse public servers.
+            </p>
+            <div class="details">
+              <label>DIRECT CONNECTION</label>
+              <div class="row" style="margin-top: 9px">
+                <input
+                  id="host"
+                  placeholder="Server hostname or IP"
+                  aria-label="Server hostname"
+                /><input
+                  id="port"
+                  type="number"
+                  value="25565"
+                  min="1"
+                  max="65535"
+                  aria-label="Server port"
+                  style="max-width: 110px"
+                /><button id="connect">Select server</button>
+              </div>
+            </div>
+          </div>
+          <p class="footer">
+            Select a server and its matching mod profile. Server owners can
+            provide a profile URL under Mods.
           </p>
-        </div>
-
-        <div class="actions">
-          <button
-            id="updateButton"
-            class="primary"
-          >
-            Check for Updates
-          </button>
-
-          <button
-            id="playButton"
-            class="play"
-            disabled
-          >
-            Play
-          </button>
-
-          <button
-            id="fullButton"
-            class="repair"
-          >
-            Full Mod Check / Repair
-          </button>
-
-          <button id="wizardButton">
-            Setup Wizard
-          </button>
-
-          <button id="folderButton">
-            Open Folder
-          </button>
-        </div>
-      </article>
-
-      <aside class="plate gauges">
-        <div class="gauge">
-          <div class="gauge-label">
-            Channel
+        </section>
+        <section id="mods" class="page" hidden>
+          <h2>Mods &amp; load order</h2>
+          <p class="description">
+            Profiles keep each server's data paths and plugin order separate.
+            Required server plugins stay enabled; optional local plugins can be
+            managed below. Plugin masters are checked before launch.
+          </p>
+          <div class="panel">
+            <div class="row between toolbar">
+              <h3>Enabled content</h3>
+              <button id="prepare" class="primary">
+                Download / prepare mods
+              </button>
+            </div>
+            <ol id="modRows" class="modlist"></ol>
+            <p id="modsEmpty" class="muted"></p>
           </div>
-
-          <div
-            id="channelValue"
-            class="gauge-value"
-          >
-            —
+          <div class="grid">
+            <div class="panel">
+              <h3>Add an optional local mod</h3>
+              <label class="labelblock" for="modDir">Mod data directory</label
+              ><input
+                id="modDir"
+                class="wide"
+                placeholder="C:\\Mods\\My Mod"
+              /><label class="labelblock" for="modPlugin">Plugin filename</label
+              ><input
+                id="modPlugin"
+                class="wide"
+                placeholder="MyMod.esp"
+              /><button id="addMod" style="margin-top: 14px">
+                Add to this profile
+              </button>
+            </div>
+            <div class="panel">
+              <h3>Server owner's mod profile</h3>
+              <p class="muted" style="font-size: 13px; line-height: 1.6">
+                Import the HTTPS profile URL provided by a server owner. Review
+                its packages and required plugins before downloading.
+              </p>
+              <input
+                id="profileUrl"
+                class="wide"
+                placeholder="https://example.org/server-profile.json"
+              /><button id="addProfile" style="margin-top: 14px">
+                Import profile
+              </button>
+              <pre id="packageSources" class="log"></pre>
+            </div>
           </div>
-        </div>
-
-        <div class="gauge">
-          <div class="gauge-label">
-            Release
+          <div class="panel">
+            <h3>Your Morrowind installation</h3>
+            <p class="muted" style="font-size: 13px">
+              Use your own Data Files directory containing Morrowind, Tribunal
+              and Bloodmoon. The launcher does not download the game.
+            </p>
+            <div class="row">
+              <input
+                id="gameData"
+                placeholder="Morrowind Data Files directory"
+                aria-label="Morrowind data folder"
+              /><button id="setGameData">Save folder</button
+              ><button id="wizard">Setup wizard</button>
+            </div>
           </div>
-
-          <div
-            id="releaseValue"
-            class="gauge-value"
-          >
-            —
+        </section>
+        <section id="updates" class="page" hidden>
+          <h2>Client &amp; profile updates</h2>
+          <p class="description">
+            Native downloads, SHA-256 verification and package installation.
+            Update operations preserve your main configuration, saves and
+            character profiles.
+          </p>
+          <div class="panel">
+            <h3 id="updateTitle">Check the selected profile</h3>
+            <p id="updateMessage" class="muted">
+              Choose Check for updates to compare against published releases.
+            </p>
+            <div class="row">
+              <button id="check">Check for updates</button
+              ><button id="update" class="primary">Install updates</button
+              ><button id="repair">Verify files / repair</button>
+            </div>
+            <p class="footer">
+              Existing installation uses its current mod configuration. Legacy
+              UMO mod-list installation remains available through the separate
+              updater scripts during migration.
+            </p>
           </div>
-        </div>
-
-        <div class="gauge">
-          <div class="gauge-label">
-            Installed commit
+        </section>
+        <section id="credits" class="page" hidden>
+          <h2>Creators &amp; credits</h2>
+          <p class="description">
+            Thank you to the artists whose work appears in Fetcher. Adapted
+            assets preserve their original attribution and license notices.
+          </p>
+          <div class="credits" id="creditCards"></div>
+          <div class="panel" style="margin-top: 18px">
+            <h3>Adaptations and licenses</h3>
+            <p class="muted" style="line-height: 1.7; font-size: 13px">
+              Studio models were converted to Morrowind NIF, scaled, and given
+              DDS textures and collision geometry. The Yamaha keyboard and
+              X-stand were combined; the inventory icon was rendered from that
+              model. The truck was reoriented, converted and adapted into parked
+              and attached models, with simplified collision and profile
+              measurements. Original artists do not endorse Fetcher.
+            </p>
+            <p class="muted" style="font-size: 13px">
+              Full Studio notices ship in FetcherStudio/ATTRIBUTION.txt and
+              LICENSE-CC-BY-4.0.txt inside the content package. Truck notices
+              ship in FetcherVehicles/CREDITS.txt. Launcher dependency and
+              background-image notices ship beside the executable.
+            </p>
+            <button class="link" id="ccLicense">
+              Creative Commons Attribution 4.0 International
+            </button>
           </div>
-
-          <div
-            id="commitValue"
-            class="gauge-value"
-          >
-            —
+        </section>
+        <section class="panel">
+          <div class="row between">
+            <h3 style="margin: 0">Activity</h3>
+            <button id="clearLog" style="padding: 4px 10px">Clear</button>
           </div>
-        </div>
-
-        <div class="gauge">
-          <div class="gauge-label">
-            Last checked
-          </div>
-
-          <div
-            id="checkedValue"
-            class="gauge-value"
-          >
-            Pending
-          </div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="plate console">
-      <div class="console-head">
-        <div class="console-title">
-          <span
-            id="lamp"
-            class="lamp"
-          ></span>
-
-          <span id="logStatus">
-            Launcher ready
-          </span>
-        </div>
-
-        <button
-          id="clearButton"
-          class="small"
-        >
-          Clear log
-        </button>
-      </div>
-
-      <pre id="log">Fetcher launcher initialized.
+          <pre id="log" class="log">Fetcher native launcher ready.
 </pre>
-    </section>
-  </main>
-
-  <div
-    id="notice"
-    class="notice"
-  ></div>
-
-  <script type="module">
-    const ui = Object.fromEntries([
-      "floatLayer",
-      "channelPill",
-      "statusBadge",
-      "headline",
-      "summary",
-      "updateButton",
-      "playButton",
-      "fullButton",
-      "wizardButton",
-      "folderButton",
-      "channelValue",
-      "releaseValue",
-      "commitValue",
-      "checkedValue",
-      "lamp",
-      "logStatus",
-      "log",
-      "clearButton",
-      "notice"
-    ].map(id => [
-      id,
-      document.getElementById(id)
-    ]));
-
-    let localStatus = null;
-
-    let releaseStatus = {
-      state: "checking",
-      result: null
-    };
-
-    let busy = false;
-    let noticeTimer = null;
-
-    function shortCommit(value) {
-      return value
-        ? value.slice(0, 10)
-        : "Not installed";
-    }
-
-    function showNotice(message) {
-      if (!message) {
-        return;
+        </section>
+        <div id="installRoot" class="footer mono"></div>
+      </main>
+    </div>
+    <script type="module">
+      const $ = (id) => document.getElementById(id);
+      let state = null,
+        busy = false,
+        page = "servers";
+      function notice(s) {
+        $("notice").textContent = s || "";
       }
-
-      ui.notice.textContent = message;
-      ui.notice.classList.add("visible");
-
-      clearTimeout(noticeTimer);
-
-      noticeTimer = setTimeout(() => {
-        ui.notice.classList.remove("visible");
-      }, 5200);
-    }
-
-    function appendLog(text) {
-      if (!text) {
-        return;
+      function log(s) {
+        $("log").textContent = ($("log").textContent + s).slice(-200000);
+        $("log").scrollTop = $("log").scrollHeight;
       }
-
-      ui.log.textContent += text.replace(
-        /\r(?!\n)/g,
-        "\n"
-      );
-
-      ui.log.scrollTop =
-        ui.log.scrollHeight;
-    }
-
-    function setLamp(state, label) {
-      ui.lamp.className =
-        `lamp ${state || ""}`.trim();
-
-      ui.logStatus.textContent = label;
-    }
-
-    function formatChecked(value) {
-      if (!value) {
-        return "Pending";
+      function element(tag, text) {
+        const e = document.createElement(tag);
+        if (text !== undefined) e.textContent = text;
+        return e;
       }
-
-      const date = new Date(value);
-
-      return Number.isNaN(date.valueOf())
-        ? "Completed"
-        : date.toLocaleString();
-    }
-
-    function render() {
-      const channel =
-        localStatus?.channel ||
-        releaseStatus.result?.channel ||
-        "default";
-
-      ui.channelPill.textContent = channel;
-      ui.channelValue.textContent = channel;
-
-      ui.releaseValue.textContent =
-        localStatus?.releaseTag ||
-        releaseStatus.result?.client?.releaseTag ||
-        "Unknown";
-
-      ui.commitValue.textContent =
-        shortCommit(localStatus?.commit);
-
-      ui.checkedValue.textContent =
-        formatChecked(
-          releaseStatus.result?.checkedAtUtc
-        );
-
-      ui.statusBadge.className =
-        `tag status-tag ${releaseStatus.state}`;
-
-      if (releaseStatus.state === "checking") {
-        ui.statusBadge.textContent =
-          "Checking releases";
-
-        ui.headline.textContent =
-          "Checking for updates…";
-
-        ui.summary.textContent =
-          "Comparing this installation with the current published release.";
+      function button(text, fn) {
+        const b = element("button", text);
+        b.onclick = fn;
+        return b;
       }
-      else if (releaseStatus.state === "current") {
-        ui.statusBadge.textContent =
-          "Up to date";
-
-        ui.headline.textContent =
-          "Ready to play";
-
-        ui.summary.textContent =
-          "The client, launcher tools, Fetcher mod bundle, and installed multiplayer patches match the published releases.";
+      function showPage(name) {
+        page = name;
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => (p.hidden = p.id !== name));
+        document
+          .querySelectorAll("nav button")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.page === name),
+          );
       }
-      else if (releaseStatus.state === "outdated") {
-        ui.statusBadge.textContent =
-          "Update required";
-
-        ui.headline.textContent =
-          "Update available";
-
-        ui.summary.textContent =
-          releaseStatus.result?.message ||
-          "Run the update before joining the public test server.";
-      }
-      else {
-        ui.statusBadge.textContent =
-          "Unable to verify";
-
-        ui.headline.textContent =
-          "Unable to check for updates";
-
-        ui.summary.textContent =
-          releaseStatus.result?.message ||
-          "The launcher could not verify the current release. You may still launch the installed client.";
-      }
-
-      const updaterAvailable =
-        Boolean(localStatus?.updaterAvailable);
-
-      const openmwAvailable =
-        Boolean(localStatus?.openmwAvailable);
-
-      ui.updateButton.disabled =
-        busy || !updaterAvailable;
-
-      ui.fullButton.disabled =
-        busy || !updaterAvailable;
-
-      ui.wizardButton.disabled =
-        busy || !localStatus?.wizardAvailable;
-
-      ui.folderButton.disabled =
-        busy;
-
-      if (busy) {
-        ui.updateButton.textContent =
-          "Working…";
-
-        ui.fullButton.textContent =
-          "Please wait…";
-
-        ui.playButton.disabled = true;
-        ui.playButton.textContent = "Play";
-      }
-      else {
-        ui.updateButton.textContent =
-          releaseStatus.state === "outdated"
-            ? "Install Update"
-            : "Check for Updates";
-
-        ui.fullButton.textContent =
-          "Full Mod Check / Repair";
-
-        if (releaseStatus.state === "current") {
-          ui.playButton.disabled =
-            !openmwAvailable;
-
-          ui.playButton.textContent =
-            "Play";
-        }
-        else if (releaseStatus.state === "error") {
-          ui.playButton.disabled =
-            !openmwAvailable;
-
-          ui.playButton.textContent =
-            "Play Anyway";
-        }
-        else {
-          ui.playButton.disabled = true;
-
-          ui.playButton.textContent =
-            releaseStatus.state === "outdated"
-              ? "Update Required"
-              : "Play";
-        }
-      }
-    }
-
-    async function refreshLocalStatus() {
-      localStatus =
-        await window.fetcherGetStatus();
-
-      render();
-    }
-
-    async function checkReleaseStatus() {
-      releaseStatus = {
-        state: "checking",
-        result: null
-      };
-
-      render();
-
-      try {
-        const started =
-          await window.fetcherCheckUpdateStatus();
-
-        if (!started.started) {
-          releaseStatus = {
-            state: "error",
-            result: {
-              message:
-                started.error ||
-                "The release check could not start."
-            }
-          };
-
+      async function action(op, values = {}) {
+        if (busy) return;
+        notice("");
+        try {
+          const r = await window.fetcherCommand({ op, ...values });
+          if (!r.started) {
+            notice(r.error);
+            return;
+          }
+          busy = true;
+          render();
+        } catch (e) {
+          busy = false;
+          notice(String(e));
           render();
         }
       }
-      catch (error) {
-        releaseStatus = {
-          state: "error",
-          result: {
-            message: String(error)
-          }
-        };
-
-        render();
-      }
-    }
-
-    async function runUpdate(action, label) {
-      if (busy) {
-        return;
-      }
-
-      try {
-        const result = await action();
-
-        if (!result.started) {
-          showNotice(
-            result.error ||
-            `${label} could not start.`
+      function serverRows() {
+        const body = $("serverRows");
+        body.replaceChildren();
+        const query = $("filter").value.toLowerCase();
+        let count = 0;
+        for (const s of state?.servers || []) {
+          const address =
+            (s.host.includes(":") ? "[" + s.host + "]" : s.host) + ":" + s.port;
+          const favorite = (state.favorites || []).includes(address);
+          if ($("favoritesOnly").checked && !favorite) continue;
+          if (
+            !(s.name + " " + s.gameMode + " " + address)
+              .toLowerCase()
+              .includes(query)
+          )
+            continue;
+          count++;
+          const row = element("tr");
+          row.classList.toggle(
+            "selected",
+            state.host === s.host && state.port === s.port,
           );
-
+          const star = element("td");
+          star.append(
+            button(favorite ? "★" : "☆", (e) => {
+              e.stopPropagation();
+              action("favorite", { host: s.host, port: s.port });
+            }),
+          );
+          row.append(star);
+          const name = element("td");
+          const title = element("div", s.name);
+          title.className = "server-name";
+          const subtitle = element("div", address);
+          subtitle.className = "server-address";
+          name.append(title, subtitle);
+          row.append(name);
+          for (const t of [
+            s.currentPlayers + " / " + s.maxPlayers,
+            s.gameMode,
+            s.country || "—",
+            String(s.protocol),
+          ])
+            row.append(element("td", t));
+          row.onclick = () =>
+            action("selectServer", { host: s.host, port: s.port });
+          body.append(row);
+        }
+        $("serverEmpty").hidden = count !== 0;
+        $("serverEmpty").textContent = state?.servers?.length
+          ? "No servers match your filter."
+          : "No public servers loaded. Refresh or use a direct connection.";
+      }
+      function render() {
+        document
+          .querySelectorAll("button,select")
+          .forEach((b) => (b.disabled = busy));
+        $("busy").textContent = busy ? "Working…" : "Ready";
+        $("profile").replaceChildren();
+        for (const p of state?.profiles || [])
+          $("profile").append(new Option(p.name, p.id));
+        if (!state) return;
+        $("profile").value = state.selectedProfile;
+        const p = state.profiles.find((p) => p.id === state.selectedProfile);
+        $("profileDescription").textContent = p?.description || "";
+        $("host").value = state.host || "";
+        $("port").value = state.port || 25565;
+        $("gameData").value = state.gameData || "";
+        $("installRoot").textContent = state.installRoot;
+        serverRows();
+        $("modRows").replaceChildren();
+        let optional = 0;
+        for (const m of state.mods || []) {
+          const row = element("li");
+          const box = element("input");
+          box.type = "checkbox";
+          box.checked = m.enabled;
+          box.disabled = busy || m.required;
+          const index = optional;
+          if (!m.required) optional++;
+          box.onchange = () =>
+            action("editMod", { index, enabled: box.checked });
+          row.append(box);
+          const name = element("span", m.name);
+          name.className = "name";
+          row.append(name);
+          const badge = element("span", m.required ? "REQUIRED" : "LOCAL");
+          badge.className = "badge";
+          row.append(badge);
+          if (!m.required) {
+            row.append(
+              button("↑", () => action("editMod", { index, move: -1 })),
+              button("↓", () => action("editMod", { index, move: 1 })),
+            );
+          }
+          $("modRows").append(row);
+        }
+        $("modsEmpty").textContent =
+          p?.mode === "installed"
+            ? "Using your current openmw.cfg unchanged. Select a managed profile for automatic mod preparation."
+            : state.mods?.length
+              ? ""
+              : "No plugins in this profile.";
+        $("addMod").disabled = busy || p?.mode === "installed";
+        $("prepare").disabled = busy || p?.mode === "installed";
+        $("packageSources").textContent = (p?.packages || [])
+          .map((d) =>
+            d.repository
+              ? d.repository + " / " + d.releaseTag + "\n" + d.assetName
+              : d.url + "\nSHA-256: " + d.sha256,
+          )
+          .join("\n\n");
+        const status = state.status;
+        $("updateTitle").textContent =
+          status?.status === "current"
+            ? "Ready to play"
+            : status?.status === "updateAvailable"
+              ? "Update available"
+              : "Check the selected profile";
+        $("updateMessage").textContent =
+          status?.message ||
+          "Compare the client and selected profile with published releases.";
+        document
+          .querySelectorAll("#modRows button")
+          .forEach((b) => (b.disabled = busy));
+      }
+      window.fetcherReceive = (event) => {
+        if (event.type === "log") {
+          log(event.text);
           return;
         }
-
-        busy = true;
-
-        setLamp(
-          "running",
-          label
+        if (event.type === "action-complete") {
+          busy = false;
+          if (event.state) state = event.state;
+          if (!event.ok) {
+            notice(event.error);
+            log("Error: " + event.error + "\n");
+          } else {
+            log(event.action + " completed.\n");
+            if (event.action === "prepare")
+              notice(
+                "Mod profile prepared. Play will use its generated load order.",
+              );
+          }
+          render();
+        }
+      };
+      document
+        .querySelectorAll("nav button")
+        .forEach((b) => (b.onclick = () => showPage(b.dataset.page)));
+      $("refresh").onclick = () => action("refreshServers");
+      $("filter").oninput = serverRows;
+      $("favoritesOnly").onchange = serverRows;
+      $("profile").onchange = () =>
+        action("profile", { id: $("profile").value });
+      $("connect").onclick = () =>
+        action("selectServer", {
+          host: $("host").value.trim(),
+          port: Number($("port").value),
+        });
+      $("play").onclick = () => action("launch");
+      $("prepare").onclick = () => action("prepare");
+      $("check").onclick = () => action("check");
+      $("update").onclick = () => action("update");
+      $("repair").onclick = () => action("repair");
+      $("wizard").onclick = () => action("wizard");
+      $("setGameData").onclick = () =>
+        action("gameData", { path: $("gameData").value.trim() });
+      $("addProfile").onclick = () =>
+        action("addProfile", { url: $("profileUrl").value.trim() });
+      $("addMod").onclick = () =>
+        action("addMod", {
+          directory: $("modDir").value.trim(),
+          name: $("modPlugin").value.trim(),
+        });
+      $("clearLog").onclick = () => {
+        $("log").textContent = "";
+      };
+      $("folder").onclick = async () => {
+        try {
+          const r = await window.fetcherOpenInstallFolder();
+          if (!r.ok) notice(r.error);
+        } catch (e) {
+          notice(String(e));
+        }
+      };
+      const credits = [
+        [
+          "Yamaha Keyboard",
+          "Rapunzel123",
+          "https://sketchfab.com/3d-models/yamaha-keyboard-ed15fc0df2d244a583e2ac0929b57045",
+        ],
+        [
+          "Keyboard X-Stand",
+          "Michael Perez (pixelflygraphics)",
+          "https://sketchfab.com/3d-models/keyboard-x-stand-d76fd9cba4234dd1891581c2df6b7b00",
+        ],
+        [
+          "Keyboard (Casio VL-Tone)",
+          "AleixoAlonso",
+          "https://sketchfab.com/3d-models/keyboard-casio-vl-tone-be22fbe1ef0044f3bedc6e3edf459593",
+        ],
+        [
+          "Lightbody Lifted ’85",
+          "Daniel Zhabotinsky",
+          "https://sketchfab.com/3d-models/lightbody-lifted-85-low-poly-model-67beae18c3d24be68f9c8f0ec382d8e3",
+        ],
+      ];
+      for (const [name, author, url] of credits) {
+        const card = element("article");
+        card.append(
+          element("h3", name),
+          element("p", author),
+          element("p", "CC BY 4.0"),
         );
-
-        render();
-      }
-      catch (error) {
-        showNotice(
-          `${label} could not start: ${error}`
+        const link = button("View original model", () =>
+          action("openUrl", { url }),
         );
+        link.className = "link";
+        card.append(link);
+        $("creditCards").append(card);
       }
-    }
-
-    async function runAction(action, fallback) {
+      $("ccLicense").onclick = () =>
+        action("openUrl", {
+          url: "https://creativecommons.org/licenses/by/4.0/",
+        });
       try {
-        const result = await action();
-
-        if (result?.ok === false) {
-          showNotice(
-            result.error ||
-            fallback
-          );
-        }
-      }
-      catch (error) {
-        showNotice(
-          `${fallback}: ${error}`
-        );
-      }
-    }
-
-    ui.updateButton.addEventListener(
-      "click",
-      () => runUpdate(
-        () => window.fetcherStartUpdate(),
-        "Checking and installing updates"
-      )
-    );
-
-    ui.fullButton.addEventListener(
-      "click",
-      () => runUpdate(
-        () => window.fetcherStartFullUpdate(),
-        "Running full mod check and repair"
-      )
-    );
-
-    ui.playButton.addEventListener(
-      "click",
-      () => runAction(
-        () => window.fetcherLaunchOpenMw(),
-        "OpenMW could not be launched"
-      )
-    );
-
-    ui.wizardButton.addEventListener(
-      "click",
-      () => runAction(
-        () => window.fetcherLaunchWizard(),
-        "The setup wizard could not be launched"
-      )
-    );
-
-    ui.folderButton.addEventListener(
-      "click",
-      () => runAction(
-        () => window.fetcherOpenInstallFolder(),
-        "The installation folder could not be opened"
-      )
-    );
-
-    ui.clearButton.addEventListener(
-      "click",
-      () => {
-        ui.log.textContent = "";
-      }
-    );
-
-    window.fetcherReceive = event => {
-      if (!event?.type) {
-        return;
-      }
-
-      if (event.type === "log") {
-        appendLog(event.text);
-      }
-      else if (
-        event.type ===
-        "status-check-started"
-      ) {
-        releaseStatus = {
-          state: "checking",
-          result: null
-        };
-
-        setLamp(
-          "running",
-          "Checking published releases"
-        );
-
+        state = await window.fetcherGetStatus();
+        render();
+        await action("refreshServers");
+      } catch (e) {
+        notice("Native launcher bridge unavailable: " + e);
         render();
       }
-      else if (
-        event.type ===
-        "status-check-complete"
-      ) {
-        busy = false;
-
-        if (event.localStatus) {
-          localStatus =
-            event.localStatus;
-        }
-
-        const result =
-          event.result || {};
-
-        releaseStatus = {
-          state:
-            result.status === "current"
-              ? "current"
-              : result.status ===
-                  "updateAvailable"
-                ? "outdated"
-                : "error",
-
-          result
-        };
-
-        setLamp(
-          releaseStatus.state === "current"
-            ? "success"
-            : releaseStatus.state === "outdated"
-              ? "failed"
-              : "",
-
-          result.message ||
-          "Update check complete"
-        );
-
-        render();
-      }
-      else if (
-        event.type ===
-        "update-started"
-      ) {
-        busy = true;
-
-        setLamp(
-          "running",
-          "Updater running"
-        );
-
-        render();
-      }
-      else if (
-        event.type ===
-        "update-complete"
-      ) {
-        busy = false;
-
-        if (event.status) {
-          localStatus =
-            event.status;
-        }
-
-        if (event.success) {
-          appendLog(
-            "\nUpdate completed successfully. Rechecking published releases…\n"
-          );
-
-          setLamp(
-            "success",
-            "Update complete"
-          );
-
-          render();
-          checkReleaseStatus();
-        }
-        else {
-          appendLog(
-            `\nUpdate failed with exit code ${event.exitCode}.\n`
-          );
-
-          setLamp(
-            "failed",
-            "Update failed"
-          );
-
-          showNotice(
-            event.error ||
-            `Updater exited with code ${event.exitCode}.`
-          );
-
-          releaseStatus = {
-            state: "error",
-            result: {
-              message:
-                "The update did not complete successfully."
-            }
-          };
-
-          render();
-        }
-      }
-    };
-
-    function spawnFloater(initial = false) {
-      if (
-        matchMedia(
-          "(prefers-reduced-motion: reduce)"
-        ).matches
-      ) {
-        return;
-      }
-
-      const img =
-        document.createElement("img");
-
-      img.className = "floater";
-
-      const movingRight =
-        Math.random() >= 0.5;
-
-      img.src = movingRight
-        ? "assets/fetcher-float-right.gif"
-        : "assets/fetcher-float.gif";
-
-      const size =
-        62 +
-        Math.round(
-          Math.random() * 155
-        );
-
-      const duration =
-        18 +
-        Math.round(
-          Math.random() * 22
-        );
-
-      const top =
-        4 +
-        Math.round(
-          Math.random() * 76
-        );
-
-      const tilt =
-        -18 +
-        Math.round(
-          Math.random() * 36
-        );
-
-      img.style.setProperty(
-        "--size",
-        `${size}px`
-      );
-
-      img.style.setProperty(
-        "--duration",
-        `${duration}s`
-      );
-
-      img.style.setProperty(
-        "--top",
-        `${top}%`
-      );
-
-      img.style.setProperty("--opacity", "1");
-
-      img.style.setProperty(
-        "--tilt",
-        `${tilt}deg`
-      );
-
-      img.style.setProperty(
-        "--mid-tilt",
-        `${Math.round(tilt * -0.35)}deg`
-      );
-
-      img.style.setProperty(
-        "--end-tilt",
-        `${Math.round(tilt * 0.55)}deg`
-      );
-
-      img.style.setProperty(
-        "--start",
-        movingRight
-          ? `-${size + 40}px`
-          : `calc(100vw + ${size + 40}px)`
-      );
-
-      img.style.setProperty(
-        "--mid",
-        movingRight
-          ? "48vw"
-          : "42vw"
-      );
-
-      img.style.setProperty(
-        "--end",
-        movingRight
-          ? `calc(100vw + ${size + 40}px)`
-          : `-${size + 40}px`
-      );
-
-      if (initial) {
-        img.style.animationDelay =
-          `-${Math.round(
-            Math.random() *
-            duration *
-            0.65
-          )}s`;
-      }
-
-      img.addEventListener(
-        "animationend",
-        () => img.remove()
-      );
-
-      ui.floatLayer.appendChild(img);
-    }
-
-    function scheduleFloater() {
-      spawnFloater(false);
-
-      setTimeout(
-        scheduleFloater,
-        5200 +
-        Math.random() * 7200
-      );
-    }
-
-    window.addEventListener(
-      "resize",
-      () => {
-        window.scrollTo(
-          0,
-          window.scrollY
-        );
-      }
-    );
-
-    for (let i = 0; i < 3; ++i) {
-      spawnFloater(true);
-    }
-
-    setTimeout(
-      scheduleFloater,
-      3200
-    );
-
-    await refreshLocalStatus();
-    await checkReleaseStatus();
-  </script>
-</body>
+    </script>
+  </body>
 </html>

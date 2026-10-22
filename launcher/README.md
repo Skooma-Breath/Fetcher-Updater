@@ -1,60 +1,50 @@
-# Fetcher Simulator Launcher
+# Fetcher community launcher — native backend candidate
 
-This is the first Windows-only launcher frontend for Fetcher Simulator.
+Windows C++17 backend with the existing WebView2/web-interface approach. The new
+launcher does not run PowerShell for its update/mod-profile actions.
 
-It uses:
+Implemented in this candidate:
 
-- C++17
-- [`webview/webview`](https://github.com/webview/webview) 0.12.0
-- Microsoft Edge WebView2 on Windows
-- The existing `Update-Fetcher-Simulator.ps1` as the update backend
+- Public server browser using the game's live master service, search, favorites and direct connect.
+- Current-public vanilla and separate surf/truck/Studio preview profiles; generic operator profile URLs.
+- Native WinHTTP release checks/downloads, GitHub SHA-256 validation, ZIP extraction, file receipts/cache,
+  client and launcher/tools installation, update mutex and exception rollback with retained backups.
+- Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.
+- Explicit model/artist credits, source links, CC BY 4.0 links and adaptation descriptions.
+- Existing-installation mode launches an already configured full mod setup unchanged.
 
-The launcher does not reimplement updater behavior. It stages the installed PowerShell updater into the user's temporary directory, runs it with the current Fetcher installation as `-InstallRoot`, and streams combined standard output and error text into the HTML interface.
+**Migration boundary:** the separate UMO/Nexus installer, its third-party tool bootstrap and legacy
+compatibility appliers have not yet been ported. Existing script entry points remain supported during
+migration. The native launcher does not claim to install/repair that entire historical mod list.
 
-## Current functionality
-
-- Automatically performs a read-only startup release check for the client, launcher/tester tools, client-mod bundle, and installed multiplayer compatibility patches.
-- Shows **Up to date**, **Update required**, or **Unable to verify** before enabling Play.
-- Blocks normal Play while a known update is available and exposes **Play Anyway** only when release verification fails.
-- Displays the selected Fetcher release channel and installed client commit.
-- Uses a steampunk/dystopian HTML interface with periodically spawned transparent background animations derived from the supplied Fetcher Simulator recording.
-- Runs `Update-Fetcher-Simulator.ps1` without opening a console window.
-- Provides a fast **Check for Updates** action that reuses a successful UMO scan for up to 24 hours when the modlist is unchanged.
-- Provides **Full Mod Check / Repair** to force the complete UMO scan and reinstall/repair workflow.
-- Avoids reinstalling an unchanged client-mod bundle during quick checks by validating its digest-backed receipt.
-- Starts its interactive window from a per-user LocalAppData staging copy so the installed executable can be replaced during an update.
-- Streams updater and UMO output into the launcher window.
-- Launches `openmw.exe`.
-- Launches `openmw-wizard.exe`.
-- Opens the Fetcher installation folder.
-- Supports `--install-root <path>` for development and diagnostics.
-- Supports `--self-test` for build validation.
-
-## Build
-
-From the repository root in PowerShell:
+## Build and validate
 
 ```powershell
-.\scripts\Build-FetcherLauncher.ps1 -Clean
+.\scripts\Build-FetcherLauncher.ps1 -OutputDir release-assets\fetcher-launcher-native-candidate
+python tests\test_native_backend.py --exe launcher\build\bin\FetcherLauncher.exe `
+  --bundle release-assets\openmw-client-mods-studio-candidate.zip
 ```
 
-The packaged prototype is written to:
+The build runs CTest, local HTTP/package integration and the launcher self-test. The optional
+bundle test exercises the real combined surf/truck/Studio archive. Dependencies are pinned through
+CMake: webview 0.12.0, nlohmann/json 3.11.3 and miniz 3.0.2. Their licenses ship in the notices file.
+The Microsoft Edge WebView2 Runtime is required. C++ handles backend logic; HTML/JavaScript renders UI.
 
-```text
-release-assets\fetcher-launcher
-```
-
-For normal use, place `FetcherLauncher.exe` and its `ui` directory beside `Update-Fetcher-Simulator.ps1`, `openmw.exe`, and `openmw-wizard.exe`.
-
-## Development launch
+## Isolated preview
 
 ```powershell
-.\release-assets\fetcher-launcher\FetcherLauncher.exe `
-    --install-root "C:\Games\Fetcher-Simulator-Test"
+.\release-assets\fetcher-launcher-native-candidate\FetcherLauncher.exe `
+  --install-root "C:\serena_workspaces_directory\Fetcher-Updater\release-assets\native-preview"
 ```
 
-Pass `--debug` to enable the WebView developer tools context.
+Use this isolated directory when reviewing the candidate. Update buttons follow the **currently
+published** client/tools tags, which still contain the older public launcher until this candidate is
+released. Do not use a development game installation as a disposable update test.
 
-## Runtime requirement
+There is no automatic Nexus/UMO installation on startup. Server discovery is read-only. Managed
+profile preparation downloads its declared packages and builds a separate config before launch.
+Current public servers have not been changed by this candidate. The preview asset profile deliberately
+requires Studio assets that are not in the old published bundle yet, and reports them missing.
 
-The Windows build uses the installed Microsoft Edge WebView2 Runtime. The launcher catches WebView initialization errors and displays a native error message when the runtime is unavailable.
+See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isolation,
+[TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.
