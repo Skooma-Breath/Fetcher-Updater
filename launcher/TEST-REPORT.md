@@ -125,3 +125,33 @@ outside this slice. These tests do not launch a game or change the public launch
 These are synthetic installer fixtures, not live third-party FOMOD compatibility certification.
 Installed-file/game/extender dependencies, a player-facing wizard, C#/ModScript and nested installers
 remain unsupported. See PROFILE-FORMAT.md for the exact subset, bounds and deterministic choices.
+
+## Published legacy-to-native upgrade acceptance — 2026-10-22
+
+Read-only GitHub discovery identified the public tools package as source
+093ff61a9d6e2605d1f65834b94714db5c6acd35. Downloaded its 1,920,141-byte ZIP and verified GitHub's
+SHA-256 df70eea0f76d7a0a931bfbf68eca90d7ad5a844e932e56b22a306c8d48857d71, plus every inventory
+record, before executing it. The candidate tested is the signed 972f558 native FOMOD tools package.
+
+- The real legacy executable's updater entry point and pristine public scripts detected the tools
+  update without downloading it during status checking, then installed the exact candidate files.
+- Repeated with a live legacy GUI in an installation with spaces and a Unicode directory name.
+  Confirmed that the old staged executable/UI remained running while installed files changed, then
+  closed only that test window and reopened the new staged native executable with matching UI.
+- Native self-test and backend initialization pass. Existing installation remains selected and
+  personal config/settings/save/mod/synthetic-key/unrelated-UI markers remain byte-identical.
+- Corrupt downloads and a digest-valid archive missing required ui/index.html both fail before old
+  files are replaced. This is not a power-loss, mid-copy or whole-game rollback claim.
+- Native WebView2 inspection of the reopened installation confirms its community server browser,
+  Existing installation mode, original background and floating rockets. No Update or Play/Join
+  button was clicked during UI inspection. Only test-owned processes were started/stopped;
+  OpenMW was never launched.
+
+Reports are retained in release-assets/launcher-upgrade-cli-test-3/upgrade-report.json and
+release-assets/launcher-upgrade-gui-é/upgrade-report.json. The repeatable test supplies a test-only
+adapter with local release endpoints and documented skip switches; the public launcher, updater and
+bootstrap implementations remain unmodified. A child-only PS5.1 module path avoids this development
+shell's PowerShell 7 module shadowing. Public GitHub assets/tags, servers and existing user game
+installations are unchanged. See UPGRADE-ACCEPTANCE.md for scope and rerun instructions.
+Both the download-current-public and retained-legacy-archive PowerShell wrapper paths pass; the
+latter also repeats the full staged GUI check and cleans up only its own test windows.

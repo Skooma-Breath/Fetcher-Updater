@@ -55,6 +55,8 @@ pins a distinct combined candidate archive; it cannot silently use the older pub
 
 See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isolation,
 [TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.
+See [UPGRADE-ACCEPTANCE.md](UPGRADE-ACCEPTANCE.md) for the verified old-launcher update path and
+the repeatable isolated upgrade test. Players reopen the launcher after installing the update.
 
 ## Published direct-download candidate
 

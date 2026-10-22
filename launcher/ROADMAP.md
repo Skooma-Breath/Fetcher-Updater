@@ -8,6 +8,8 @@ optional local mod controls, reviewed/namespaced server manifests and previous-m
 UMO ZIP/7z/RAR normalization and contained copy/rename/remove layouts, Nexus API-key/manual archive
 routes and external archives. Server-pinned XML FOMOD choices install required/selected files into
 isolated layouts with option, flag and priority validation.
+The published legacy launcher has passed isolated old-to-native tools upgrade acceptance, including
+a running staged GUI, reopening, personal-file preservation and rejected invalid packages.
 Model attribution is retained in local records and content packages. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 
@@ -24,7 +26,8 @@ locally and passes native integration. The web interface is retained; its backen
    combined archive/credits and server manifest are published as separate candidate assets and pass
    real HTTPS preparation. Promote the matching profile only with the coordinated server/client
    rollout. Keep the original archive and rollback copies.
-4. Release the native launcher candidate to a small public test group before replacing the stable tag.
+4. Rerun UPGRADE-ACCEPTANCE.md against the final package, then release the native launcher candidate
+   to a small public test group before replacing the stable tag. Tell players to reopen after updating.
 
 ## Subsequent mod-manager/browser improvements
 
