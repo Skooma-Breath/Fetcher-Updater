@@ -152,6 +152,46 @@ int wmain(int argc, wchar_t **argv) {
         preserved(install);
         rejects([&] { restoreInstallBackup(install, "../outside"); },
                 "rollback path traversal rejected");
+        // The actual public Vehicles archive inventories three client-owned menu images.
+        auto branded = root / "branding/install", brandedStage = root / "branding/stage";
+        seed(branded, brandedStage, false);
+        const std::vector<std::string> branding = {
+            "Data Files/textures/menu_mainmenu.dds", "Data Files/textures/menu_mainmenu_over.dds",
+            "Data Files/textures/menu_mainmenu_pressed.dds"};
+        std::vector<std::string> brandedFiles = {"openmw.exe", "new-client.dat"};
+        for (const auto &name : branding) {
+            writeAtomic(branded / name, "previous branding");
+            writeAtomic(brandedStage / name, "published branding");
+            brandedFiles.push_back(name);
+        }
+        writeAtomic(branded / "Data Files/personal.esp", "personal mod");
+        inventory(brandedStage, false, brandedFiles);
+        Backend::installClient(branded, brandedStage, Json::object());
+        for (const auto &name : branding)
+            check(read(branded / name) == "published branding", "published menu images install");
+        check(read(branded / "Data Files/personal.esp") == "personal mod",
+              "branding install preserves unrelated mod files");
+        preserved(branded);
+        auto brandedId = listInstallBackups(branded)[0].at("id").get<std::string>();
+        rejects([&] {
+            Backend::installClient(branded, brandedStage,
+                Json{{"exactPaths", Json::array({branding.front()})}});
+        }, "explicit policy can protect a client-owned menu image");
+        rejects([&] {
+            Backend::installClient(branded, brandedStage,
+                Json{{"prefixes", Json::array({"data files/"})}});
+        }, "explicit policy can protect all Data Files");
+        writeAtomic(brandedStage / "Data Files/personal.esp", "unwanted replacement");
+        brandedFiles.push_back("Data Files/personal.esp");
+        inventory(brandedStage, false, brandedFiles);
+        rejects([&] { Backend::installClient(branded, brandedStage, Json::object()); },
+                "arbitrary client-supplied mod files remain protected");
+        check(read(branded / "Data Files/personal.esp") == "personal mod",
+              "rejected mod payload preserves the original");
+        restoreInstallBackup(branded, brandedId);
+        for (const auto &name : branding)
+            check(read(branded / name) == "previous branding", "rollback restores old menu images");
+        preserved(branded);
         // An interrupted restore is safe to resume from a mixture of old and new bytes.
         auto resume = root / "resume/install", resumeStage = root / "resume/stage";
         seed(resume, resumeStage, true);

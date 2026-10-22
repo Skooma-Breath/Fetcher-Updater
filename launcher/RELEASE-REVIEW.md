@@ -19,6 +19,12 @@ native build. The package manifest identifies the packaging source; retain the o
 binary build/test hash separately. The Studio client/server build must identify the same engine
 commit, excluding unrelated worktree Lua overrides from the reviewed server source.
 
+`--vanilla-snapshot` optionally generates a concrete private Vanilla overlay and server.cfg diff from
+the retained live config, manifest and health script. It enables only Studio, includes its required
+Lua modules/package, keeps the current health behavior and references the existing owned Vanilla
+data plus staged combined content. It does not import the experimental runtime or auto-place test
+objects. Review the generated overlay inventory and choose keyboard placement before activation.
+
 ## Launcher-only publication
 
 1. Validate the package, retained legacy-to-native upgrade and native setup with the current public

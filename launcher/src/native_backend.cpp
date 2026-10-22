@@ -63,16 +63,18 @@ std::vector<fs::path> configuredData(const fs::path &root) {
     }
     return result;
 }
-bool protectedPath(const std::string &path, const Json &policy) {
+bool protectedPath(const std::string &path, const Json &policy, bool protectModData = true) {
     auto p = lower(path);
     if (p == "openmw.cfg" || p == "settings.cfg" || p == "server.cfg" || p == "playerdata.db" ||
         p == "server-lua-storage.bin" || p == "fetcherlauncher.exe" || p == "fetchersetup.exe" ||
         p == "fetcher-launcher-profiles.json" || p == "fetcher-update-state.json")
         return true;
     for (auto prefix : {"_fetcher_launcher/", "_fetcher_update/", "profiles/", "mp-keys/",
-                        "userdata/", "saves/", "screenshots/", "data files/", "logs/", "ui/"})
+                        "userdata/", "saves/", "screenshots/", "logs/", "ui/"})
         if (p.rfind(prefix, 0) == 0)
             return true;
+    if (protectModData && p.rfind("data files/", 0) == 0)
+        return true;
     for (const auto &e : policy.value("exactPaths", Json::array()))
         if (p == lower(e.get<std::string>()))
             return true;
@@ -172,7 +174,12 @@ Json builtinProfiles() {
 }
 } // namespace
 bool protectedClientPath(const std::string &name, const Json &policy) {
-    return protectedPath(name, policy);
+    // The public Vehicles client owns these three menu images in Data Files.
+    // Keep arbitrary mods protected and retain explicit operator policy overrides.
+    static const std::set<std::string> clientBranding = {
+        "data files/textures/menu_mainmenu.dds", "data files/textures/menu_mainmenu_over.dds",
+        "data files/textures/menu_mainmenu_pressed.dds"};
+    return protectedPath(name, policy, clientBranding.count(lower(name)) == 0);
 }
 Backend::Backend(fs::path root, Log log)
     : mRoot(fs::absolute(root).lexically_normal()), mManaged(mRoot / L"_fetcher_launcher"),

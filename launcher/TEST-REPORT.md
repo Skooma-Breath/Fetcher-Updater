@@ -380,3 +380,15 @@ now performs its own sign-in, as validated below. No public assets, tags or serv
   `release-assets/pillowpc-world-evidence` and the device's dedicated acceptance directory.
 - This is world/log/renderer-context validation, not visual inspection or interactive Studio/music
   acceptance. No public release/server is changed; prerequisite and coordinated rollout work remains.
+
+## Published-client installer compatibility — 2026-10-22
+
+The actual published Vehicles ZIP (client commit `10c1fde8b59fb896725c7deb078c70ea6cb49044`,
+SHA-256 `b68d774bdd1065783ffd75ef5a4ee6ca6e0d72c4f431d8d5ee1eb11ff1cdb4f8`) inventories three
+Fetcher menu textures under Data Files. Native setup initially refused them because its default
+client policy protects that entire directory. Only those three exact client-owned menu paths are
+now permitted; operator policy still overrides the exception. Transaction tests install all three,
+preserve an unrelated mod, reject arbitrary mod replacements/explicitly protected menu paths, and
+restore the previous images through rollback. The normal build and integration suites pass. Exact
+staged-package/PillowPC results are retained with the local release review rather than inferred
+from earlier development-client tests.

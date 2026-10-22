@@ -1,5 +1,6 @@
 """Assemble a local release review. This script never publishes or deploys anything."""
 import argparse
+import difflib
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -37,6 +38,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('engine-source', 'runtime', 'tools-dir', 'content', 'profile', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--vanilla-snapshot', type=Path)
     args = parser.parse_args()
     root = args.output.resolve()
     publish = root / 'publish'
@@ -106,6 +108,48 @@ def main():
     # Extracted into this private review only; the authoritative runtime is built by the VPS hook.
     with ZipFile(server_source) as archive:
         archive.extractall(operator / 'matching-server-source')
+    if args.vanilla_snapshot:
+        snapshot = args.vanilla_snapshot.resolve()
+        overlay = operator / 'vanilla-studio-overlay'
+        scripts = overlay / 'server-scripts'
+        scripts.mkdir(parents=True)
+        source = operator / 'matching-server-source/apps/openmw-server/scripts'
+        for name in ('procedural_synth.lua', 'procedural_synth_schema.lua',
+                     'procedural_synth_project.lua', 'procedural_synth_sequence.lua',
+                     'procedural_synth_library.lua', 'procedural_synth_performers.lua', 'intent_policy.lua'):
+            shutil.copyfile(source / name, scripts / name)
+        shutil.copyfile(snapshot / 'vanilla_runtime.lua', scripts / 'vanilla_runtime.lua')
+        current_config = (snapshot / 'config.lua').read_text(encoding='utf-8-sig')
+        (scripts / 'config.lua').write_text('local Config = (function()\n' + current_config +
+            '\nend)()\nConfig.PROCEDURAL_SYNTH_ENABLED = true\n' +
+            "Config.PROCEDURAL_SYNTH_MODEL = 'meshes/fetcher/synth/keyboard-stand.nif'\n" +
+            "Config.PROCEDURAL_SYNTH_ICON = 'fetcher/synth/keyboard.dds'\nreturn Config\n", encoding='utf-8')
+        original_scripts = (snapshot / 'server.omwscripts').read_text(encoding='utf-8-sig')
+        assert 'procedural_synth.lua' not in original_scripts
+        (scripts / 'server.omwscripts').write_text(original_scripts.rstrip() + '\nGLOBAL: procedural_synth.lua\n', encoding='utf-8')
+        packages = overlay / 'server-lua-packages/fetcher.procedural-synth'
+        shutil.copytree(operator / 'matching-server-source/files/server/server-lua-packages/fetcher.procedural-synth', packages)
+        original_cfg = (snapshot / 'server.cfg').read_text(encoding='utf-8-sig')
+        assert '[client_lua]' not in original_cfg, 'Review an existing client_lua section explicitly'
+        new_cfg = original_cfg.rstrip() + '\n\n[client_lua]\npackages = server-lua-packages\n'
+        (overlay / 'server.cfg').write_text(new_cfg, encoding='utf-8')
+        (operator / 'vanilla-server.cfg.diff').write_text(''.join(difflib.unified_diff(
+            original_cfg.splitlines(True), new_cfg.splitlines(True), 'live/server.cfg', 'staged/server.cfg')), encoding='utf-8')
+        authority = overlay / 'content-authority'
+        authority.mkdir()
+        lines = ['resources="/srv/fetcher-simulator/resources"',
+                 'data="/srv/fetcher-simulator/resources/vfs-mw"',
+                 'data="/srv/openmw-vanilla-25569/vanilla-data"',
+                 'data="/srv/openmw-vanilla-25569/studio-content/Data Files"',
+                 'encoding=win1252', *('fallback-archive=' + name for name in ('Morrowind.bsa', 'Tribunal.bsa', 'Bloodmoon.bsa')),
+                 *('content=' + name for name in profile['content'])]
+        canonical = Path(__file__).resolve().parents[1] / 'release-root/fetcher-canonical-fallbacks.cfg'
+        (authority / 'openmw.cfg').write_text('\n'.join(lines) + '\n' + canonical.read_text(encoding='utf-8-sig'), encoding='utf-8')
+        write_json(operator / 'vanilla-overlay-inventory.json', {'files': [
+            {'path': p.relative_to(overlay).as_posix(), 'sha256': digest(p), 'size': p.stat().st_size}
+            for p in sorted(overlay.rglob('*')) if p.is_file()], 'keyboardAutoPlacement': False,
+            'experimentalModStackIncluded': False, 'liveSnapshotHashes': {
+                p.name: digest(p) for p in snapshot.iterdir() if p.is_file()}})
     manifest = {'schemaVersion': 1, 'status': 'local-review-only', 'published': False,
         'vpsDeployedByThisScript': False, 'armServerGitHubAssetRequired': False,
         'launcherSourceCommit': inventory['sourceCommit'], 'engineSourceCommit': commit,
@@ -150,6 +194,9 @@ The VPS builds its own ARM64 server through the existing Git push hook. No ARM G
 `operator/matching-server-source/` contains exact committed server scripts and deployment scripts for
 review. It is not a live-config overlay: its generic config/manifest must not overwrite operator settings.
 Use `launcher/RELEASE-REVIEW.md` in the source repository for the cutover and rollback procedure.
+When supplied, `operator/vanilla-studio-overlay/` preserves the current Vanilla health script/config,
+adds only Studio dependencies/package and proposes the authority config. This private overlay is not
+an automatic deploy: keyboard placement and an isolated VPS join test remain activation checks.
 
 ## Assets
 
