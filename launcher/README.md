@@ -20,6 +20,8 @@ Implemented in this candidate:
   previous completed snapshots; restores refuse corrupt backups and post-update local edits.
 - Hash-gated compatibility deltas reconstruct verified files in isolated layouts without running
   legacy scripts. Read-only preset authoring binds exact installed cache identities and audits sources.
+- Explicit profile actions can restore hash-pinned assets from owned Morrowind BSAs/loose files.
+  Fetcher's experimental Starwind layer is optional and is never injected into ordinary Starwind installs.
 
 **Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
 plugin-cleaning, third-party tool bootstrap and complete legacy

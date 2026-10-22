@@ -1,5 +1,6 @@
 #include "server_manifest.hpp"
 #include "compatibility_patch.hpp"
+#include "game_assets.hpp"
 #include <set>
 namespace fetcher {
 namespace {
@@ -9,6 +10,7 @@ void need(bool ok, const std::string &text) {
 }
 constexpr std::uint64_t maxBytes = 8ull * 1024 * 1024 * 1024;
 constexpr std::uint64_t maxEntries = 100000;
+constexpr std::size_t maxActions = 512;
 std::string actionPath(const Json &value, const std::string &prefix) {
     auto name = value.get<std::string>();
     if (!prefix.empty()) {
@@ -79,21 +81,29 @@ void copyTree(const fs::path &root, const fs::path &src, const fs::path &dst, bo
 }
 }
 Json normalizeModActions(const Json &actions, const std::string &prefix) {
-    need(actions.is_array() && actions.size() <= 128,
-         "A package supports at most 128 layout operations.");
+    need(actions.is_array() && actions.size() <= maxActions,
+         "A package supports at most 512 layout operations.");
     Json normalized = Json::array();
     for (const auto &item : actions) {
         need(item.is_object(), "Invalid layout operation.");
         auto type = item.at("action").get<std::string>();
         need(type == "copy" || type == "rename" || type == "move" || type == "remove" ||
-                 type == "patch",
+                 type == "patch" || type == "restoreGameAssets",
              "Unsupported mod action: " + type +
-                 ". Only copy, move/rename, remove and hash-pinned patches are allowed.");
+                 ". Use contained layouts, verified patches or owned-game restoration.");
+        if (type == "restoreGameAssets") {
+            auto restoration = item;
+            for (auto &file : restoration.at("files"))
+                file["patch"]["path"] = actionPath(file.at("patch").at("path"), prefix);
+            normalized.push_back(normalizeGameAssets(restoration));
+            need(normalized.size() <= maxActions, "Too many normalized layout operations.");
+            continue;
+        }
         if (type == "patch") {
             auto patch = item;
             patch["path"] = actionPath(item.at("path"), prefix);
             normalized.push_back(normalizeFilePatch(patch));
-            need(normalized.size() <= 128, "Too many normalized layout operations.");
+            need(normalized.size() <= maxActions, "Too many normalized layout operations.");
             continue;
         }
         std::set<std::string> keys =
@@ -108,7 +118,7 @@ Json normalizeModActions(const Json &actions, const std::string &prefix) {
             bool many = item.contains("paths") && !item.at("paths").is_null();
             need(one != many, "Remove requires either path or paths.");
             auto paths = one ? Json::array({item.at("path")}) : item.at("paths");
-            need(paths.is_array() && !paths.empty() && paths.size() <= 128,
+            need(paths.is_array() && !paths.empty() && paths.size() <= maxActions,
                  "Invalid remove path list.");
             for (const auto &path : paths)
                 normalized.push_back({{"action", "remove"}, {"path", actionPath(path, prefix)}});
@@ -121,7 +131,7 @@ Json normalizeModActions(const Json &actions, const std::string &prefix) {
                                   {"dst", actionPath(item.at("dst"), prefix)},
                                   {"force", force}});
         }
-        need(normalized.size() <= 128, "Too many normalized layout operations.");
+        need(normalized.size() <= maxActions, "Too many normalized layout operations.");
     }
     return normalized;
 }
@@ -134,13 +144,36 @@ std::string modLayoutKey(const Json &definition, const std::string &sourceSha256
     }
     return textSha256(recipe.dump());
 }
-void applyModActions(const fs::path &directory, const Json &actions) {
-    auto root = fs::absolute(directory).lexically_normal();
+void applyModActions(const fs::path &directory, const Json &actions, const fs::path &gameData) {
+    auto root = longPath(directory);
     noLinks(root);
     need(fs::is_directory(root), "Layout staging directory is missing.");
     usage(root);
     for (const auto &item : normalizeModActions(actions)) {
         auto type = item.at("action").get<std::string>();
+        if (type == "restoreGameAssets") {
+            auto current = usage(root);
+            std::uint64_t extraBytes = 0;
+            std::set<fs::path> extraPaths;
+            for (const auto &file : item.at("files")) {
+                auto size = file.at("patch").at("outputSize").get<std::uint64_t>();
+                need(size <= maxBytes - current.bytes - extraBytes,
+                     "Owned-game assets exceed the layout byte budget.");
+                extraBytes += size;
+                inside(root, file.at("patch").at("path"));
+                for (auto relative = safeRelative(file.at("patch").at("path")); !relative.empty();
+                     relative = relative.parent_path()) {
+                    auto path = root / relative;
+                    if (!fs::exists(path))
+                        extraPaths.insert(path);
+                    need(extraPaths.size() <= maxEntries - current.entries,
+                         "Owned-game assets exceed the layout entry budget.");
+                }
+            }
+            restoreGameAssets(root, gameData, item);
+            usage(root);
+            continue;
+        }
         if (type == "patch") {
             applyFilePatch(inside(root, item.at("path")), item);
             usage(root);
@@ -159,8 +192,8 @@ void applyModActions(const fs::path &directory, const Json &actions) {
             dst /= src.filename();
         noLinks(dst);
         // Compare case-insensitively because these operations run on Windows.
-        auto source = fs::path(wide(lower(utf8(src.generic_wstring()))));
-        auto target = fs::path(wide(lower(utf8(dst.generic_wstring()))));
+        auto source = fs::path(wide(lower(utf8(ordinaryPath(src).wstring()))));
+        auto target = fs::path(wide(lower(utf8(ordinaryPath(dst).wstring()))));
         need(source != target && !descendant(source, target) && !descendant(target, source),
              "Layout source/target may not overlap or contain one another.");
         bool force = item.at("force");

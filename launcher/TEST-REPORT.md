@@ -226,3 +226,41 @@ registration; Nexus application approval/SSO and eligible-account trials are sti
 This is not full Simulation preset or game-join acceptance. Remaining installed overrides,
 Starwind owned-game asset restoration and the full plugin/groundcover order still need curation
 and testing. See PRESET-AUTHORING.md for repeatable commands and boundaries.
+
+## Optional experimental Starwind isolation — 2026-10-22
+
+The Starwind compatibility layer belongs only to the Fetcher experimental-server profile. It is
+not injected by Nexus mod ID/name, not part of the built-in Vanilla profiles and not required for
+the general launcher rollout. A reviewed profile must explicitly declare its separate package
+and restoration actions before they can run.
+
+- The x64 Release build passes all five CTest suites (165 native, 79 FOMOD, 59 transaction,
+  16 compatibility and 25 owned-asset assertions), native HTTP/package tests, 57 manifest,
+  36 archive/layout and 24 FOMOD integration operations, both authoring suites and self-test.
+  Extended-path layout operations retain case-insensitive self-copy/overlap rejection.
+- Native owned-game restoration reads uncompressed TES3 BSA headers/tables plus loose model,
+  texture, animation and sound files. Sources are constrained to the selected owned Data Files
+  and the three base-game BSA names. Paths, extensions, source/output hashes, byte ranges,
+  replacement permission and byte/entry budgets are validated. No extractor or applier runs.
+- The asset suite covers BSA/loose copying, hash-gated reconstruction, legacy filename decoding,
+  case folding, idempotence, explicit replacement, unknown-source preservation, source/destination
+  containment, disallowed files/fields and malformed/truncated/ambiguous BSA records.
+- Authoring from the exact published Starwind compatibility 2.2.6 ZIP, SHA-256
+  b796d213c4f8497907f77b1c2a09de33ae484f17023ced05d7f36e4ca73f3fd8, verifies 1,343 original/output
+  fingerprints against the owned GOG installation: 1,037 copies and 306 NIF texture-name rewrites.
+  Recipes contain byte ranges and changed length-prefixed texture names, without stock payload
+  literals. Separate authoring tests reject incorrect occurrences, overlaps and unsafe BSA paths.
+- A real-executable test first prepares plain Nexus Starwind and proves it has downloaded/installed
+  no Fetcher compatibility package. It then explicitly accepts the experimental layer, removes
+  that layer's PowerShell helper and selected overrides in derived layouts, and verifies all
+  1,343 reconstructed assets. Switching back reproduces the original plain configuration; its
+  raw music/UI files and the owned BSA hashes are unchanged. No game or server is launched.
+  Evidence: release-assets/starwind-optional-acceptance-2/optional-starwind-report.json.
+- The older release ZIP uses Windows backslashes in its member names. ZIP extraction now
+  normalizes those before containment/duplicate checks, matching the other archive decoders.
+  Forward/backslash traversal remains rejected. Explicit cleanup recipes support at most 512
+  operations, accommodating the experimental UI exclusions; other extraction budgets remain.
+
+This verifies one owned GOG installation and isolated profile preparation, not all game editions
+or an experimental-server game join. Neither the optional layer nor any public launcher/server
+configuration was published or changed. The complete experimental preset remains separate work.

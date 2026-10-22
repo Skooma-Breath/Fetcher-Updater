@@ -385,7 +385,7 @@ fs::path Backend::package(const Json &definition, bool repair) {
     }
     return dest;
 }
-fs::path Backend::layout(const fs::path &raw, const Json &definition) {
+fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::path &gameData) {
     auto actions = normalizeModActions(definition.value("actions", Json::array()));
     if (actions.empty() && !definition.contains("fomod"))
         return raw;
@@ -417,7 +417,7 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition) {
                 fs::copy_file(raw / rel, stage / rel);
             }
         }
-        applyModActions(stage, actions);
+        applyModActions(stage, actions, gameData);
         Json records = Json::array();
         for (const auto &entry : fs::recursive_directory_iterator(stage)) {
             noLinks(entry.path());
@@ -515,7 +515,7 @@ fs::path Backend::prepare() {
     std::vector<fs::path> roots = {mRoot / "resources/vfs-mw", data};
     for (const auto &d : p.at("packages")) {
         auto dir = package(d, false);
-        dir = layout(dir, d);
+        dir = layout(dir, d, data);
         // Helpers may exist in an upstream archive, but only an explicitly curated
         // layout/FOMOD output without native programs can enter a game profile.
         validateModPayload(dir);

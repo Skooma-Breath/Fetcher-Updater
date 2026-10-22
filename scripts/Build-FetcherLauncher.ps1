@@ -112,6 +112,8 @@ if ($LASTEXITCODE -ne 0) { throw "Archive/layout integration tests failed." }
 if ($LASTEXITCODE -ne 0) { throw "FOMOD integration tests failed." }
 & python (Join-Path $repoRoot 'tests/test_native_compatibility_authoring.py')
 if ($LASTEXITCODE -ne 0) { throw "Native compatibility authoring tests failed." }
+& python (Join-Path $repoRoot 'tests/test_owned_asset_authoring.py')
+if ($LASTEXITCODE -ne 0) { throw "Owned-game asset authoring tests failed." }
 
 Write-Host "Running launcher self-test..."
 $selfTest = Start-Process `

@@ -873,9 +873,17 @@ Fetcher native launcher ready.
                   .map((op) =>
                     op.action === "remove"
                       ? `Remove ${op.path}`
-                      : op.action === "patch"
-                        ? `Patch ${op.path}${op.create ? " (create if absent)" : ""}\n  SHA-256 ${op.sourceSha256} -> ${op.outputSha256}`
-                        : `${op.action === "copy" ? "Copy" : "Move"} ${op.src} -> ${op.dst}${op.force ? " (replace existing)" : ""}`,
+                      : op.action === "restoreGameAssets"
+                        ? `Restore ${op.files.length} assets from your owned Morrowind files${op.force ? " (replace existing)" : ""}:\n` +
+                          op.files
+                            .map(
+                              (file) =>
+                                `  ${file.archive || "Data Files"}: ${file.sourcePath} -> ${file.patch.path}\n    SHA-256 ${file.patch.sourceSha256} -> ${file.patch.outputSha256}`,
+                            )
+                            .join("\n")
+                        : op.action === "patch"
+                          ? `Patch ${op.path}${op.create ? " (create if absent)" : ""}\n  SHA-256 ${op.sourceSha256} -> ${op.outputSha256}`
+                          : `${op.action === "copy" ? "Copy" : "Move"} ${op.src} -> ${op.dst}${op.force ? " (replace existing)" : ""}`,
                   )
                   .join("\n")
               : "")

@@ -4,7 +4,7 @@ namespace fetcher {
 // Normalizes declarative mod plans; native layout operations never execute programs.
 Json normalizeModActions(const Json &actions, const std::string &umoPrefix = "");
 std::string modLayoutKey(const Json &definition, const std::string &sourceSha256);
-void applyModActions(const fs::path &stage, const Json &actions);
+void applyModActions(const fs::path &stage, const Json &actions, const fs::path &gameData = {});
 Json normalizeFomod(const Json &definition);
 void installFomod(const fs::path &raw, const fs::path &stage, const Json &definition);
 Json normalizeServerManifest(const Json &value);

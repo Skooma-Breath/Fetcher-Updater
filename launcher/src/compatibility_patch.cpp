@@ -99,7 +99,8 @@ Json normalizeFilePatch(const Json &value) {
          "Patch output size does not match its recipe.");
     return result;
 }
-void applyFilePatch(const fs::path &target, const Json &definition) {
+void applyFilePatch(const fs::path &path, const Json &definition) {
+    auto target = longPath(path);
     auto patch = normalizeFilePatch(definition);
     noLinks(target);
     if (fs::exists(target) && fs::is_regular_file(target) &&

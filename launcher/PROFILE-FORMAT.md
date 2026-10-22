@@ -97,7 +97,7 @@ its filename. Directory merges and overwriting files require force=true. rename 
 move; moves into an existing directory retain the source name. Replacing a move target requires
 force=true. remove accepts exactly one path or a paths list; missing sources fail preparation.
 Source/target paths cannot be equal, contain one another, use wildcards, escape the package, or
-address .fetcher-* metadata. Up to 128 normalized operations are allowed. Known UMO tes3cmd=null
+address .fetcher-* metadata. Up to 512 normalized operations are allowed. Known UMO tes3cmd=null
 metadata is discarded; an executable/tool value is rejected. Unknown actions and fields fail review.
 No shell, script interpreter, plugin cleaner, file association or downloaded executable is invoked.
 
@@ -127,7 +127,7 @@ changes; the complete reconstructed output is verified before its atomic write. 
 output is a no-op. A missing file requires create=true, sourceSize=0 and the empty-source SHA-256;
 an existing unexpected file is still refused. The 64 MiB source/output limit, 100,000-operation limit,
 strict Base64 and copy bounds apply during review. Unknown fields/commands are rejected. Binary
-files, null bytes and UTF-8 BOMs are handled as raw bytes. Patch actions share the ordinary 128-action
+files, null bytes and UTF-8 BOMs are handled as raw bytes. Patch actions share the ordinary 512-action
 limit and package containment rules; server patches cannot address engine resources or another mod.
 The recipe participates in the derived-layout cache key and is shown before acceptance.
 
@@ -137,6 +137,33 @@ blocked programs/scripts before activation, including files outside dataDirs. Fo
 alone cannot bypass this check. Original archive/cache bytes can retain such inert files; the
 launcher never invokes them. For example, the Simulation authoring curation discards Tamriel Data's
 Java file patcher and Ashlander Architect's Python build helper by their exact paths.
+
+### Optional owned-game asset restoration
+
+A server profile can explicitly declare restoreGameAssets after its normal archive layout actions.
+It reads only from the player's selected owned Morrowind Data Files. A file entry contains archive
+(Morrowind.bsa, Tribunal.bsa, Bloodmoon.bsa, or an empty string for a loose file), sourcePath, and a
+patch using the exact hash/size/range schema above. The patch path is the destination within this
+package's derived layout. Both source and destination are restricted to .dds/.nif/.kf/.tga/.wav;
+relative paths and launcher-metadata restrictions still apply. No arbitrary source root, other
+archive filename, script, executable or installed game file can be written by the action.
+
+Up to 4,096 explicit files share the layout byte/entry budget. Original source fingerprints must
+match before a destination is written. Existing different destinations require force=true on
+the action. Already matching outputs are a no-op. The native reader supports uncompressed TES3
+BSA format 0x100 with bounded header/tables/names/offsets and legacy filename decoding; no BSA
+extractor process is invoked. Loose originals and BSA archives stay read-only. Verified outputs
+use the same isolated derived-cache mechanism as other actions. The reviewed UI lists the owned
+sources, destinations and hashes. Changing game editions/original assets can require a newly
+reviewed recipe; an unknown source is refused.
+
+Fetcher uses this only for its optional experimental-server Starwind compatibility layer. Merely
+installing the same Nexus Starwind mod through another profile never adds this action or downloads
+Fetcher's compatibility package. No mod-ID detection injects compatibility fixes. The built-in
+Vanilla profiles do not include Starwind or this layer. The developer authoring tool
+scripts/Build-FetcherOwnedAssetRecipe.py converts the pinned Fetcher release's own asset manifest
+to native operations. Copied stock asset bytes remain local; NIF changes encode only the changed
+length-prefixed texture names, with all other bytes read from the player's originals.
 
 ## Server-pinned XML FOMOD choices
 

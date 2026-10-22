@@ -246,6 +246,16 @@ int main() {
         auto names = extractZip(root / "good.zip", root / "good");
         check(names.size() == 1 && read(root / "good/Data Files/test.txt") == "hello",
               "native ZIP extraction/CRC");
+        auto windowsZip = read(root / "good.zip");
+        std::string originalName = "Data Files/test.txt", windowsName = "Data Files\\test.txt";
+        for (auto position = windowsZip.find(originalName); position != std::string::npos;
+             position = windowsZip.find(originalName, position + windowsName.size()))
+            windowsZip.replace(position, originalName.size(), windowsName);
+        writeAtomic(root / "windows.zip", windowsZip);
+        auto windowsFiles = extractZip(root / "windows.zip", root / "windows");
+        check(windowsFiles == std::vector<std::string>{"Data Files/test.txt"} &&
+                  read(root / "windows/Data Files/test.txt") == "hello",
+              "Windows ZIP separators normalize to canonical relative paths");
         auto longZip = longPath(deep / "ZIP");
         auto longSeven = longPath(deep / "7z");
         check(extractArchive(root / "good.zip", longZip).size() == 1 &&
@@ -256,6 +266,14 @@ int main() {
               "7z extraction supports extended-length destinations");
         zip(root / "bad.zip", "../escaped.txt");
         rejects([&] { extractZip(root / "bad.zip", root / "bad"); }, "ZIP traversal rejected");
+        auto windowsBad = read(root / "bad.zip");
+        std::string traversal = "../escaped.txt", windowsTraversal = "..\\escaped.txt";
+        for (auto position = windowsBad.find(traversal); position != std::string::npos;
+             position = windowsBad.find(traversal, position + windowsTraversal.size()))
+            windowsBad.replace(position, traversal.size(), windowsTraversal);
+        writeAtomic(root / "windows-bad.zip", windowsBad);
+        rejects([&] { extractZip(root / "windows-bad.zip", root / "windows-bad"); },
+                "Windows ZIP traversal remains forbidden after separator normalization");
         check(!fs::exists(root.parent_path() / "escaped.txt"),
               "ZIP traversal wrote nothing outside stage");
         rejects([&] { removeManaged(root, root); }, "managed root cannot delete itself");

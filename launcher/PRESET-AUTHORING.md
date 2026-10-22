@@ -1,6 +1,8 @@
-# Fetcher Simulation native preset authoring
+# Optional Fetcher experimental-server preset authoring
 
-The new preset keeps 90 mods / 99 source archives. The operator requested that Mario Race and
+This server-specific preset keeps 90 mods / 99 source archives. It is separate from the general
+launcher/Vanilla rollout; installing Starwind elsewhere never opts a player into this preset.
+The operator requested that Mario Race and
 The Legend of Zelda beta mod be omitted on 2026-10-22 because their original ModDB archives are
 unavailable locally. This changes only the new preset plan. The original 92-mod legacy JSON and
 installed game are unchanged.
@@ -95,3 +97,24 @@ updates over the cached 2.0c source, not multiplayer fixes. Most added files are
 The complete plugin/groundcover order, matching server and
 native-client release still need end-to-end acceptance before publication. Source-layout and
 37-file compatibility acceptance alone do not certify the complete historical preset.
+
+## Optional Starwind owned-game assets
+
+```powershell
+python scripts/Build-FetcherOwnedAssetRecipe.py --archive <pinned-Starwind-compatibility-2.2.6.zip> `
+  --sha256 b796d213c4f8497907f77b1c2a09de33ae484f17023ced05d7f36e4ca73f3fd8 `
+  --game-data <owned-Morrowind-Data-Files> --output <private-owned-asset-recipe.json>
+```
+
+The 1,343-file conversion passes against the owned GOG game. It encodes 1,037 copies and 306
+texture-string rewrites, with every original/result fingerprint checked. Original asset bytes
+are read locally at install time, not embedded in the recipe. No PowerShell applier or BSA tool runs.
+
+The real native isolation driver is tests/test_starwind_optional_live.py. Its source-fixture,
+audit, override-report, owned-recipe, exact release ZIP and owned game arguments are explicit;
+it creates a fresh test root. The passing report lives in
+release-assets/starwind-optional-acceptance-2/optional-starwind-report.json. Plain Starwind does
+not install the Fetcher layer. Only the explicitly reviewed experimental profile gets the
+separate derived layouts. Switching back preserves the plain configuration and raw mod bytes.
+All three owned BSAs retain their original hashes. This optional setup remains absent from
+general/Vanilla profiles and from the distributed tester-tools payload.

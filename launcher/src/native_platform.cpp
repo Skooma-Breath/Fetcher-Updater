@@ -470,7 +470,9 @@ std::vector<std::string> extractZip(const fs::path &p, const fs::path &stage) {
         require(mz_zip_reader_get_filename(&z, i, nullptr, 0) <= sizeof(s.m_filename),
                 "ZIP filename exceeds the supported length.");
         std::string name = s.m_filename;
-        if (s.m_is_directory && !name.empty() && name.back() == '/')
+        std::replace(name.begin(), name.end(), '\\', '/');
+        bool directory = s.m_is_directory || (!name.empty() && name.back() == '/');
+        if (directory && !name.empty() && name.back() == '/')
             name.pop_back();
         auto rel = safeRelative(name);
         require(lower(name) != ".fetcher-package.json", "Archive uses reserved launcher metadata.");
@@ -479,7 +481,8 @@ std::vector<std::string> extractZip(const fs::path &p, const fs::path &stage) {
         total += s.m_uncomp_size;
         require(total <= 8ull * 1024 * 1024 * 1024 && s.m_uncomp_size <= 2ull * 1024 * 1024 * 1024,
                 "ZIP expansion exceeds limit.");
-        if (s.m_is_directory) {
+        if (directory) {
+            require(s.m_uncomp_size == 0, "ZIP directory entries cannot contain file data.");
             fs::create_directories(stage / rel);
             continue;
         }
