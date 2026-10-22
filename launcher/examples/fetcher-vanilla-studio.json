@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "fetcher-vanilla-studio-candidate",
+  "name": "Fetcher Vanilla — Surf, Truck & Studio candidate",
+  "version": "2026.10.21-candidate.1",
+  "mode": "managed",
+  "description": "Combined content download/preparation candidate. Join only a matching server content version.",
+  "host": "163.192.106.225",
+  "port": 25569,
+  "packages": [
+    {
+      "id": "vanilla-extras",
+      "name": "Surf maps, truck and FETCHER STUDIO assets",
+      "version": "2026.10.21-candidate.1",
+      "url": "https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/openmw-client-mods-mp-clients/openmw-client-mods-studio-candidate.zip",
+      "sha256": "8ad68f4741d08560cb5e6cb7887fc834ca7ad6408847fcf182499e638a822fdb",
+      "dataDirs": [
+        "Data Files"
+      ],
+      "archiveFormat": "zip"
+    }
+  ],
+  "content": [
+    "Morrowind.esm",
+    "Tribunal.esm",
+    "Bloodmoon.esm",
+    "surf_mesa_mw.omwaddon",
+    "surf_utopia_mw.omwaddon",
+    "surf_kitsune.omwaddon",
+    "surf_kitsune.omwscripts",
+    "surf_kitsune2.omwaddon",
+    "mp_phase7_test.omwscripts",
+    "FetcherVehicles.omwaddon"
+  ],
+  "requiredFiles": [
+    "meshes/fetcher/synth/keyboard-stand.nif",
+    "icons/fetcher/synth/keyboard.dds",
+    "FetcherStudio/ATTRIBUTION.txt",
+    "FetcherStudio/LICENSE-CC-BY-4.0.txt",
+    "FetcherVehicles/CREDITS.txt"
+  ]
+}

@@ -72,8 +72,9 @@ This is a local candidate. The current public vanilla profile remains separate f
 surf/truck/Studio preview. Publishing the package and changing server content are coordinated
 rollout steps; no public release or server change was performed while preparing this candidate.
 
-The complete legacy UMO/Nexus installer and compatibility pipeline remain separate migration
-work. Existing script entry points and existing-installation launch mode are preserved.
+Reviewed server manifests now accept pinned declarative UMO ZIP lists and external archives.
+Nexus API-key downloads and exact-file manual import are implemented; live Nexus account trials,
+7z/RAR support and the full legacy compatibility pipeline remain migration work. Existing script entry points and existing-installation launch mode are preserved.
 
 Build, isolated preview instructions, acceptance evidence and profile format are documented in
 [launcher/README.md](launcher/README.md).

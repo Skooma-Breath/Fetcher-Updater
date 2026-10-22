@@ -103,6 +103,9 @@ if ($LASTEXITCODE -ne 0) { throw "Native backend tests failed." }
 & python (Join-Path $repoRoot 'tests\test_native_backend.py') --exe $launcherExe
 if ($LASTEXITCODE -ne 0) { throw 'Native HTTP/package integration tests failed.' }
 
+& python (Join-Path $repoRoot 'tests/test_server_manifests.py') --exe (Join-Path $OutputDir 'FetcherLauncher.exe')
+if ($LASTEXITCODE -ne 0) { throw "Server manifest integration tests failed." }
+
 Write-Host "Running launcher self-test..."
 $selfTest = Start-Process `
     -FilePath (Join-Path $OutputDir "FetcherLauncher.exe") `

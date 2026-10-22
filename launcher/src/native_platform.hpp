@@ -19,8 +19,17 @@ fs::path safeRelative(const std::string &value);
 void noLinks(const fs::path &path);
 void removeManaged(const fs::path &root, const fs::path &child);
 std::string sha256(const fs::path &path);
+void allowLocalFixtures(bool allow);
+void nexusFixtureUrl(const std::string &url);
+void validateDownloadUrl(const std::string &url);
+std::string displayUrl(const std::string &url);
+std::string textSha256(const std::string &text);
+std::string protectSecret(const std::string &text);
+std::string unprotectSecret(const std::string &text);
 std::string httpGet(const std::string &url);
-void download(const std::string &url, const fs::path &path, const std::string &hash, const Log &log);
+std::string nexusGet(const std::string &path, const std::string &key);
+void download(const std::string &url, const fs::path &path, const std::string &hash,
+              const Log &log);
 std::vector<std::string> extractZip(const fs::path &archive, const fs::path &stage);
 void launch(const fs::path &exe, const std::vector<std::wstring> &args, const fs::path &cwd);
 void assertGameStopped(const fs::path &root);

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "example-community",
+  "name": "Example community",
+  "version": "1.0",
+  "host": "play.example.org",
+  "port": 25565,
+  "umo": {
+    "url": "https://example.org/pinned-umo-export.json",
+    "sha256": "REPLACE_WITH_SHA256_OF_UMO_EXPORT"
+  },
+  "content": [
+    "Morrowind.esm",
+    "Tribunal.esm",
+    "Bloodmoon.esm",
+    "Example.esp"
+  ]
+}

@@ -296,6 +296,8 @@ struct Options {
     bool statusOnly = false;
     bool staged = false;
     bool debug = false;
+    bool allowLocalFixtures = false;
+    std::string nexusFixture;
 };
 
 Options ParseOptions() {
@@ -326,6 +328,10 @@ Options ParseOptions() {
             options.statusOnly = true;
         } else if (argument == L"--staged") {
             options.staged = true;
+        } else if (argument == L"--allow-local-fixtures") {
+            options.allowLocalFixtures = true;
+        } else if (argument == L"--nexus-fixture-url" && index + 1 < argumentCount) {
+            options.nexusFixture = WideToUtf8(arguments[++index]);
         } else if (argument == L"--debug") {
             options.debug = true;
         }
@@ -569,6 +575,8 @@ class LauncherApp {
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     const Options options = ParseOptions();
+    fetcher::allowLocalFixtures(options.allowLocalFixtures && !options.requestFile.empty());
+    if (!options.nexusFixture.empty()) fetcher::nexusFixtureUrl(options.nexusFixture);
     const fs::path executablePath = GetExecutablePath();
     const fs::path uiPath = FindUiFile(executablePath);
 

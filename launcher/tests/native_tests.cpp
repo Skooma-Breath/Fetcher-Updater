@@ -1,4 +1,5 @@
 #include "native_backend.hpp"
+#include "server_manifest.hpp"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -40,26 +41,42 @@ void plugin(const fs::path &path, const std::vector<std::string> &masters = {}) 
 void zip(const fs::path &path, const std::string &name) {
     mz_zip_archive z{};
     check(mz_zip_writer_init_file(&z, path.string().c_str(), 0) != 0, "create zip");
-    check(mz_zip_writer_add_mem(&z, name.c_str(), "hello", 5, MZ_BEST_COMPRESSION) != 0, "add zip entry");
+    check(mz_zip_writer_add_mem(&z, name.c_str(), "hello", 5, MZ_BEST_COMPRESSION) != 0,
+          "add zip entry");
     check(mz_zip_writer_finalize_archive(&z) != 0, "finalize zip");
     mz_zip_writer_end(&z);
 }
 } // namespace
 int main() {
-    auto root =
-        fs::temp_directory_path() / (L"fetcher-native-tests-" + std::to_wstring(GetCurrentProcessId()));
+    auto root = fs::temp_directory_path() /
+                (L"fetcher-native-tests-" + std::to_wstring(GetCurrentProcessId()));
     try {
         noLinks(root);
         fs::create_directories(root);
         check(lower("\xc3\x89") == "\xc3\xa9", "Windows Unicode filename case folding");
         rejects([&] { parseJson(std::string(512, '[') + std::string(512, ']')); },
                 "deep JSON metadata rejected");
-        for (auto path : {"../outside", "/absolute", "C:/outside", "folder/../x", "AUX.txt", "dir/file.",
-                          "dir\\file", "file:stream", "x\nfile"})
+        for (auto path : {"../outside", "/absolute", "C:/outside", "folder/../x", "AUX.txt",
+                          "dir/file.", "dir\\file", "file:stream", "x\nfile"})
             rejects([&] { safeRelative(path); }, "unsafe relative path rejected");
         check(safeRelative("Data Files/meshes/keyboard.nif").filename() == L"keyboard.nif",
               "ordinary asset path");
         writeAtomic(root / L"test.txt", "hello");
+        check(textSha256("hello") == sha256(root / L"test.txt"), "memory/file SHA-256 consistency");
+        auto secret = protectSecret("test-key-not-a-real-credential");
+        check(secret.find("test-key-not-a-real-credential") == std::string::npos &&
+                  unprotectSecret(secret) == "test-key-not-a-real-credential",
+              "Windows user key protection");
+        for (auto url : {"http://example.org/archive.zip", "https://127.0.0.1/archive.zip",
+                         "https://10.0.0.1/archive.zip", "https://169.254.169.254/latest/meta-data",
+                         "https://100.64.0.1/archive.zip", "https://192.168.0.1/archive.zip",
+                         "https://198.18.0.1/archive.zip", "https://203.0.113.1/archive.zip",
+                         "https://[::1]/archive.zip", "https://[::ffff:127.0.0.1]/archive.zip"})
+            rejects([&] { validateDownloadUrl(url); },
+                    "production downloads refuse non-public destinations");
+        check(displayUrl("https://example.org/archive.zip?secret=hidden#private") ==
+                  "https://example.org/archive.zip",
+              "download display redacts query and fragment");
         check(sha256(root / L"test.txt") ==
                   "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
               "SHA-256 known answer");
@@ -71,7 +88,8 @@ int main() {
               "native ZIP extraction/CRC");
         zip(root / "bad.zip", "../escaped.txt");
         rejects([&] { extractZip(root / "bad.zip", root / "bad"); }, "ZIP traversal rejected");
-        check(!fs::exists(root.parent_path() / "escaped.txt"), "ZIP traversal wrote nothing outside stage");
+        check(!fs::exists(root.parent_path() / "escaped.txt"),
+              "ZIP traversal wrote nothing outside stage");
         rejects([&] { removeManaged(root, root); }, "managed root cannot delete itself");
         rejects([&] { removeManaged(root, root.parent_path()); }, "managed deletion containment");
         check(endpoint("::1", 25567) == "[::1]:25567", "IPv6 endpoint");
@@ -117,13 +135,15 @@ int main() {
         writeAtomic(stage / "openmw.exe", "corrupted");
         rejects([&] { Backend::installClient(install, stage, Json::object()); },
                 "corrupt client inventory refused");
-        check(read(install / "openmw.exe") == "new client", "failed validation leaves installed executable");
+        check(read(install / "openmw.exe") == "new client",
+              "failed validation leaves installed executable");
         writeAtomic(stage / "openmw.exe", "another client");
         writeAtomic(stage / "settings.cfg", "unwanted settings");
         inventory["files"] = Json::array();
         for (auto name : {"openmw.exe", "settings.cfg"})
-            inventory["files"].push_back(
-                {{"path", name}, {"size", fs::file_size(stage / name)}, {"sha256", sha256(stage / name)}});
+            inventory["files"].push_back({{"path", name},
+                                          {"size", fs::file_size(stage / name)},
+                                          {"sha256", sha256(stage / name)}});
         writeAtomic(stage / "fetcher-client-files.json", inventory.dump());
         rejects([&] { Backend::installClient(install, stage, Json::object()); },
                 "protected client payload rejected");
@@ -134,8 +154,9 @@ int main() {
         writeAtomic(tools / "ui/index.html", "native interface");
         Json toolsInventory = {{"schemaVersion", 1}, {"files", Json::array()}};
         for (auto name : {"FetcherLauncher.exe", "ui/index.html"})
-            toolsInventory["files"].push_back(
-                {{"path", name}, {"size", fs::file_size(tools / name)}, {"sha256", sha256(tools / name)}});
+            toolsInventory["files"].push_back({{"path", name},
+                                               {"size", fs::file_size(tools / name)},
+                                               {"sha256", sha256(tools / name)}});
         writeAtomic(tools / "fetcher-tester-tools.json", toolsInventory.dump());
         Backend::installTools(install, tools);
         check(read(install / "FetcherLauncher.exe") == "native launcher" &&

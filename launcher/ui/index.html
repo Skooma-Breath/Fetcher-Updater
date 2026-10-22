@@ -28,7 +28,8 @@
       }
       body {
         margin: 0;
-        background: #020308 url(assets/potm2504a.jpg) center/cover no-repeat fixed;
+        background: #020308 url(assets/potm2504a.jpg) center/cover no-repeat
+          fixed;
         color: var(--ink);
         min-width: 820px;
       }
@@ -47,23 +48,32 @@
         width: var(--size);
         opacity: 0;
         image-rendering: auto;
-        filter:
-          saturate(1.04)
-          contrast(1.10)
-          brightness(1.04)
+        filter: saturate(1.04) contrast(1.1) brightness(1.04)
           drop-shadow(0 0 14px rgba(116, 189, 255, 0.22))
-          drop-shadow(0 12px 19px rgba(0,0,0,.75));
+          drop-shadow(0 12px 19px rgba(0, 0, 0, 0.75));
         mix-blend-mode: normal;
         animation: drift var(--duration) linear forwards;
         will-change: transform, opacity;
       }
 
       @keyframes drift {
-        0% { opacity: 0; transform: translate3d(var(--start), 14px, 0) rotate(var(--tilt)); }
-        12% { opacity: var(--opacity); }
-        49% { transform: translate3d(var(--mid), -13px, 0) rotate(var(--mid-tilt)); }
-        87% { opacity: var(--opacity); }
-        100% { opacity: 0; transform: translate3d(var(--end), 9px, 0) rotate(var(--end-tilt)); }
+        0% {
+          opacity: 0;
+          transform: translate3d(var(--start), 14px, 0) rotate(var(--tilt));
+        }
+        12% {
+          opacity: var(--opacity);
+        }
+        49% {
+          transform: translate3d(var(--mid), -13px, 0) rotate(var(--mid-tilt));
+        }
+        87% {
+          opacity: var(--opacity);
+        }
+        100% {
+          opacity: 0;
+          transform: translate3d(var(--end), 9px, 0) rotate(var(--end-tilt));
+        }
       }
 
       header,
@@ -72,7 +82,9 @@
         z-index: 2;
       }
       @media (prefers-reduced-motion: reduce) {
-        .floater { display: none; }
+        .floater {
+          display: none;
+        }
       }
       button,
       input,
@@ -334,6 +346,7 @@
       }
       .log {
         white-space: pre-wrap;
+        overflow-wrap: anywhere;
         overflow: auto;
         max-height: 180px;
         min-height: 85px;
@@ -496,6 +509,7 @@
           <div class="panel">
             <div class="row between toolbar">
               <h3>Enabled content</h3>
+              <button id="rollbackProfile">Use previous manifest</button>
               <button id="prepare" class="primary">
                 Download / prepare mods
               </button>
@@ -523,17 +537,62 @@
             <div class="panel">
               <h3>Server owner's mod profile</h3>
               <p class="muted" style="font-size: 13px; line-height: 1.6">
-                Import the HTTPS profile URL provided by a server owner. Review
-                its packages and required plugins before downloading.
+                Paste a server manifest URL or local JSON path. Review the
+                endpoint, pinned files and load order before accepting it. UMO
+                lists belong inside a server manifest.
               </p>
               <input
                 id="profileUrl"
                 class="wide"
                 placeholder="https://example.org/server-profile.json"
               /><button id="addProfile" style="margin-top: 14px">
-                Import profile
+                Review manifest
               </button>
               <pre id="packageSources" class="log"></pre>
+            </div>
+          </div>
+          <div id="profileReview" class="panel" hidden>
+            <h3>Review server requirements</h3>
+            <pre id="reviewDetails" class="log" style="max-height: 420px"></pre>
+            <p class="muted">
+              Accepting adds this profile. Prepare, Play and Install updates may
+              download its required archives. Review content from operators you
+              trust.
+            </p>
+            <button id="confirmProfile" class="primary">
+              Accept this manifest
+            </button>
+            <button id="dismissProfile">Cancel review</button>
+          </div>
+          <div class="panel">
+            <h3>Nexus and manually downloaded archives</h3>
+            <p class="muted">
+              Nexus controls automatic download eligibility. You can also open
+              the pinned file on Nexus, download it yourself and import the
+              archive. Its SHA-256 must match the server manifest. This
+              candidate supports ZIP archives.
+            </p>
+            <div class="row">
+              <select id="archivePackage" aria-label="Mod package"></select>
+              <button id="nexusPage">Open Nexus file</button>
+              <input
+                id="archivePath"
+                placeholder="C:\Downloads\exact-mod-file.zip"
+                aria-label="Downloaded archive path"
+              />
+              <button id="importArchive">Import archive</button>
+            </div>
+            <p id="nexusState" class="muted"></p>
+            <div class="row">
+              <input
+                id="nexusKey"
+                type="password"
+                autocomplete="off"
+                placeholder="Nexus API key (optional for eligible automatic downloads)"
+                aria-label="Nexus API key"
+              />
+              <button id="saveNexusKey">Save key locally</button>
+              <button id="forgetNexusKey">Forget key</button>
             </div>
           </div>
           <div class="panel">
@@ -609,8 +668,10 @@
             <h3 style="margin: 0">Activity</h3>
             <button id="clearLog" style="padding: 4px 10px">Clear</button>
           </div>
-          <pre id="log" class="log">Fetcher native launcher ready.
-</pre>
+          <pre id="log" class="log">
+Fetcher native launcher ready.
+</pre
+          >
         </section>
         <div id="installRoot" class="footer mono"></div>
       </main>
@@ -636,11 +697,15 @@
         img.style.setProperty("--tilt", `${tilt}deg`);
         img.style.setProperty("--mid-tilt", `${Math.round(tilt * -0.35)}deg`);
         img.style.setProperty("--end-tilt", `${Math.round(tilt * 0.55)}deg`);
-        img.style.setProperty("--start", movingRight
-          ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`);
+        img.style.setProperty(
+          "--start",
+          movingRight ? `-${size + 40}px` : `calc(100vw + ${size + 40}px)`,
+        );
         img.style.setProperty("--mid", movingRight ? "48vw" : "42vw");
-        img.style.setProperty("--end", movingRight
-          ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`);
+        img.style.setProperty(
+          "--end",
+          movingRight ? `calc(100vw + ${size + 40}px)` : `-${size + 40}px`,
+        );
         if (initial) {
           img.style.animationDelay = `-${Math.round(Math.random() * duration * 0.65)}s`;
         }
@@ -737,6 +802,18 @@
           const subtitle = element("div", address);
           subtitle.className = "server-address";
           name.append(title, subtitle);
+          if (s.profileUrl) {
+            name.append(
+              button("Review server mods", (event) => {
+                event.stopPropagation();
+                action("reviewProfile", {
+                  url: s.profileUrl,
+                  expectedHost: s.host,
+                  expectedPort: s.port,
+                });
+              }),
+            );
+          }
           row.append(name);
           for (const t of [
             s.currentPlayers + " / " + s.maxPlayers,
@@ -806,13 +883,71 @@
               : "No plugins in this profile.";
         $("addMod").disabled = busy || p?.mode === "installed";
         $("prepare").disabled = busy || p?.mode === "installed";
-        $("packageSources").textContent = (p?.packages || [])
-          .map((d) =>
-            d.repository
-              ? d.repository + " / " + d.releaseTag + "\n" + d.assetName
-              : d.url + "\nSHA-256: " + d.sha256,
-          )
-          .join("\n\n");
+        const displayUrl = (url) => String(url || "").split(/[?#]/)[0];
+        const describePackage = (d) => {
+          const source = d.nexus
+            ? `Nexus: ${d.nexus.game} / mod ${d.nexus.modId} / file ${d.nexus.fileId}`
+            : d.repository
+              ? `${d.repository} / ${d.releaseTag} / ${d.assetName}`
+              : displayUrl(d.url);
+          return `${d.name || d.id}${d.version ? " / " + d.version : ""}\n${source}\nSHA-256: ${d.sha256 || "resolved during review"}\nData directories: ${(d.dataDirs || ["package manifest"]).join(", ")}`;
+        };
+        $("packageSources").textContent = [
+          p?._sourceUrl
+            ? "Manifest: " + displayUrl(p._sourceUrl)
+            : "Local launcher profile",
+          "Version: " + (p?.version || "unversioned"),
+          ...(p?.packages || []).map(describePackage),
+        ].join("\n\n");
+        const review = state.profileReview?.profile;
+        $("profileReview").hidden = !review;
+        if (review) {
+          const prior = state.profiles.find((old) => old.id === review.id);
+          const changed = (review.packages || []).filter(
+            (d) =>
+              !(prior?.packages || []).some(
+                (old) =>
+                  old.id === d.id && JSON.stringify(old) === JSON.stringify(d),
+              ),
+          );
+          $("reviewDetails").textContent = [
+            `${review.name} / ${review.version}`,
+            `Server: ${review.host}:${review.port}`,
+            "Manifest source: " + displayUrl(review._sourceUrl),
+            prior
+              ? `Update from ${prior.version}: ${changed.length} new/changed package definitions`
+              : "New server profile",
+            "Changed requirements must be accepted before use. Source hashes pin bytes; they do not certify a mod's safety.",
+            ...(review.packages || []).map(describePackage),
+            "Required plugin order:\n" + review.content.join("\n"),
+            "Groundcover: " + (review.groundcover || []).join(", "),
+            "Archives: " +
+              (
+                review.fallbackArchives || [
+                  "Morrowind.bsa",
+                  "Tribunal.bsa",
+                  "Bloodmoon.bsa",
+                ]
+              ).join(", "),
+          ].join("\n\n");
+        }
+        $("rollbackProfile").disabled = busy || !state.canRollbackProfile;
+        const oldPackage = $("archivePackage").value;
+        $("archivePackage").replaceChildren();
+        for (const d of p?.packages || [])
+          $("archivePackage").append(new Option(d.name || d.id, d.id));
+        if (
+          [...$("archivePackage").options].some((o) => o.value === oldPackage)
+        )
+          $("archivePackage").value = oldPackage;
+        $("nexusPage").disabled =
+          busy ||
+          !(p?.packages || []).find((d) => d.id === $("archivePackage").value)
+            ?.nexus;
+        $("importArchive").disabled = busy || !(p?.packages || []).length;
+        $("nexusState").textContent = state.nexusKeySaved
+          ? "A Nexus key is saved for this Windows user. Download eligibility is checked when needed."
+          : "No Nexus key saved. Manual archive import works without one.";
         const status = state.status;
         $("updateTitle").textContent =
           status?.status === "current"
@@ -840,6 +975,11 @@
             log("Error: " + event.error + "\n");
           } else {
             log(event.action + " completed.\n");
+            if (
+              event.action === "reviewProfile" ||
+              event.action === "addProfile"
+            )
+              showPage("mods");
             if (event.action === "prepare")
               notice(
                 "Mod profile prepared. Play will use its generated load order.",
@@ -869,8 +1009,31 @@
       $("wizard").onclick = () => action("wizard");
       $("setGameData").onclick = () =>
         action("gameData", { path: $("gameData").value.trim() });
-      $("addProfile").onclick = () =>
-        action("addProfile", { url: $("profileUrl").value.trim() });
+      $("addProfile").onclick = () => {
+        const source = $("profileUrl").value.trim();
+        action(
+          "reviewProfile",
+          /^https?:\/\//i.test(source) ? { url: source } : { path: source },
+        );
+      };
+      $("confirmProfile").onclick = () =>
+        action("confirmProfile", { token: state.profileReview.token });
+      $("dismissProfile").onclick = () => action("dismissProfile");
+      $("rollbackProfile").onclick = () => action("rollbackProfile");
+      $("archivePackage").onchange = render;
+      $("nexusPage").onclick = () =>
+        action("nexusPage", { id: $("archivePackage").value });
+      $("importArchive").onclick = () =>
+        action("importArchive", {
+          id: $("archivePackage").value,
+          path: $("archivePath").value.trim(),
+        });
+      $("saveNexusKey").onclick = () => {
+        const key = $("nexusKey").value;
+        $("nexusKey").value = "";
+        action("nexusKey", { key });
+      };
+      $("forgetNexusKey").onclick = () => action("nexusKey", { key: "" });
       $("addMod").onclick = () =>
         action("addMod", {
           directory: $("modDir").value.trim(),

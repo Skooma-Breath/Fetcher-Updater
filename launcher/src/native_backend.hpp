@@ -17,7 +17,7 @@ class Backend {
 
   private:
     fs::path mRoot, mManaged;
-    Json mSettings, mCatalog, mServers = Json::array(), mStatus;
+    Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview;
     Log mLog;
     void save();
     Json profile() const;

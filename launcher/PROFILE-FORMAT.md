@@ -1,72 +1,111 @@
-# Server mod profiles
+# Server-owned mod manifests
 
-The native launcher discovers public servers from `https://master.fetchers.org/v1/servers`.
-The current master response supplies server addresses/player counts/protocols, not mod download URLs.
-Selecting a known endpoint selects its supplied profile. Other servers use the existing installation
-until the player imports a profile URL supplied by the server owner. The launcher does not guess
-an authoritative plugin order from the server's display name.
+Use Mods & load order → Review manifest with an HTTPS URL or a local JSON path. Review the
+server endpoint, version, source URLs, archive hashes and plugin order, then Accept this manifest.
+Accepting adds/selects a profile; Prepare, Play or Install updates can subsequently fetch its files.
+Discovery and profile selection alone never install mods. The original openmw.cfg is not rewritten.
 
-Operators can provide one profile over HTTPS:
+See examples/fetcher-vanilla-studio.json for the real pinned combined content candidate and
+examples/community-umo.json for a wrapper referencing an exported UMO list.
 
 ```json
 {
-  "id": "community-example",
+  "schemaVersion": 1,
+  "id": "example-community",
   "name": "Example community",
-  "mode": "managed",
-  "description": "Content required by our server",
+  "version": "1.0",
   "host": "play.example.org",
   "port": 25565,
-  "packages": [
-    {
-      "id": "community-content",
-      "repository": "example/community-content",
-      "releaseTag": "server-content-v1",
-      "assetName": "community-content.zip"
-    }
-  ],
-  "content": ["Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm", "Example.omwaddon"],
-  "requiredFiles": ["meshes/example/instrument.nif"]
+  "packages": [{
+    "id": "community-assets",
+    "url": "https://example.org/community-assets.zip",
+    "sha256": "REPLACE_WITH_64_HEX_SHA256",
+    "dataDirs": ["Data Files"],
+    "archiveFormat": "zip"
+  }],
+  "content": ["Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm", "Example.esp"],
+  "requiredFiles": ["meshes/example/model.nif"]
 }
 ```
 
-GitHub assets must have a `sha256:` digest in the release API. A direct package source can instead
-use `url` and a required 64-character `sha256` value. HTTPS is mandatory; loopback HTTP is allowed
-only for package integration fixtures. Importing a remote profile requires HTTPS.
+The profile's content array is the server-required load order. Package order, then dataDirs order,
+determines data priority. A dataDirs entry of `.` exposes the archive root. Paths are relative to
+that package and may not escape it. dataDirs replaces the need for a custom metadata file inside
+ordinary mod archives. Older Fetcher ZIPs can still declare dataDirs in openmw-client-package.json.
+Optional top-level groundcover and fallbackArchives arrays configure those separate OpenMW lists.
+Omitting fallbackArchives keeps Morrowind.bsa, Tribunal.bsa and Bloodmoon.bsa.
 
-Each content ZIP contains `openmw-client-package.json`, for example:
+## Nexus files
 
-```json
-{"dataDirs":["./Data Files"],"content":["Example.omwaddon"]}
-```
+Replace url in a package with `"nexus": {"game":"morrowind", "modId":123, "fileId":456}`.
+The SHA-256 and dataDirs requirements are the same. Pin exact files, not a latest-file search.
 
-Payloads live beneath the declared relative data directories. The **profile's** `content` is the
-required server load order; the package manifest can describe content for several profiles.
-No installer commands, PowerShell scripts or arbitrary command-line arguments are accepted in profiles.
-Downloaded packages are stored in a content-addressed `_fetcher_launcher/packages/<sha256>` cache.
+Players can save their own Nexus API key in the launcher. Windows DPAPI protects the saved key for
+that Windows user; it is absent from profile/state JSON and is sent only to the Nexus API. The API
+request identifies Fetcher Launcher. Eligible downloads resolve through Nexus v1 download_link;
+credentials are never forwarded to the CDN. API redirects are refused. On authentication, eligibility
+or rate-limit failure, the error leaves the previous setup intact and offers manual import.
 
-The launcher reads each TES3 plugin's MAST records and validates dependency order. Missing masters,
-cycles, duplicate plugin names, missing required assets, archive path escapes and symlinks are refused.
-Optional local plugins can be added, disabled and reordered per profile. Required server plugins
-remain enabled and retain the operator's order. Extra local plugins still need to satisfy the
-server's content policy; adding one does not grant permission to bypass the game handshake.
+Manual route: choose the package, Open Nexus file, download that exact file in the browser, paste
+its local path and Import archive. SHA-256 must match. Then prepare the profile. No Nexus account
+or credentials are needed by the launcher for importing a file already downloaded by the user.
+There is no NXM protocol takeover, SSO integration or bypass of Nexus download requirements.
+Public Nexus application registration and live authenticated account trials remain rollout tasks.
 
-Generated configs live in `_fetcher_launcher/profiles/<id>/openmw.cfg`. They explicitly replace
-inherited data, content, groundcover and fallback-archive lists, use an isolated data-local directory,
-and never rewrite the user's main openmw.cfg. Launch uses the generated config and selected endpoint.
-Character profiles remain under the installation's existing profiles directory.
+## UMO imports
 
-An optional local `fetcher-launcher-profiles.json` catalog has `schemaVersion: 1` and a `profiles` array.
-Imported profiles persist in this catalog; selection, favorites, game-data directory and optional-mod
-choices persist separately in `_fetcher_launcher/settings.json`.
+Wrap an exported UMO JSON array using either `umoMods: [...]` or
+`"umo": {"url":"https://example.org/list.json", "sha256":"..."}`. The latter hashes the raw
+UTF-8 file bytes before parsing. A server wrapper still supplies id, name, version, host and port.
 
-## Rollout boundaries
+Each download_info entry needs pinned=true, sha256 and an exact nexus_file_id or a direct_download
+HTTPS archive URL. Nexus mod identity comes from the entry's url. data_paths and extract_to are
+normalized into per-package dataDirs. For multi-archive mods or ambiguous layouts, provide an
+explicit dataDirs array on each download. With no wrapper content, vanilla masters and each mod's
+plugins build the order; mod groundcover entries remain separate. Set wrapper content explicitly
+when the server needs a different order. UMO actions must be empty: no arbitrary installer commands
+or compatibility scripts run. Unpinned files, missing hashes/IDs and unsupported actions fail review.
+Existing legacy lists often need owner curation before they satisfy these requirements.
 
-The built-in current-public Fetcher Vanilla profile keeps its three vanilla master files.
-The separate surf/truck/Studio preview profile is for the matching staged server. Publish the
-combined content package and update the server authority/content configuration together before
-promoting that profile. Studio gameplay also requires the matching native client and server Lua;
-the asset ZIP alone does not add Studio gameplay or update public servers.
+This candidate supports ZIP extraction only. 7z/RAR, FOMOD choices, UMO transformations and the
+complete historical compatibility-applier pipeline remain unsupported. Do not rehost/repackage
+third-party files without the appropriate permission. The separate legacy installer remains usable.
 
-The full existing UMO/Nexus installer and its compatibility-applier migration remain separate legacy
-tools. The new launcher does not call those PowerShell scripts or claim to reinstall the entire
-legacy mod list. Existing-installation mode continues to launch that already configured installation.
+## Review, identity and updates
+
+Manifest imports are namespaced by source location and owner ID. Distinct sources with the same ID
+cannot overwrite each other. Reimport from the same URL to review a new version. The preview does
+not change the selected profile or download archives; GitHub references are resolved/pinned during
+review. Accept binds the exact reviewed fingerprint, not a later re-fetch of mutable remote content.
+The previous accepted manifest is retained for Use previous manifest; Prepare then revalidates its
+cached files and regenerates its config. This is manifest rollback, not power-loss transaction recovery.
+
+GitHub packages may use repository/releaseTag/assetName instead of url/sha256. A release API asset
+must supply a SHA-256 digest. Review pins its resolved URL and digest into the accepted profile.
+
+Generated configurations live in _fetcher_launcher/profiles/<namespaced-id>/openmw.cfg. They replace
+inherited data, content, groundcover and fallback-archive lists and keep a separate data-local path.
+The launcher validates TES3 masters and required assets before replacing the generated config.
+Optional local mods stay per profile; server-required plugins retain the server's order.
+
+## Server browser and boundaries
+
+The master URL is https://master.fetchers.org/v1/servers. If an entry supplies mod_profile_url
+(or profile_url), the browser offers Review server mods. Its manifest must match the advertised
+host/port. No master-service change was deployed here; manual URL import works independently.
+Known built-in Fetcher endpoints continue to select their original profiles until explicitly changed.
+
+Production requests require HTTPS and validate each redirect; local/private/reserved address
+resolution and embedded URL credentials are rejected. Bounded extraction rejects path escapes,
+symlinks and collisions. Server mod payloads cannot include Windows programs or installer scripts.
+These controls do not certify game content as harmless: OpenMW Lua and assets retain the engine's
+mod trust and sandbox limits. A broader untrusted-server review remains a public-rollout requirement.
+
+Local HTTP and fake Nexus API fixtures require both --request-file and --allow-local-fixtures.
+The optional --nexus-fixture-url is valid only in that mode. These flags never persist in profiles
+and never enable local downloads in the GUI. Native-client/tools updates use their separate update
+channel; a server manifest cannot replace the executable or launcher.
+
+The public Vanilla server's content and authority configuration have not been changed. The combined
+Vanilla manifest is a download/preparation candidate; game-join testing needs matching server content
+and the required Studio native/Lua versions. Asset installation alone does not enable Studio gameplay.

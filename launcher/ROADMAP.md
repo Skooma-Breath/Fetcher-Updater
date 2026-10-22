@@ -4,19 +4,18 @@
 
 Native client/tools updater, verified package cache/install, exception rollback, public server browser,
 favorites/direct connect, imported server profiles, isolated mod configurations, plugin master ordering,
-optional local mod controls, and visible Sketchfab credits. A combined surf/truck/Studio bundle is built
+optional local mod controls, reviewed/namespaced server manifests and previous-manifest rollback,
+UMO ZIP-list normalization, Nexus API-key/manual archive routes, external archives and visible
+Sketchfab credits. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 
 ## Remaining work before replacing the public launcher
 
-1. Generalize server-owned mod lists before completing the Fetcher-specific migration. Add reviewed,
-   versioned server manifests with UMO import, pinned Nexus file identities and hashes, authenticated
-   Nexus downloads/manual fallback, and HTTPS archives for non-Nexus content. Keep each server's
-   configuration isolated. Implement only validated declarative install operations, never arbitrary
-   UMO actions or owner-supplied commands. See `SERVER-MODLIST-DESIGN.md` for the planned contract.
-   Then finish parity with the separate legacy workflow: third-party tool/bootstrap handling,
-   current UMO fixes, hash-gated compatibility appliers, and the complete Fetcher Simulation preset.
-   Existing installations remain usable meanwhile.
+1. Finish general server-list parity beyond the implemented reviewed manifests, pinned declarative
+   UMO ZIP imports, Nexus API-key download path and exact-file manual import. Add 7z/RAR extraction,
+   required declarative UMO transforms/FOMOD choices, Nexus app registration/SSO/NXM handoff and live
+   eligible/free-account trials. Then port the legacy tool/bootstrap, hash-gated compatibility fixes
+   and complete Fetcher Simulation preset. The separate legacy installer remains available.
 2. Validate a real game launch/join from the generated config with a staged matching server and clean
    Windows bootstrap. Exercise update interruption/recovery and provide an operator rollback UI.
 3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. Publish

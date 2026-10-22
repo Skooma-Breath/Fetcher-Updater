@@ -32,3 +32,23 @@ Remaining acceptance: real game launch/join with generated configs against a mat
 new-client bootstrap on a clean Windows machine; interrupted-update recovery and operator rollback UI;
 full UMO migration; profile URL advertising from the master service; broader server/operator trials.
 The tested rollback is exception/failure rollback, not a claim of power-loss transaction recovery.
+
+## Server-owned manifest candidate
+
+- tests/test_server_manifests.py exercises the real executable through 57 CLI operations: review and
+  token acceptance, no archive download during review, owner/source identity isolation, version
+  changes and stale tokens, previous-manifest selection, ordinary ZIP layouts, embedded and
+  hash-pinned external UMO exports, unsupported actions/unpinned files/bad layouts, exact Nexus
+  manual imports, Windows-protected fake key storage, authenticated automatic download fixtures,
+  API-to-CDN credential separation, HTTP 403 and credential-bearing redirect refusal, executable
+  payload rejection and redirect downgrade refusal.
+- Production mode refuses loopback download URLs without contacting the fixture. Loopback HTTP and
+  the fake Nexus endpoint require an explicit CLI-only test flag; the GUI cannot enable it.
+- The same test downloads the actual combined Vanilla bundle from its fixture, verifies the exact
+  archive hash and credits/model files, and generates the isolated surf/truck/Studio load order.
+- No real Nexus credentials were supplied, no Nexus live download eligibility was tested, and
+  no game join or public server configuration change is implied by these fixture tests.
+- Native WebView2 review verified the full-width source/hash/load-order panel and accepting the
+  Vanilla manifest through the real UI. Acceptance selected its managed profile without downloading
+  archives. The Webb image and floating rockets remain visible. An independent development preview
+  was used; the earlier DevTools window was preserved.

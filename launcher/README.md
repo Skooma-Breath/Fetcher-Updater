@@ -11,10 +11,14 @@ Implemented in this candidate:
   client and launcher/tools installation, update mutex and exception rollback with retained backups.
 - Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.
 - Explicit model/artist credits, source links, CC BY 4.0 links and adaptation descriptions.
+- Reviewed server manifests, owner/source isolation, previous-manifest selection and ordinary archive layouts.
+- Declarative pinned UMO ZIP lists, Nexus API-key downloads where eligible and exact-file manual import.
+- Windows-protected local Nexus keys, explicit redirect policy and mod executable/script rejection.
 - Existing-installation mode launches an already configured full mod setup unchanged.
 
-**Migration boundary:** the separate UMO/Nexus installer, its third-party tool bootstrap and legacy
-compatibility appliers have not yet been ported. Existing script entry points remain supported during
+**Migration boundary:** 7z/RAR archives, arbitrary UMO actions/FOMOD choices, third-party tool bootstrap and legacy
+compatibility appliers have not yet been ported. Nexus authentication is fixture-tested; live account
+acceptance and public application registration remain required. Existing script entry points remain supported during
 migration. The native launcher does not claim to install/repair that entire historical mod list.
 
 ## Build and validate
@@ -44,7 +48,7 @@ released. Do not use a development game installation as a disposable update test
 There is no automatic Nexus/UMO installation on startup. Server discovery is read-only. Managed
 profile preparation downloads its declared packages and builds a separate config before launch.
 Current public servers have not been changed by this candidate. The preview asset profile deliberately
-requires Studio assets that are not in the old published bundle yet, and reports them missing.
+pins a distinct combined candidate archive; it cannot silently use the older public bundle.
 
 See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isolation,
 [TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.

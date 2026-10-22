@@ -65,7 +65,7 @@ def main():
 
         def command(value, success=True):
             (base / "request.json").write_text(json.dumps(value))
-            result = subprocess.run([str(exe), "--install-root", str(root), "--request-file", str(base / "request.json"), "--log-file", str(base / "result.json")], timeout=60)
+            result = subprocess.run([str(exe), "--install-root", str(root), "--allow-local-fixtures", "--request-file", str(base / "request.json"), "--log-file", str(base / "result.json")], timeout=60)
             response = json.loads((base / "result.json").read_text())
             assert (result.returncode == 0) == success, response
             return response

@@ -1,8 +1,10 @@
 # Server-owned mod lists: planned design
 
-Status: design for the next implementation slice, not a claim of native Nexus/UMO support today.
-The current launcher already imports HTTPS profiles, installs verified ZIP packages, and generates
-isolated load orders. Its native backend does not yet import arbitrary UMO lists or authenticate to Nexus.
+Status: target design with a first native implementation now available. Reviewed/namespaced
+manifests, pinned declarative UMO ZIP normalization, direct archives, protected Nexus API-key
+downloads, manual import and previous-manifest selection are implemented. See PROFILE-FORMAT.md
+for the current contract and TEST-REPORT.md for evidence. Unsupported UMO transforms, 7z/RAR,
+SSO/NXM and live account/public-rollout acceptance remain outstanding.
 
 ## Operator and player workflow
 

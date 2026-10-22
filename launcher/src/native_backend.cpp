@@ -1,4 +1,5 @@
 #include "native_backend.hpp"
+#include "server_manifest.hpp"
 #include <windows.h>
 
 #include <algorithm>
@@ -21,10 +22,13 @@ Json optional(const fs::path &p, Json fallback = Json::object()) {
 }
 std::string id(const Json &value) {
     auto s = value.get<std::string>();
-    need(std::regex_match(s, std::regex("[a-z0-9][a-z0-9-]{0,63}")), "Invalid profile/package identifier.");
+    need(std::regex_match(s, std::regex("[a-z0-9][a-z0-9-]{0,63}")),
+         "Invalid profile/package identifier.");
     return s;
 }
-std::string stamp() { return std::to_string(std::chrono::system_clock::now().time_since_epoch().count()); }
+std::string stamp() {
+    return std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+}
 std::string cfgString(const fs::path &p) {
     auto s = utf8(fs::absolute(p).generic_wstring());
     need(s.find_first_of("\"\r\n") == std::string::npos, "Invalid configuration path.");
@@ -63,8 +67,8 @@ bool protectedPath(const std::string &path, const Json &policy) {
         p == "server-lua-storage.bin" || p == "fetcherlauncher.exe" ||
         p == "fetcher-launcher-profiles.json" || p == "fetcher-update-state.json")
         return true;
-    for (auto prefix : {"_fetcher_launcher/", "_fetcher_update/", "profiles/", "mp-keys/", "userdata/",
-                        "saves/", "screenshots/", "data files/", "logs/", "ui/"})
+    for (auto prefix : {"_fetcher_launcher/", "_fetcher_update/", "profiles/", "mp-keys/",
+                        "userdata/", "saves/", "screenshots/", "data files/", "logs/", "ui/"})
         if (p.rfind(prefix, 0) == 0)
             return true;
     for (const auto &e : policy.value("exactPaths", Json::array()))
@@ -124,40 +128,45 @@ std::vector<std::string> masters(const fs::path &p) {
 Json builtinProfiles() {
     return {{"schemaVersion", 1},
             {"profiles",
-             Json::array({{{"id", "installed"},
-                           {"name", "Existing installation"},
-                           {"mode", "installed"},
-                           {"description", "Use the current mod setup and load order. No "
-                                           "automatic mod changes."},
-                           {"packages", Json::array()},
-                           {"content", Json::array()}},
-                          {{"id", "fetcher-vanilla"},
-                           {"name", "Fetcher Vanilla (current public server)"},
-                           {"mode", "managed"},
-                           {"host", "163.192.106.225"},
-                           {"port", 25569},
-                           {"description", "Current public vanilla content. Surf/truck/Studio rollout "
-                                           "is staged separately until the server is updated."},
-                           {"packages", Json::array()},
-                           {"content", Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm"})}},
-                          {{"id", "fetcher-vanilla-studio-preview"},
-                           {"name", "Vanilla + Surf / Truck / Studio (preview)"},
-                           {"mode", "managed"},
-                           {"description", "Candidate content for the next vanilla-server rollout. "
-                                           "Explicitly select this only for a matching staged server; "
-                                           "public content has not changed."},
-                           {"packages", Json::array({{{"id", "fetcher-content"},
-                                                      {"repository", "Skooma-Breath/Fetcher-Updater"},
-                                                      {"releaseTag", "openmw-client-mods-mp-clients"},
-                                                      {"assetName", "openmw-client-mods.zip"}}})},
-                           {"content", Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm",
-                                                    "surf_mesa_mw.omwaddon", "surf_utopia_mw.omwaddon",
-                                                    "surf_kitsune.omwaddon", "surf_kitsune.omwscripts",
-                                                    "surf_kitsune2.omwaddon", "mp_phase7_test.omwscripts",
-                                                    "FetcherVehicles.omwaddon"})},
-                           {"requiredFiles", Json::array({"meshes/fetcher/synth/keyboard-stand.nif",
-                                                          "icons/fetcher/synth/keyboard.dds",
-                                                          "FetcherStudio/ATTRIBUTION.txt"})}}})}};
+             Json::array(
+                 {{{"id", "installed"},
+                   {"name", "Existing installation"},
+                   {"mode", "installed"},
+                   {"description", "Use the current mod setup and load order. No "
+                                   "automatic mod changes."},
+                   {"packages", Json::array()},
+                   {"content", Json::array()}},
+                  {{"id", "fetcher-vanilla"},
+                   {"name", "Fetcher Vanilla (current public server)"},
+                   {"mode", "managed"},
+                   {"host", "163.192.106.225"},
+                   {"port", 25569},
+                   {"description", "Current public vanilla content. Surf/truck/Studio rollout "
+                                   "is staged separately until the server is updated."},
+                   {"packages", Json::array()},
+                   {"content", Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm"})}},
+                  {{"id", "fetcher-vanilla-studio-preview"},
+                   {"name", "Vanilla + Surf / Truck / Studio (preview)"},
+                   {"mode", "managed"},
+                   {"description", "Candidate content for the next vanilla-server rollout. "
+                                   "Explicitly select this only for a matching staged server; "
+                                   "public content has not changed."},
+                   {"packages",
+                    Json::array({{{"id", "fetcher-content"},
+                                  {"url", "https://github.com/Skooma-Breath/Fetcher-Updater/"
+                                          "releases/download/openmw-client-mods-mp-clients/"
+                                          "openmw-client-mods-studio-candidate.zip"},
+                                  {"sha256", "8ad68f4741d08560cb5e6cb7887fc834ca7ad6408847fcf"
+                                             "182499e638a822fdb"},
+                                  {"dataDirs", Json::array({"Data Files"})}}})},
+                   {"content", Json::array({"Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm",
+                                            "surf_mesa_mw.omwaddon", "surf_utopia_mw.omwaddon",
+                                            "surf_kitsune.omwaddon", "surf_kitsune.omwscripts",
+                                            "surf_kitsune2.omwaddon", "mp_phase7_test.omwscripts",
+                                            "FetcherVehicles.omwaddon"})},
+                   {"requiredFiles", Json::array({"meshes/fetcher/synth/keyboard-stand.nif",
+                                                  "icons/fetcher/synth/keyboard.dds",
+                                                  "FetcherStudio/ATTRIBUTION.txt"})}}})}};
 }
 } // namespace
 Backend::Backend(fs::path root, Log log)
@@ -170,6 +179,7 @@ Backend::Backend(fs::path root, Log log)
                                                       {"port", 25565},
                                                       {"favorites", Json::array()},
                                                       {"localMods", Json::object()}});
+    mReview = optional(mManaged / "pending-profile.json");
     mCatalog = optional(mRoot / "fetcher-launcher-profiles.json", builtinProfiles());
     need(mCatalog.value("schemaVersion", 0) == 1 && mCatalog.at("profiles").is_array() &&
              mCatalog["profiles"].size() <= 256,
@@ -188,20 +198,34 @@ void Backend::validateProfile(const Json &p) const {
     need(p.at("name").get<std::string>().size() <= 160, "Profile name too long.");
     auto mode = p.value("mode", "managed");
     need(mode == "managed" || mode == "installed", "Unknown profile mode.");
-    need(p.value("packages", Json::array()).is_array() && p.value("packages", Json::array()).size() <= 128,
+    need(p.value("packages", Json::array()).is_array() &&
+             p.value("packages", Json::array()).size() <= 128,
          "Too many packages.");
+    if (p.contains("host"))
+        endpoint(p.at("host"), p.at("port"));
+    need(p.value("version", "unversioned").size() <= 128, "Profile version too long.");
     std::set<std::string> identifiers;
     for (const auto &d : p.value("packages", Json::array())) {
         need(identifiers.insert(id(d.at("id"))).second, "Duplicate package ID.");
-        need(d.contains("repository") || d.contains("url"), "Package has no source.");
+        validateModDefinition(d);
     }
-    need(p.value("content", Json::array()).is_array() && p.value("content", Json::array()).size() <= 1024,
+    need(p.value("content", Json::array()).is_array() &&
+             p.value("content", Json::array()).size() <= 1024,
          "Too many required plugins.");
     std::set<std::string> content;
     for (const auto &plugin : p.value("content", Json::array())) {
         auto s = plugin.get<std::string>();
         need(safeRelative(s).filename() == safeRelative(s), "Plugins must be filenames.");
         need(content.insert(lower(s)).second, "Duplicate profile plugin.");
+    }
+    for (auto key : {"requiredFiles", "groundcover", "fallbackArchives"}) {
+        auto list = p.value(key, Json::array());
+        need(list.is_array() && list.size() <= 4096, "Invalid profile file list.");
+        for (const auto &value : list) {
+            auto path = safeRelative(value);
+            if (std::string(key) != "requiredFiles")
+                need(path.filename() == path, "Groundcover/archive entries must be filenames.");
+        }
     }
 }
 Json Backend::profile() const {
@@ -221,16 +245,21 @@ Json Backend::state() const {
     for (const auto &m : mSettings.value("localMods", Json::object())
                              .value(current.at("id").get<std::string>(), Json::array()))
         mods.push_back(m);
-    return {{"installRoot", utf8(mRoot.wstring())},
-            {"profiles", profiles},
-            {"selectedProfile", current.at("id")},
-            {"host", mSettings.value("host", "")},
-            {"port", mSettings.value("port", 25565)},
-            {"gameData", mSettings.value("gameData", "")},
-            {"servers", mServers},
-            {"favorites", mSettings.value("favorites", Json::array())},
-            {"mods", mods},
-            {"status", mStatus}};
+    return {
+        {"installRoot", utf8(mRoot.wstring())},
+        {"profiles", profiles},
+        {"selectedProfile", current.at("id")},
+        {"host", mSettings.value("host", "")},
+        {"port", mSettings.value("port", 25565)},
+        {"gameData", mSettings.value("gameData", "")},
+        {"servers", mServers},
+        {"favorites", mSettings.value("favorites", Json::array())},
+        {"mods", mods},
+        {"status", mStatus},
+        {"profileReview", mReview},
+        {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
+        {"canRollbackProfile", fs::is_regular_file(mManaged / "profiles" / id(current.at("id")) /
+                                                   "previous-profile.json")}};
 }
 Json Backend::parseServers(const Json &value) {
     need(value.is_array() && value.size() <= 2048, "Invalid master server response.");
@@ -244,7 +273,11 @@ Json Backend::parseServers(const Json &value) {
             need(name.size() <= 256, "Server name too long.");
             int now = s.at("current_players").get<int>(), max = s.at("max_players").get<int>();
             need(now >= 0 && max > 0 && max <= 4096 && now <= max, "Invalid player count.");
-            out.push_back({{"host", host},
+            auto profileUrl = s.value("mod_profile_url", s.value("profile_url", ""));
+            if (profileUrl.size() > 4096 || profileUrl.rfind("https://", 0) != 0)
+                profileUrl.clear();
+            out.push_back({{"profileUrl", profileUrl},
+                           {"host", host},
                            {"port", port},
                            {"name", name},
                            {"currentPlayers", now},
@@ -258,9 +291,12 @@ Json Backend::parseServers(const Json &value) {
     return out;
 }
 Json Backend::resolve(const Json &d) {
+    if (d.contains("nexus"))
+        return {{"sha256", lower(d.at("sha256"))}, {"nexus", d.at("nexus")}};
     if (d.contains("url")) {
         auto hash = lower(d.at("sha256").get<std::string>());
-        need(std::regex_match(hash, std::regex("[0-9a-f]{64}")), "Direct package requires SHA-256.");
+        need(std::regex_match(hash, std::regex("[0-9a-f]{64}")),
+             "Direct package requires SHA-256.");
         return {{"url", d.at("url")}, {"sha256", hash}};
     }
     auto repo = d.at("repository").get<std::string>(), tag = d.at("releaseTag").get<std::string>(),
@@ -268,12 +304,14 @@ Json Backend::resolve(const Json &d) {
     need(std::regex_match(repo, std::regex("[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")) &&
              std::regex_match(tag, std::regex("[A-Za-z0-9_.-]+")),
          "Invalid GitHub release reference.");
-    const auto release = parseJson(httpGet("https://api.github.com/repos/" + repo + "/releases/tags/" + tag));
+    const auto release =
+        parseJson(httpGet("https://api.github.com/repos/" + repo + "/releases/tags/" + tag));
     for (const auto &a : release.at("assets"))
         if (a.at("name") == asset) {
             auto digest = a.value("digest", "");
             need(digest.rfind("sha256:", 0) == 0, "Release asset has no GitHub SHA-256 digest.");
-            need(std::regex_match(digest.substr(7), std::regex("[0-9a-f]{64}")), "Invalid release digest.");
+            need(std::regex_match(digest.substr(7), std::regex("[0-9a-f]{64}")),
+                 "Invalid release digest.");
             return {{"url", a.at("browser_download_url")},
                     {"sha256", digest.substr(7)},
                     {"source", repo + "@" + tag}};
@@ -290,7 +328,31 @@ fs::path Backend::package(const Json &definition, bool repair) {
         verifyFiles(dest, receipt.value("files", Json::array()), true))
         return dest;
     auto archive = mManaged / "downloads" / (hash + ".zip");
-    download(ref.at("url"), archive, hash, mLog);
+    if (!fs::is_regular_file(archive) || sha256(archive) != hash) {
+        if (ref.contains("nexus")) {
+            need(fs::is_regular_file(mManaged / "nexus-key.bin"),
+                 "This Nexus file needs your Nexus API key, or download its exact "
+                 "file on Nexus and import the archive below.");
+            auto n = ref.at("nexus");
+            auto path = "/v1/games/" + n.at("game").get<std::string>() + "/mods/" +
+                        std::to_string(n.at("modId").get<std::uint64_t>()) + "/files/" +
+                        std::to_string(n.at("fileId").get<std::uint64_t>()) + "/download_link.json";
+            Json links;
+            try {
+                links =
+                    parseJson(nexusGet(path, unprotectSecret(read(mManaged / "nexus-key.bin"))));
+            } catch (const std::exception &e) {
+                throw std::runtime_error(std::string(e.what()) +
+                                         ". You can use the exact-file manual "
+                                         "download/import route instead.");
+            }
+            need(links.is_array() && !links.empty(), "Nexus returned no eligible "
+                                                     "download link; use manual "
+                                                     "archive import.");
+            ref["url"] = links.at(0).at("URI");
+        }
+        download(ref.at("url"), archive, hash, mLog);
+    }
     auto stage = mManaged / "staging" / ("package-" + stamp());
     try {
         auto names = extractZip(archive, stage);
@@ -299,7 +361,8 @@ fs::path Backend::package(const Json &definition, bool repair) {
             records.push_back({{"path", name},
                                {"size", fs::file_size(stage / safeRelative(name))},
                                {"sha256", sha256(stage / safeRelative(name))}});
-        writeAtomic(stage / ".fetcher-package.json", Json{{"sha256", hash}, {"files", records}}.dump(2));
+        writeAtomic(stage / ".fetcher-package.json",
+                    Json{{"sha256", hash}, {"files", records}}.dump(2));
         if (fs::exists(dest))
             removeManaged(mManaged / "packages", dest);
         fs::create_directories(dest.parent_path());
@@ -342,7 +405,8 @@ void installPayload(const fs::path &root, const fs::path &stage, const Json &pol
                                              "ui/assets/potm2504a.jpg",
                                              "fetcher-tester-tools.json"};
     auto allowed = [&](const std::string &name) {
-        return tools ? toolNames.count(lower(name)) != 0 : !protectedPath(name, policy) || name == manifest;
+        return tools ? toolNames.count(lower(name)) != 0
+                     : !protectedPath(name, policy) || name == manifest;
     };
     assertGameStopped(root);
     noLinks(root);
@@ -350,7 +414,8 @@ void installPayload(const fs::path &root, const fs::path &stage, const Json &pol
     need(inventory.value("schemaVersion", 0) == 1, "Unsupported client inventory.");
     auto records = inventory.at("files");
     need(verifyFiles(stage, records, true), "Client inventory hash/size verification failed.");
-    need(tools || fs::is_regular_file(stage / "openmw.exe"), "Client archive is missing openmw.exe.");
+    need(tools || fs::is_regular_file(stage / "openmw.exe"),
+         "Client archive is missing openmw.exe.");
     const auto managed = root / "_fetcher_launcher";
     const auto backup = managed / "rollback" / ((tools ? "tools-" : "client-") + stamp());
     noLinks(backup);
@@ -433,7 +498,8 @@ std::vector<std::string> Backend::loadOrder(const std::vector<std::string> &cont
     need(content.size() <= 1024, "Too many plugins.");
     std::map<std::string, size_t> index;
     for (size_t i = 0; i < content.size(); ++i) {
-        need(safeRelative(content[i]).filename() == safeRelative(content[i]), "Invalid plugin filename.");
+        need(safeRelative(content[i]).filename() == safeRelative(content[i]),
+             "Invalid plugin filename.");
         need(index.emplace(lower(content[i]), i).second, "Duplicate plugin.");
     }
     std::vector<std::vector<size_t>> deps(content.size());
@@ -479,18 +545,13 @@ fs::path Backend::prepare() {
     std::vector<fs::path> roots = {mRoot / "resources/vfs-mw", data};
     for (const auto &d : p.at("packages")) {
         auto dir = package(d, false);
-        auto manifest = readJson(dir / "openmw-client-package.json");
-        need(manifest.at("dataDirs").is_array(), "Package has no data roots.");
-        for (const auto &path : manifest.at("dataDirs")) {
-            auto name = path.get<std::string>();
-            if (name.rfind("./", 0) == 0)
-                name.erase(0, 2);
-            roots.push_back(dir / safeRelative(name));
-        }
+        validateModPayload(dir);
+        for (const auto &root : modDataRoots(dir, d))
+            roots.push_back(root);
     }
     auto content = p.at("content").get<std::vector<std::string>>();
-    auto extra =
-        mSettings.value("localMods", Json::object()).value(p.at("id").get<std::string>(), Json::array());
+    auto extra = mSettings.value("localMods", Json::object())
+                     .value(p.at("id").get<std::string>(), Json::array());
     for (const auto &m : extra)
         if (m.value("enabled", true)) {
             roots.emplace_back(wide(m.at("directory")));
@@ -502,7 +563,7 @@ fs::path Backend::prepare() {
         for (const auto &r : roots)
             exists = exists || fs::is_regular_file(r / rel);
         need(exists, "Required profile asset is missing: " + name.get<std::string>() +
-                         ". The public bundle may still need its Studio asset release.");
+                         ". Check the server manifest and pinned archive layout.");
     }
     auto order = loadOrder(content, roots);
     auto required = p.at("content").get<std::vector<std::string>>();
@@ -510,7 +571,8 @@ fs::path Backend::prepare() {
     for (const auto &s : order)
         if (std::find(required.begin(), required.end(), s) != required.end())
             filtered.push_back(s);
-    need(filtered == required, "Server profile load order conflicts with plugin master dependencies.");
+    need(filtered == required,
+         "Server profile load order conflicts with plugin master dependencies.");
     auto config = mManaged / "profiles" / id(p.at("id"));
     fs::create_directories(config);
     fs::create_directories(config / "userdata");
@@ -518,14 +580,24 @@ fs::path Backend::prepare() {
     std::ostringstream out;
     out << "# Generated by Fetcher Launcher. This profile does not replace the "
            "main "
-           "config.\nreplace=config\nreplace=data\nreplace=content\nreplace=fallback-archive\nreplace="
+           "config.\nreplace=config\nreplace=data\nreplace=content\nreplace="
+           "fallback-archive\nreplace="
            "groundcover\nresources="
         << cfgString(mRoot / "resources") << "\n";
     out << "data-local=" << cfgString(config / "local-data") << "\n";
     for (const auto &r : roots)
         out << "data=" << cfgString(r) << "\n";
-    for (auto archive : {"Morrowind.bsa", "Tribunal.bsa", "Bloodmoon.bsa"})
-        out << "fallback-archive=" << archive << "\n";
+    for (const auto &archive : p.value(
+             "fallbackArchives", Json::array({"Morrowind.bsa", "Tribunal.bsa", "Bloodmoon.bsa"})))
+        out << "fallback-archive=" << archive.get<std::string>() << "\n";
+    auto groundcover = p.value("groundcover", Json::array()).get<std::vector<std::string>>();
+    if (!groundcover.empty()) {
+        auto all = content;
+        all.insert(all.end(), groundcover.begin(), groundcover.end());
+        loadOrder(all, roots);
+    }
+    for (const auto &name : groundcover)
+        out << "groundcover=" << name << "\n";
     for (const auto &name : order)
         out << "content=" << name << "\n";
     out << "user-data=" << cfgString(config / "userdata") << "\nencoding=win1252\n";
@@ -533,7 +605,8 @@ fs::path Backend::prepare() {
         for (const auto &s : lines(mRoot / "fetcher-canonical-fallbacks.cfg")) {
             if (s.empty())
                 continue;
-            need(s.rfind("fallback=", 0) == 0, "Canonical fallbacks contain a non-fallback setting.");
+            need(s.rfind("fallback=", 0) == 0,
+                 "Canonical fallbacks contain a non-fallback setting.");
             out << s << "\n";
         }
     } else if (fs::exists(mRoot / "openmw.cfg"))
@@ -541,7 +614,11 @@ fs::path Backend::prepare() {
             if (s.rfind("fallback=", 0) == 0)
                 out << s << "\n";
     writeAtomic(config / "openmw.cfg", out.str());
-    writeAtomic(config / "prepared.json", Json{{"profile", p.at("id")}, {"content", order}}.dump(2));
+    writeAtomic(config / "prepared.json",
+                Json{{"profile", p.at("id")},
+                     {"manifestDigest", p.value("_reviewDigest", "local")},
+                     {"content", order}}
+                    .dump(2));
     return config;
 }
 Json Backend::check(bool repair, bool install) {
@@ -583,8 +660,9 @@ Json Backend::check(bool repair, bool install) {
     auto state = optional(mManaged / "client.json");
     auto legacy = optional(mRoot / "fetcher-update-state.json");
     auto previous = legacy.value("client", Json::object());
-    bool digestMatches = state.value("sha256", "") == ref.at("sha256") ||
-                         previous.value("assetDigest", "") == "sha256:" + ref.at("sha256").get<std::string>();
+    bool digestMatches =
+        state.value("sha256", "") == ref.at("sha256") ||
+        previous.value("assetDigest", "") == "sha256:" + ref.at("sha256").get<std::string>();
     bool clientCurrent = digestMatches && fs::is_regular_file(mRoot / "openmw.exe");
     if (clientCurrent) {
         auto inv = optional(mRoot / "fetcher-client-files.json");
@@ -657,6 +735,11 @@ Json Backend::command(const Json &q) {
             found = found || p.at("id") == key;
         need(found, "Unknown mod profile.");
         mSettings["profile"] = key;
+        auto selected = profile();
+        if (selected.contains("host")) {
+            mSettings["host"] = selected.at("host");
+            mSettings["port"] = selected.at("port");
+        }
         mStatus = Json();
         save();
         return state();
@@ -678,40 +761,179 @@ Json Backend::command(const Json &q) {
     }
     if (op == "gameData") {
         auto path = fs::path(wide(q.at("path").get<std::string>()));
-        need(fs::is_regular_file(path / "Morrowind.esm") && fs::is_regular_file(path / "Tribunal.esm") &&
+        need(fs::is_regular_file(path / "Morrowind.esm") &&
+                 fs::is_regular_file(path / "Tribunal.esm") &&
                  fs::is_regular_file(path / "Bloodmoon.esm"),
-             "Choose the Data Files folder containing Morrowind, Tribunal and Bloodmoon.");
+             "Choose the Data Files folder containing Morrowind, Tribunal and "
+             "Bloodmoon.");
         mSettings["gameData"] = utf8(fs::absolute(path).wstring());
         save();
         return state();
     }
-    if (op == "addProfile") {
-        auto url = q.at("url").get<std::string>();
-        need(url.rfind("https://", 0) == 0, "Profile URL must use HTTPS.");
-        auto p = parseJson(httpGet(url));
+    if (op == "addProfile" || op == "reviewProfile") {
+        auto source = q.value("url", "");
+        std::string text;
+        if (q.contains("path")) {
+            auto path = fs::absolute(fs::path(wide(q.at("path")))).lexically_normal();
+            text = read(path);
+            source = "local:" + utf8(path.generic_wstring());
+        } else {
+            validateDownloadUrl(source);
+            text = httpGet(source);
+        }
+        auto raw = parseJson(text);
+        if (raw.contains("umo")) {
+            need(!raw.contains("umoMods"),
+                 "Choose an embedded UMO list or a pinned UMO URL, not both.");
+            auto ref = raw.at("umo");
+            need(ref.size() == 2 && ref.contains("url") && ref.contains("sha256"),
+                 "UMO list reference needs only url and SHA-256.");
+            auto list = httpGet(ref.at("url"));
+            need(textSha256(list) == lower(ref.at("sha256")), "UMO list SHA-256 mismatch.");
+            auto mods = parseJson(list);
+            need(mods.is_array(), "Export the UMO list as an array of mods.");
+            raw["umoMods"] = mods;
+            raw.erase("umo");
+        }
+        auto p = normalizeServerManifest(raw);
         validateProfile(p);
-        need(p.value("mode", "managed") == "managed",
-             "Remote profiles must use isolated managed configuration.");
+        need(p.contains("host") && p.contains("port"),
+             "Published server manifests need their host and port.");
+        need(p.contains("version") && !p.at("version").get<std::string>().empty(),
+             "Published server manifests need a version.");
+        if (q.contains("expectedHost"))
+            need(p.at("host") == q.at("expectedHost") && p.at("port") == q.at("expectedPort"),
+                 "The advertised manifest endpoint does not match the selected "
+                 "server.");
+        auto ownerId = id(p.at("id"));
+        p["id"] = "remote-" + textSha256(source + "\n" + ownerId).substr(0, 40);
+        p["_ownerId"] = ownerId;
+        p["_sourceUrl"] = source;
+        for (auto &d : p["packages"]) {
+            if (d.contains("repository")) {
+                auto pinned = resolve(d);
+                d["url"] = pinned.at("url");
+                d["sha256"] = pinned.at("sha256");
+                d["sourceRelease"] = d.at("repository").get<std::string>() + "@" +
+                                     d.at("releaseTag").get<std::string>();
+                d.erase("repository");
+                d.erase("releaseTag");
+                d.erase("assetName");
+            }
+            if (d.contains("url"))
+                validateDownloadUrl(d.at("url"));
+        }
+        p["_reviewDigest"] = textSha256(p.dump());
+        mReview = {{"token", p.at("_reviewDigest")}, {"profile", p}};
+        writeAtomic(mManaged / "pending-profile.json", mReview.dump(2));
+        return state();
+    }
+    if (op == "dismissProfile") {
+        mReview = Json::object();
+        writeAtomic(mManaged / "pending-profile.json", mReview.dump());
+        return state();
+    }
+    if (op == "confirmProfile") {
+        need(mReview.contains("profile") && q.at("token") == mReview.at("token"),
+             "Review the current manifest before accepting it.");
+        auto p = mReview.at("profile");
+        validateProfile(p);
         auto key = id(p.at("id"));
-        need(key != "installed" && key != "fetcher-vanilla",
-             "Remote profile cannot replace a built-in profile.");
         bool exists = false;
         for (auto &old : mCatalog["profiles"])
             if (old.at("id") == key) {
+                if (old != p)
+                    writeAtomic(mManaged / "profiles" / key / "previous-profile.json", old.dump(2));
                 old = p;
                 exists = true;
                 break;
             }
+        need(exists || mCatalog["profiles"].size() < 256, "Too many server profiles.");
         if (!exists)
             mCatalog["profiles"].push_back(p);
         writeAtomic(mRoot / "fetcher-launcher-profiles.json", mCatalog.dump(2));
         mSettings["profile"] = key;
+        mSettings["host"] = p.at("host");
+        mSettings["port"] = p.at("port");
+        mStatus = Json();
+        save();
+        mReview = Json::object();
+        writeAtomic(mManaged / "pending-profile.json", mReview.dump());
+        return state();
+    }
+    if (op == "rollbackProfile") {
+        auto key = id(profile().at("id"));
+        auto prior = readJson(mManaged / "profiles" / key / "previous-profile.json");
+        validateProfile(prior);
+        need(prior.at("id") == key, "Rollback profile identity mismatch.");
+        for (auto &p : mCatalog["profiles"])
+            if (p.at("id") == key)
+                p = prior;
+        writeAtomic(mRoot / "fetcher-launcher-profiles.json", mCatalog.dump(2));
+        mStatus = Json();
+        mSettings["host"] = prior.at("host");
+        mSettings["port"] = prior.at("port");
         save();
         return state();
     }
+    if (op == "nexusKey") {
+        auto key = q.at("key").get<std::string>();
+        if (key.empty())
+            fs::remove(mManaged / "nexus-key.bin");
+        else {
+            need(key.size() >= 10 && key.size() <= 512 &&
+                     key.find_first_of("\r\n") == std::string::npos,
+                 "Invalid Nexus API key.");
+            writeAtomic(mManaged / "nexus-key.bin", protectSecret(key));
+        }
+        return state();
+    }
+    if (op == "importArchive") {
+        auto packageId = id(q.at("id"));
+        auto selected = profile();
+        for (const auto &d : selected.at("packages"))
+            if (d.at("id") == packageId) {
+                auto ref = resolve(d);
+                auto hash = ref.at("sha256").get<std::string>();
+                auto input = fs::absolute(fs::path(wide(q.at("path"))));
+                noLinks(input);
+                need(fs::is_regular_file(input) &&
+                         fs::file_size(input) <= 4ull * 1024 * 1024 * 1024 && sha256(input) == hash,
+                     "Imported archive does not match the server's pinned SHA-256.");
+                auto target = mManaged / "downloads" / (hash + ".zip");
+                noLinks(target);
+                fs::create_directories(target.parent_path());
+                auto partial = target;
+                partial += L".import";
+                fs::copy_file(input, partial, fs::copy_options::overwrite_existing);
+                need(sha256(partial) == hash, "Imported archive changed during copy.");
+                need(MoveFileExW(partial.c_str(), target.c_str(),
+                                 MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0,
+                     "Could not cache imported archive.");
+                return state();
+            }
+        throw std::runtime_error("Choose a package in the selected server profile.");
+    }
+    if (op == "nexusPage") {
+        auto selected = profile();
+        for (const auto &d : selected.at("packages"))
+            if (d.at("id") == q.at("id") && d.contains("nexus")) {
+                auto n = d.at("nexus");
+                auto url = L"https://www.nexusmods.com/" + wide(n.at("game")) + L"/mods/" +
+                           std::to_wstring(n.at("modId").get<std::uint64_t>()) +
+                           L"?tab=files&file_id=" +
+                           std::to_wstring(n.at("fileId").get<std::uint64_t>());
+                need(reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", url.c_str(), nullptr,
+                                                             nullptr, SW_SHOWNORMAL)) > 32,
+                     "Could not open Nexus.");
+                return state();
+            }
+        throw std::runtime_error("No matching Nexus package.");
+    }
     if (op == "addMod") {
         auto p = profile();
-        need(p.value("mode", "managed") != "installed", "Use a managed profile to add optional local mods.");
+        need(p.value("mode", "managed") != "installed",
+             "Use a managed profile to add optional local mods.");
         auto name = q.at("name").get<std::string>();
         need(safeRelative(name).filename() == safeRelative(name), "Enter a plugin filename.");
         auto dir = fs::absolute(fs::path(wide(q.at("directory"))));
@@ -725,8 +947,10 @@ Json Backend::command(const Json &q) {
             need(lower(e.at("name")) != lower(name), "Plugin already added.");
         for (const auto &e : p.at("content"))
             need(lower(e) != lower(name), "Required server plugin is already enabled.");
-        extras.push_back(
-            {{"name", name}, {"directory", utf8(dir.wstring())}, {"enabled", true}, {"required", false}});
+        extras.push_back({{"name", name},
+                          {"directory", utf8(dir.wstring())},
+                          {"enabled", true},
+                          {"required", false}});
         save();
         return state();
     }
