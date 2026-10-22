@@ -155,3 +155,23 @@ shell's PowerShell 7 module shadowing. Public GitHub assets/tags, servers and ex
 installations are unchanged. See UPGRADE-ACCEPTANCE.md for scope and rerun instructions.
 Both the download-current-public and retained-legacy-archive PowerShell wrapper paths pass; the
 latter also repeats the full staged GUI check and cleans up only its own test windows.
+
+## Live Nexus single-mod acceptance — 2026-10-22
+
+The existing UMO configuration supplied the user's key in memory for an explicitly selected,
+fresh test installation. Nexus account validation succeeded and reported a free account. The
+native launcher then received HTTP 403 from the premium-style automatic file download endpoint,
+offered manual import, accepted the cached original Hackle-Lo Pipes v4 ZIP and generated the
+Morrowind/Tribunal/Bloodmoon/Hackle-Lo Pipe.esp order. Required pipe mesh, texture and sound exist.
+The original config marker survived. The test-only DPAPI credential was removed afterward; no
+credential value was written to request/result/report JSON or printed. The source UMO config is
+unchanged. No game was launched and no server was changed by this preparation test.
+
+The pinned Nexus file is morrowind mod 56939, file 1000064599 (now categorized OLD_VERSION).
+The locally installed version's original 4,276,766-byte ZIP has SHA-256
+a4211504a66587218c3ffd830a680ef33c0654110afbb503fb7d91b61e945970. The profile stores only its
+source IDs/hash/layout, never mod payloads or credentials. Evidence:
+release-assets/nexus-hackle-lo-live/nexus-live-report.json. The opt-in driver is tests/test_nexus_live.py.
+This establishes real free-account refusal plus exact-file import, not a successful premium
+download or browser-issued NXM entitlement. The user confirmed no known Fetcher application
+registration; Nexus application approval/SSO and eligible-account trials are still pending.

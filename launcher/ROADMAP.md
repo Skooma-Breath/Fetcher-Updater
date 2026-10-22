@@ -10,6 +10,8 @@ routes and external archives. Server-pinned XML FOMOD choices install required/s
 isolated layouts with option, flag and priority validation.
 The published legacy launcher has passed isolated old-to-native tools upgrade acceptance, including
 a running staged GUI, reopening, personal-file preservation and rejected invalid packages.
+Live Nexus validation with Hackle-Lo Pipes confirms the free-account automatic-download refusal
+and exact-file manual import. Fetcher application registration and browser entitlement tests remain.
 Model attribution is retained in local records and content packages. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 

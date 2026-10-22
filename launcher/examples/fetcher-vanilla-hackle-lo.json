@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "fetcher-vanilla-hackle-lo-nexus-test",
+  "name": "Fetcher Vanilla - Hackle-Lo Nexus test",
+  "description": "Preparation candidate only. The public server has not been changed; join testing requires matching staged server content.",
+  "version": "2026.10.22-test.1",
+  "host": "163.192.106.225",
+  "port": 25569,
+  "packages": [
+    {
+      "id": "hackle-lo-pipes",
+      "name": "Hackle-Lo Pipes v4",
+      "author": "WanderVanaheimr - InkDrops",
+      "nexus": { "game": "morrowind", "modId": 56939, "fileId": 1000064599 },
+      "sha256": "a4211504a66587218c3ffd830a680ef33c0654110afbb503fb7d91b61e945970",
+      "archiveFormat": "zip",
+      "dataDirs": ["."]
+    }
+  ],
+  "content": ["Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm", "Hackle-Lo Pipe.esp"],
+  "requiredFiles": ["Meshes/TPipeAshlander.NIF", "Textures/pipemat-ashlander.dds", "Sound/Fx/mc_pipe.wav"]
+}
