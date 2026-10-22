@@ -293,6 +293,7 @@ struct Options {
     fs::path logFile;
     fs::path requestFile;
     bool selfTest = false;
+    bool uiSmokeTest = false;
     bool runUpdater = false;
     bool quickCheck = false;
     bool statusOnly = false;
@@ -323,6 +324,8 @@ Options ParseOptions() {
             options.requestFile = arguments[++index];
         } else if (argument == L"--self-test") {
             options.selfTest = true;
+        } else if (argument == L"--smoke-test-ui") {
+            options.uiSmokeTest = true;
         } else if (argument == L"--run-updater") {
             options.runUpdater = true;
         } else if (argument == L"--quick-check") {
@@ -430,7 +433,7 @@ void CleanupOldStagedLaunchers(const fs::path &currentExecutable) {
 }
 
 bool StartStagedLauncher(const Options &options, const fs::path &executablePath) {
-    if (options.staged || options.selfTest || options.runUpdater ||
+    if (options.staged || options.selfTest || options.uiSmokeTest || options.runUpdater ||
         !PathsEquivalent(executablePath.parent_path(), options.installRoot)) {
         return false;
     }
@@ -608,6 +611,13 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     if (!options.nexusFixture.empty()) fetcher::nexusFixtureUrl(options.nexusFixture);
     const fs::path executablePath = GetExecutablePath();
     const fs::path uiPath = FindUiFile(executablePath);
+    if (options.uiSmokeTest && options.logFile.empty())
+        return 2;
+    if (options.uiSmokeTest && uiPath.empty()) {
+        fetcher::writeAtomic(options.logFile,
+            R"({"ok":false,"webView2Loaded":false,"error":"Launcher UI files are missing."})");
+        return 1;
+    }
 
     if (!options.requestFile.empty()) {
         try {
@@ -644,12 +654,18 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         return backendAvailable && uiExists ? 0 : 1;
     }
 
+    int uiSmokeResult = 1;
     try {
         if (StartStagedLauncher(options, executablePath)) {
             return 0;
         }
         CleanupOldStagedLaunchers(executablePath);
         if (!fetcher::recoverInstallTransactions(options.installRoot).empty()) {
+            if (options.uiSmokeTest) {
+                fetcher::writeAtomic(options.logFile,
+                    R"({"ok":false,"error":"Recovered an interrupted install; rerun the UI smoke test."})");
+                return 1;
+            }
             if (!fs::is_regular_file(options.installRoot / L"FetcherLauncher.exe"))
                 throw std::runtime_error(
                     "Interrupted first installation was restored. Run the setup/bootstrap again.");
@@ -670,6 +686,22 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         window.bind("fetcherCommand", [&app](const std::string &request) { return app.Command(request); });
         window.bind("fetcherOpenInstallFolder",
                     [&app](const std::string &) { return app.OpenInstallFolder(); });
+        if (options.uiSmokeTest) {
+            window.init("window.fetcherUiSmokeTest = true;");
+            window.bind("fetcherUiSmokeComplete", [&](const std::string &arguments) {
+                const auto value = fetcher::Json::parse(arguments).at(0);
+                const fetcher::Json report = {
+                    {"ok", value.value("ok", false)},
+                    {"webView2Loaded", true},
+                    {"bridgeReady", value.value("bridgeReady", false)},
+                    {"checks", value.value("checks", fetcher::Json::object())},
+                    {"error", value.value("error", "")}};
+                fetcher::writeAtomic(options.logFile, report.dump(2));
+                uiSmokeResult = report.at("ok").get<bool>() ? 0 : 1;
+                window.dispatch([&window] { window.terminate(); });
+                return R"({"recorded":true})";
+            });
+        }
 
         if (uiPath.empty()) {
             window.set_html(FallbackHtml());
@@ -678,12 +710,29 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         }
         window.run();
         app.Close();
+        if (options.uiSmokeTest)
+            return uiSmokeResult;
     } catch (const webview::exception &exception) {
+        if (options.uiSmokeTest) {
+            DWORD session = 0;
+            ProcessIdToSessionId(GetCurrentProcessId(), &session);
+            const std::string detail = exception.what();
+            fetcher::writeAtomic(options.logFile, fetcher::Json{{"ok", false},
+                {"webView2Loaded", false}, {"windowsSession", session},
+                {"errorCode", exception.error().code()},
+                {"error", detail.empty() ? "WebView2 initialization failed in this Windows session." : detail}}.dump());
+            return 1;
+        }
         const std::wstring message = L"Fetcher Launcher could not start.\n\n" + Utf8ToWide(exception.what()) +
                                      L"\n\nMicrosoft Edge WebView2 Runtime may need to be installed.";
         MessageBoxW(nullptr, message.c_str(), L"Fetcher Launcher", MB_OK | MB_ICONERROR);
         return 1;
     } catch (const std::exception &exception) {
+        if (options.uiSmokeTest) {
+            fetcher::writeAtomic(options.logFile, fetcher::Json{{"ok", false},
+                {"error", exception.what()}}.dump(-1, ' ', false, fetcher::Json::error_handler_t::replace));
+            return 1;
+        }
         const std::wstring message = Utf8ToWide(exception.what());
         MessageBoxW(nullptr, message.c_str(), L"Fetcher Launcher", MB_OK | MB_ICONERROR);
         return 1;

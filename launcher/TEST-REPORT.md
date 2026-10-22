@@ -338,3 +338,24 @@ now performs its own sign-in, as validated below. No public assets, tags or serv
   Real Premium-account entitlement, clean Windows/WebView2 prerequisites and broader browser/
   simultaneous-manager acceptance remain open. Premium/free fixtures are not substitutes for
   those live environment checks.
+
+## Fresh application install on PillowPC — 2026-10-22
+
+- The repeatable inbox-PowerShell acceptance driver installs the candidate into a new directory
+  on a second Windows device over authenticated SSH. PillowPC has Windows 11 Pro build 26100,
+  an owned GOG game, WebView2 and the Visual C++ runtime, but had no Fetcher installation or
+  usable system Python. See `WINDOWS-ACCEPTANCE.md` for payload, execution and evidence details.
+- Native setup and source/inventory verification, first-run guidance, the actual desktop
+  WebView2 page/native bridge, live public server retrieval, real HTTPS combined-content
+  preparation, client runtime startup (`--version`), cached repair and UMO installation/import
+  probe pass. Owned masters and NXM/MOMW handlers remain unchanged.
+- OpenSSH uses service session 0, which cannot initialize WebView2 on this device. The UI check
+  therefore runs as a temporary limited task in the existing signed-in desktop, then removes
+  only its own task. The diagnostic writes structured results and closes without input automation.
+- The retained real legacy updater installs the candidate and preserves personal markers;
+  bad hashes and missing UI are rejected. All 32 bootstrap process operations pass remotely,
+  including interrupted-install recovery and running-client/protected-file guards. These
+  stdlib-only tests use the installed UMO runtime without installing a system Python.
+- This certifies a fresh Fetcher directory on this device with existing prerequisites. In-world
+  rendering/join on PillowPC, missing-prerequisite Windows installations, final production release
+  URLs and coordinated public rollout remain separate. No public assets, tags or servers change.

@@ -15,7 +15,10 @@ refusal and exact-file manual import. The selected normal route now uses a pinne
 helper for Nexus sign-in/downloads, with source/license delivery and opt-in NXM handoff. Native
 personal keys remain under advanced private testing. Standalone Fetcher SSO is a future option.
 Actual UMO SSO and the free-account Hackle-Lo download/preparation pass; the original NXM handler
-is restored after acceptance. Premium entitlement, broader browsers and clean-machine trials remain.
+is restored after acceptance. Premium entitlement, broader browsers and missing-prerequisite trials remain.
+Fresh installation on PillowPC now passes with its existing Windows 11/WebView2/VC prerequisites:
+real desktop UI/bridge, live server browser, HTTPS combined-content preparation, client runtime,
+UMO runtime, cached repair, legacy upgrade and 32 bootstrap/recovery checks. See WINDOWS-ACCEPTANCE.md.
 Native updates now journal complete backup/hash plans before mutation, recover interrupted process
 updates on restart, and expose completed client/tools snapshots in the Updates restore panel.
 Standalone native first installation now obtains verified launcher/client releases without PowerShell.
@@ -34,18 +37,20 @@ locally and passes native integration. The web interface is retained; its backen
    UMO imports and basic native layouts, ZIP/7z/RAR extraction, Nexus API-key downloads and exact-file
    manual import. Add advanced FOMOD environment dependencies/player wizard and finish live Nexus
    Premium-account, broader-browser and clean-machine UMO-helper acceptance. UMO sign-in/free-account
-   NXM download handoff passes live acceptance and isolated fixtures. Native bootstrap integration passes; clean-Windows
-   prerequisite acceptance remains. The legacy installer
+   NXM download handoff passes live acceptance and isolated fixtures. Native bootstrap and second-device
+   fresh installation pass; missing-prerequisite acceptance remains. The legacy installer
    remains available. Fetcher's experimental-server preset is separate optional work below.
 2. A fresh native install and real game join using the generated combined-content config now pass
-   against a matching staged local server. Validate clean Windows bootstrap/prerequisites and the
+   against a matching staged local server. Second-device fresh installation/UI/runtime acceptance
+   passes. Validate missing-prerequisite Windows installations and the
    final published release sources. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.
 3. Stage the vanilla-server content/authority and Studio Lua/native-client release together. The
    combined archive/credits and server manifest are published as separate candidate assets and pass
    real HTTPS preparation. Promote the matching profile only with the coordinated server/client
    rollout. Keep the original archive and rollback copies.
-4. Rerun UPGRADE-ACCEPTANCE.md against the final package, then release the native launcher candidate
+4. Legacy upgrade acceptance passes on the development PC and PillowPC. Repeat it for the final
+   coordinated release payload, then release the native launcher candidate
    to a small public test group before replacing the stable tag. Tell players to reopen after updating.
 
 ## Optional Fetcher experimental-server preset

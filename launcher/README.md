@@ -69,6 +69,8 @@ See [BOOTSTRAP.md](BOOTSTRAP.md) for standalone native first installation and sa
 identities. [UMO-HELPER.md](UMO-HELPER.md) describes Nexus setup, distribution/source delivery and
 the optional browser link association. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATION.md) retains
 the future standalone Fetcher SSO registration steps.
+See [WINDOWS-ACCEPTANCE.md](WINDOWS-ACCEPTANCE.md) for the second-device fresh-install and UI bridge
+checks, and the repeatable SSH acceptance tools.
 
 ## Published direct-download candidate
 

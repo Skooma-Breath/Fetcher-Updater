@@ -1189,10 +1189,34 @@ Fetcher native launcher ready.
       try {
         state = await window.fetcherGetStatus();
         render();
-        await action("refreshServers");
+        if (window.fetcherUiSmokeTest) {
+          const checks = {
+            profileOptions: $("profile").options.length > 0,
+            branding:
+              document.querySelector("header h1")?.textContent === "FETCHER",
+            serverPage: !!$("servers"),
+            modPage: !!$("mods"),
+            updatesPage: !!$("updates"),
+            nexusControls: !!$("installUmo") && !!$("connectUmo"),
+            firstRunState: typeof state.setup?.clientInstalled === "boolean",
+          };
+          await window.fetcherUiSmokeComplete({
+            ok: Object.values(checks).every(Boolean),
+            bridgeReady: true,
+            checks,
+          });
+        } else {
+          await action("refreshServers");
+        }
       } catch (e) {
         notice("Native launcher bridge unavailable: " + e);
         render();
+        if (window.fetcherUiSmokeTest)
+          await window.fetcherUiSmokeComplete({
+            ok: false,
+            bridgeReady: false,
+            error: String(e),
+          });
       }
     </script>
   </body>
