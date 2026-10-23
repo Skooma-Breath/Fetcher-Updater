@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "native_backend.hpp"
 #include "install_transaction.hpp"
+#include "launcher_runtime.hpp"
 #include "umo_helper.hpp"
 
 #include <windows.h>
@@ -302,6 +303,7 @@ struct Options {
     bool allowLocalFixtures = false;
     std::string nexusFixture;
     std::string umoNxm;
+    std::wstring restartReadyEvent;
 };
 
 Options ParseOptions() {
@@ -342,6 +344,11 @@ Options ParseOptions() {
             options.umoNxm = WideToUtf8(arguments[++index]);
         } else if (argument == L"--debug") {
             options.debug = true;
+        } else if (argument == L"--restart-ready-event" && index + 1 < argumentCount) {
+            std::wstring name = arguments[++index];
+            if (name.size() < 128 && std::regex_match(name,
+                    std::wregex(L"Local\\\\FetcherLauncherRestart-[0-9-]+")))
+                options.restartReadyEvent = std::move(name);
         }
     }
     LocalFree(arguments);
@@ -476,6 +483,43 @@ bool StartStagedLauncher(const Options &options, const fs::path &executablePath)
     return true;
 }
 
+void RestartLauncher(const fs::path &root, bool debug) {
+    const auto suffix = std::to_wstring(GetCurrentProcessId()) + L"-" +
+        std::to_wstring(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    const auto eventName = L"Local\\FetcherLauncherRestart-" + suffix;
+    WinHandle ready(CreateEventW(nullptr, TRUE, FALSE, eventName.c_str()));
+    if (!ready) throw std::runtime_error("Could not create launcher restart acknowledgement.");
+    const auto stage = GetLauncherStageBase() / (L"stage-" + suffix);
+    bool handshake = false;
+    {
+        fetcher::InstallLock lock(root);
+        handshake = fetcher::stageLauncherRuntime(root, stage);
+    }
+    auto executable = stage / L"FetcherLauncher.exe";
+    auto command = QuoteArgument(executable.wstring()) + L" --staged --install-root " +
+                   QuoteArgument(root.wstring()) + L" --restart-ready-event " + QuoteArgument(eventName);
+    if (debug) command += L" --debug";
+    std::vector<wchar_t> buffer(command.begin(), command.end());
+    buffer.push_back(0);
+    STARTUPINFOW startup{};
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION child{};
+    if (!CreateProcessW(executable.c_str(), buffer.data(), nullptr, nullptr, FALSE, 0, nullptr,
+                        root.c_str(), &startup, &child))
+        throw std::runtime_error("The updated launcher could not start. This window remains open.");
+    WinHandle process(child.hProcess), thread(child.hThread);
+    if (handshake) {
+        HANDLE handles[] = {ready.get(), process.get()};
+        if (WaitForMultipleObjects(2, handles, FALSE, 15000) == WAIT_OBJECT_0) return;
+    } else {
+        // Older rollback targets cannot acknowledge the new bridge; require their GUI message loop.
+        DWORD code = 0;
+        if (WaitForInputIdle(process.get(), 15000) == 0 &&
+            GetExitCodeProcess(process.get(), &code) && code == STILL_ACTIVE) return;
+    }
+    throw std::runtime_error("The updated launcher did not confirm startup. This window remains open; retry Restart launcher.");
+}
+
 std::string PathToFileUrl(const fs::path &path) {
     std::string value = WideToUtf8(fs::absolute(path).wstring());
     std::replace(value.begin(), value.end(), '\\', '/');
@@ -503,10 +547,12 @@ std::string FallbackHtml() {
 
 class LauncherApp {
   public:
-    LauncherApp(webview::webview &window, fs::path root)
-        : mWindow(window), mRoot(std::move(root)), mBackend(mRoot, [this](const std::string &text) {
+    LauncherApp(webview::webview &window, fs::path root, const fs::path &executable,
+                const fs::path &uiFile, bool debug)
+        : mWindow(window), mRoot(std::move(root)), mDebug(debug), mBackend(mRoot, [this](const std::string &text) {
               PostEvent(fetcher::Json{{"type", "log"}, {"text", text}}.dump());
           }) {
+        if (!uiFile.empty()) mLoadedRuntime = fetcher::launcherRuntime(executable, uiFile.parent_path());
         mSnapshot = mBackend.state().dump();
     }
     ~LauncherApp() {
@@ -540,12 +586,36 @@ class LauncherApp {
             bool ok = true;
             std::string error;
             try {
-                mBackend.command(request);
+                if (request.value("op", "") != "restartLauncher")
+                    mBackend.command(request);
             } catch (const std::exception &e) {
                 ok = false;
                 error = e.what();
             }
-            const auto state = mBackend.state();
+            auto state = mBackend.state();
+            bool changed = false;
+            try {
+                changed = !mLoadedRuntime.empty() && fetcher::launcherRuntime(
+                    mRoot / "FetcherLauncher.exe", mRoot / "ui") != mLoadedRuntime;
+            } catch (const std::exception &) {
+                changed = true; // Missing/partial files must be verified before any handoff.
+            }
+            state["restartRequired"] = changed;
+            const auto op = request.value("op", "");
+            if (ok && changed && (op == "update" || op == "repair" || op == "rollbackUpdate" ||
+                                  op == "restartLauncher")) {
+                PostEvent(R"({"type":"restarting"})");
+                try {
+                    RestartLauncher(mRoot, mDebug);
+                    mWindow.dispatch([this] {
+                        if (!mClosing) { mClosing = true; mWindow.terminate(); }
+                    });
+                    return;
+                } catch (const std::exception &e) {
+                    ok = false;
+                    error = e.what();
+                }
+            }
             {
                 std::lock_guard<std::mutex> lock(mSnapshotMutex);
                 mSnapshot = state.dump();
@@ -577,6 +647,8 @@ class LauncherApp {
     }
     webview::webview &mWindow;
     fs::path mRoot;
+    bool mDebug = false;
+    fetcher::Json mLoadedRuntime;
     fetcher::Backend mBackend;
     std::atomic<bool> mBusy{false}, mClosing{false};
     std::thread mWorker;
@@ -675,7 +747,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         }
 
         webview::webview window(options.debug, nullptr);
-        LauncherApp app(window, options.installRoot);
+        LauncherApp app(window, options.installRoot, executablePath, uiPath, options.debug);
 
         window.set_title("Fetcher Launcher");
         SetLauncherWindowIcon(window);
@@ -683,6 +755,13 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
         window.set_size(860, 620, WEBVIEW_HINT_MIN);
 
         window.bind("fetcherGetStatus", [&app](const std::string &) { return app.GetStatusJson(); });
+        window.bind("fetcherUiReady", [&options](const std::string &) {
+            if (!options.restartReadyEvent.empty()) {
+                WinHandle ready(OpenEventW(EVENT_MODIFY_STATE, FALSE, options.restartReadyEvent.c_str()));
+                if (ready) SetEvent(ready.get());
+            }
+            return "{}";
+        });
         window.bind("fetcherCommand", [&app](const std::string &request) { return app.Command(request); });
         window.bind("fetcherOpenInstallFolder",
                     [&app](const std::string &) { return app.OpenInstallFolder(); });

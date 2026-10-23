@@ -50,7 +50,7 @@ string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_LICENSE_SOURCE "${UMO_
 string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_ADAPTER_SOURCE "${UMO_ADAPTER_SOURCE}")
 configure_file(src/umo_embedded.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/generated/umo_embedded.hpp" @ONLY)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS umo/adapter.py umo/LICENSE)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp src/launcher_runtime.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_include_directories(fetcher-native PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)

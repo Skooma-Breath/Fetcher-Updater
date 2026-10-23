@@ -58,6 +58,9 @@ Use this isolated directory when reviewing the candidate. Update buttons follow 
 published** client/tools tags, which still contain the older public launcher until this candidate is
 released. Do not use a development game installation as a disposable update test.
 
+Opening the GUI refreshes servers and checks launcher/client/profile updates without installing.
+Successful updates restart the GUI only when its executable or interface changed. The verified
+replacement window confirms readiness before the old window closes. See [AUTO-UPDATES.md](AUTO-UPDATES.md).
 There is no automatic Nexus/UMO installation on startup. Server discovery is read-only. Managed
 profile preparation downloads its declared packages and builds a separate config before launch.
 Current public servers have not been changed by this candidate. The preview asset profile deliberately
@@ -66,7 +69,8 @@ pins a distinct combined candidate archive; it cannot silently use the older pub
 See [PROFILE-FORMAT.md](PROFILE-FORMAT.md) for operator profiles and launch isolation,
 [TEST-REPORT.md](TEST-REPORT.md) for evidence/limits, and [ROADMAP.md](ROADMAP.md) for remaining migration work.
 See [UPGRADE-ACCEPTANCE.md](UPGRADE-ACCEPTANCE.md) for the verified old-launcher update path and
-the repeatable isolated upgrade test. Players reopen the launcher after installing the update.
+the repeatable isolated upgrade test. Older builds need one manual reopen when upgrading to the
+first build with automatic restart; subsequent GUI updates restart themselves when required.
 See [BOOTSTRAP.md](BOOTSTRAP.md) for standalone native first installation and saved multiplayer
 identities. [UMO-HELPER.md](UMO-HELPER.md) describes Nexus setup, distribution/source delivery and
 the optional browser link association. [NEXUS-REGISTRATION.md](NEXUS-REGISTRATION.md) retains

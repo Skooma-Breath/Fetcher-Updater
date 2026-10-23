@@ -116,6 +116,7 @@ try {
     $manifest = [ordered]@{
         schemaVersion = 1
         channel = "fetcher-simulator-test"
+        launcherRestartHandshake = 1
         sourceCommit = $SourceCommit.ToLowerInvariant()
         generatedAtUtc = [DateTime]::UtcNow.ToString("o")
         files = @($records | ForEach-Object { $_ })

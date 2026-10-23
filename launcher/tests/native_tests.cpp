@@ -1,5 +1,6 @@
 #include "native_backend.hpp"
 #include "server_manifest.hpp"
+#include "launcher_runtime.hpp"
 #include <archive.h>
 #include <archive_entry.h>
 #include <cstring>
@@ -70,6 +71,99 @@ void sevenZip(const fs::path &path, const std::vector<std::pair<std::string, std
     }
     check(archive_write_close(archive) == ARCHIVE_OK, "finish 7z writer");
     archive_write_free(archive);
+}
+void startupTests(const fs::path &root) {
+    auto install = root / "startup";
+    writeAtomic(install / "openmw.cfg", "content=Personal.esp\n");
+    int lists = 0, releases = 0;
+    auto fetch = [&](const std::string &url, std::uint64_t, bool) {
+        if (url == "https://master.fetchers.org/v1/servers") {
+            ++lists;
+            return std::string("[]");
+        }
+        check(url.rfind("https://api.github.com/repos/", 0) == 0, "startup fetches only release metadata");
+        ++releases;
+        auto name = url.find("fetcher-tester-tools") != std::string::npos ? "fetcher-tester-tools.zip" : "fetcher-simulator.zip";
+        return Json{{"assets", Json::array({{{"name", name}, {"digest", "sha256:" + std::string(64, 'a')},
+                                              {"browser_download_url", "https://example.org/download.zip"}}})}}.dump();
+    };
+    Backend backend(install, {}, fetch);
+    auto state = backend.command({{"op", "startup"}});
+    check(lists == 1 && releases == 2 && state.at("status").at("status") == "updateAvailable",
+          "startup refreshes servers and checks launcher/client releases once");
+    check(!fs::exists(install / "_fetcher_launcher/downloads") &&
+              read(install / "openmw.cfg") == "content=Personal.esp\n",
+          "startup update check does not install or alter configuration");
+    Backend offline(install, {}, [](const std::string &, std::uint64_t, bool) -> std::string {
+        throw std::runtime_error("offline fixture");
+    });
+    auto failed = offline.command({{"op", "startup"}});
+    check(failed.at("status").at("status") == "checkFailed" &&
+              failed.at("selectedProfile") == "installed", "offline startup keeps saved setup and allows retry");
+    try {
+        offline.command({{"op", "launch"}});
+        check(false, "fixture has no executable");
+    } catch (const std::exception &e) {
+        check(std::string(e.what()) == "Executable is missing.",
+              "failed startup check does not itself block launch of an existing setup");
+    }
+    try {
+        backend.command({{"op", "launch"}});
+        check(false, "known update must block stale client");
+    } catch (const std::exception &e) {
+        check(std::string(e.what()).find("Install known available") != std::string::npos,
+              "known available client updates still block stale launch");
+    }
+}
+void runtimeTests(const fs::path &root) {
+    auto install = root / "runtime";
+    writeAtomic(install / "FetcherLauncher.exe", "executable one");
+    writeAtomic(install / "ui/index.html", "interface one");
+    writeAtomic(install / "ui/assets/icon.gif", "gif");
+    auto capture = [&] { return launcherRuntime(install / "FetcherLauncher.exe", install / "ui"); };
+    auto initial = capture();
+    auto inventory = [&] {
+        Json files = Json::array();
+        auto runtime = capture();
+        for (auto it = runtime.begin(); it != runtime.end(); ++it)
+            files.push_back({{"path", it.key()}, {"sha256", it.value().at("sha256")},
+                             {"size", it.value().at("size")}});
+        Json value = {{"schemaVersion", 1}, {"launcherRestartHandshake", 1}, {"files", files}};
+        writeAtomic(install / "fetcher-tester-tools.json", value.dump());
+        return value;
+    };
+    inventory();
+    writeAtomic(install / "Update-Fetcher-Simulator.ps1", "new updater script");
+    writeAtomic(install / "openmw.exe", "new client");
+    writeAtomic(install / "Data Files/mod.esp", "new mod");
+    check(capture() == initial, "client/content/script-only updates do not need a launcher restart");
+    writeAtomic(install / "ui/index.html", "interface two");
+    check(capture() != initial, "UI-only update needs restart");
+    rejects([&] { stageLauncherRuntime(install, root / "unsafe-runtime-stage"); },
+            "changed interface without matching inventory cannot restart");
+    check(!fs::exists(root / "unsafe-runtime-stage"), "bad runtime rejected before staging");
+    auto current = capture();
+    inventory();
+    check(stageLauncherRuntime(install, root / "verified-runtime-stage"), "new runtime supports readiness acknowledgement");
+    check(launcherRuntime(root / "verified-runtime-stage/FetcherLauncher.exe",
+                         root / "verified-runtime-stage/ui") == current,
+          "restart stages the exact verified executable and interface together");
+    writeAtomic(install / "FetcherLauncher.exe", "executable two");
+    check(capture() != current, "executable-only update needs restart");
+    auto value = inventory();
+    value["files"].push_back({{"path", "ui/missing.js"}, {"sha256", std::string(64, '0')}, {"size", 1}});
+    writeAtomic(install / "fetcher-tester-tools.json", value.dump());
+    rejects([&] { stageLauncherRuntime(install, root / "missing-runtime-stage"); },
+            "partial runtime cannot trigger a handoff");
+    value = inventory();
+    value["files"].push_back(value["files"][0]);
+    writeAtomic(install / "fetcher-tester-tools.json", value.dump());
+    rejects([&] { stageLauncherRuntime(install, root / "duplicate-runtime-stage"); },
+            "duplicate runtime inventory refused");
+    value = inventory();
+    value.erase("launcherRestartHandshake");
+    writeAtomic(install / "fetcher-tester-tools.json", value.dump());
+    check(!stageLauncherRuntime(install, root / "legacy-runtime-stage"), "older inventories select legacy GUI startup acknowledgement");
 }
 void discoveryTests(const fs::path &root) {
     Json raw = {{"id", "owner-name"}, {"name", "Community"}, {"version", "1"},
@@ -286,6 +380,8 @@ int main() {
             rejects([&] { safeRelative(path); }, "unsafe relative path rejected");
         check(safeRelative("Data Files/meshes/keyboard.nif").filename() == L"keyboard.nif",
               "ordinary asset path");
+        startupTests(root);
+        runtimeTests(root);
         discoveryTests(root);
         archiveAndLayoutTests(root);
         writeAtomic(root / L"test.txt", "hello");

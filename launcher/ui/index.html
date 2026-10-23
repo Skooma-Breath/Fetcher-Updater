@@ -401,6 +401,7 @@
       </nav>
       <main>
         <div id="notice" role="status"></div>
+        <button id="restartLauncher" hidden>Restart launcher</button>
         <div class="panel">
           <div class="row between">
             <div>
@@ -673,7 +674,7 @@
           <div class="panel">
             <h3 id="updateTitle">Check the selected profile</h3>
             <p id="updateMessage" class="muted">
-              Choose Check for updates to compare against published releases.
+              Updates are checked when the launcher opens. You can check again here.
             </p>
             <div class="row">
               <button id="check">Check for updates</button
@@ -690,8 +691,8 @@
             <h3>Restore a previous update</h3>
             <p class="muted">
               Restore the files saved before a completed launcher or client
-              update. Close the game first. Reopen the launcher after restoring
-              its files. A restore stops if it would overwrite files edited
+              update. Close the game first. The launcher restarts if its own files change.
+              A restore stops if it would overwrite files edited
               since the update.
             </p>
             <div class="row">
@@ -881,6 +882,7 @@ Fetcher native launcher ready.
         for (const p of state?.profiles || [])
           $("profile").append(new Option(p.name, p.id));
         if (!state) return;
+        $("restartLauncher").hidden = !state.restartRequired;
         $("profile").value = state.selectedProfile;
         const p = state.profiles.find((p) => p.id === state.selectedProfile);
         $("profileDescription").textContent = p?.description || "";
@@ -1083,6 +1085,12 @@ Fetcher native launcher ready.
           .forEach((b) => (b.disabled = busy));
       }
       window.fetcherReceive = (event) => {
+        if (event.type === "restarting") {
+          busy = true;
+          notice("Opening the updated launcher…");
+          render();
+          return;
+        }
         if (event.type === "log") {
           log(event.text);
           return;
@@ -1095,6 +1103,12 @@ Fetcher native launcher ready.
             log("Error: " + event.error + "\n");
           } else {
             log(event.action + " completed.\n");
+            if (event.action === "startup") {
+              if (state?.status?.status === "updateAvailable")
+                notice("Updates are available. Open Updates to install them.");
+              else if (state?.status?.status === "checkFailed")
+                notice(state.status.message);
+            }
             if (
               event.action === "reviewProfile" ||
               event.action === "addProfile"
@@ -1112,6 +1126,7 @@ Fetcher native launcher ready.
         .querySelectorAll("nav button")
         .forEach((b) => (b.onclick = () => showPage(b.dataset.page)));
       $("refresh").onclick = () => action("refreshServers");
+      $("restartLauncher").onclick = () => action("restartLauncher");
       $("setupClient").onclick = () => showPage("updates");
       $("setupGame").onclick = () => showPage("mods");
       $("filter").oninput = serverRows;
@@ -1191,6 +1206,7 @@ Fetcher native launcher ready.
       try {
         state = await window.fetcherGetStatus();
         render();
+        await window.fetcherUiReady?.();
         if (window.fetcherUiSmokeTest) {
           const checks = {
             profileOptions: $("profile").options.length > 0,
@@ -1208,7 +1224,7 @@ Fetcher native launcher ready.
             checks,
           });
         } else {
-          await action("refreshServers");
+          await action("startup");
         }
       } catch (e) {
         notice("Native launcher bridge unavailable: " + e);

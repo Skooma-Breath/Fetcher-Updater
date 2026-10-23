@@ -454,7 +454,8 @@ Json Backend::resolve(const Json &d) {
              std::regex_match(tag, std::regex("[A-Za-z0-9_.-]+")),
          "Invalid GitHub release reference.");
     const auto release =
-        parseJson(httpGet("https://api.github.com/repos/" + repo + "/releases/tags/" + tag));
+        parseJson(mDiscoveryFetch("https://api.github.com/repos/" + repo + "/releases/tags/" + tag,
+                                  8 * 1024 * 1024, true));
     for (const auto &a : release.at("assets"))
         if (a.at("name") == asset) {
             auto digest = a.value("digest", "");
@@ -769,8 +770,7 @@ Json Backend::check(bool repair, bool install) {
             writeAtomic(mManaged / "tools.json", toolsRef.dump(2));
             toolsCurrent = true;
             if (mLog)
-                mLog("Launcher/tools installed. Reopen the launcher after this update "
-                     "to use its new interface.\n");
+                mLog("Launcher/tools installed. The GUI will restart if its executable or interface changed.\n");
         }
     }
     auto channel = optional(mRoot / "fetcher-update-channel.json",
@@ -844,6 +844,22 @@ Json Backend::command(const Json &q) {
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if (op == "startup") {
+        try {
+            mServers = parseServers(parseJson(mDiscoveryFetch(
+                "https://master.fetchers.org/v1/servers", 8 * 1024 * 1024, false)));
+        } catch (const std::exception &e) {
+            if (mLog) mLog(std::string("Server list unavailable: ") + e.what() + "\n");
+        }
+        try {
+            check(false, false);
+        } catch (const std::exception &e) {
+            if (mLog) mLog(std::string("Startup update check unavailable: ") + e.what() + "\n");
+            mStatus = {{"status", "checkFailed"},
+                       {"message", "Update check unavailable. Retry on Updates; your saved setup is unchanged."}};
+        }
+        return state();
+    }
     if (op == "prepare" || op == "launch" || op == "update" || op == "repair" || op == "check")
         syncDiscoveredProfile();
     if (op == "rollbackUpdate") {
@@ -1149,7 +1165,8 @@ Json Backend::command(const Json &q) {
         assertGameStopped(mRoot);
         if (q.contains("account"))
             saveIdentity(q);
-        need(mStatus.is_null() || mStatus.empty() || mStatus.value("upToDate", false),
+        need(mStatus.is_null() || mStatus.empty() || mStatus.value("upToDate", false) ||
+                 mStatus.value("status", "") == "checkFailed",
              "Install known available client/profile updates before launching.");
         auto cfg = prepare();
         std::vector<std::wstring> args;

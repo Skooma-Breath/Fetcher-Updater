@@ -62,8 +62,9 @@ locally and passes native integration. The web interface is retained; its backen
    from the initial ToddTest acceptance keyboard.
 4. Collect small-group soak-test results for the published payload. Legacy upgrade acceptance passes
    on the development PC and PillowPC; final public HTTPS setup/check passes on the normal development
-   installation. Repeat wider-device and failure acceptance as needed. Tell players to close and reopen
-   the old launcher after updating.
+   installation. Repeat wider-device and failure acceptance as needed. Startup now checks updates
+   without installing, and successful GUI runtime updates restart automatically after a verified
+   handoff. Older builds need one reopen to load this capability. See AUTO-UPDATES.md.
 
 ## Optional Fetcher experimental-server preset
 
