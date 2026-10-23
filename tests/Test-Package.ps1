@@ -165,12 +165,17 @@ try {
         throw "FetcherLauncher.exe is empty."
     }
     $channelConfiguration = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
+    $publishedChannels = @{
+        vehicles = "Fetcher-Simulator-Vehicles"
+        studio = "Fetcher-Simulator-Studio"
+    }
+    $channelName = [string]$channelConfiguration.channel
     if ([int]$channelConfiguration.schemaVersion -ne 1 -or
-        [string]$channelConfiguration.channel -ne "vehicles" -or
+        -not $publishedChannels.ContainsKey($channelName) -or
         [string]$channelConfiguration.clientRepository -ne "Fetcher-Simulator/Fetcher-Simulator" -or
-        [string]$channelConfiguration.clientReleaseTag -ne "Fetcher-Simulator-Vehicles" -or
+        [string]$channelConfiguration.clientReleaseTag -ne $publishedChannels[$channelName] -or
         [string]$channelConfiguration.clientAssetName -ne "fetcher-simulator.zip") {
-        throw "Package contains an invalid vehicle update channel."
+        throw "Package contains an invalid published client update channel."
     }
     $protectionPolicy = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-client-protection-policy.json") -Raw |
         ConvertFrom-Json
