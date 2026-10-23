@@ -55,16 +55,36 @@ listed publicly. Temporary test input/display overrides were removed and the tes
 
 ## Runtime boundaries
 
-Vanilla retains its existing health endpoint on localhost:8082. Its runtime adapter in
-`server/vanilla/vanilla_runtime.lua` reuses only the engine core's activation evaluator/Activate and
-door-state handlers. The companion empty custom_scripts module prevents optional experimental
-modules from loading. Core admin/chat/test-spawner lifecycle handlers are not installed.
-The adapter separately exposes ordinary chat and the bundled surf/vehicle commands; operator-only
-surf mutations are denied. Static-item activation is enabled, with native mutation validation and
-the shared range/cell evaluator retained.
+Vanilla retains its existing health endpoint on localhost:8082. The initial adapter reused only
+activation and surf/vehicle commands, which omitted shared commands such as /f and /placeat.
+The command-restoration follow-up now reuses core's common chat handler and connect/disconnect
+handlers, with an explicit Vanilla module/command allowlist. General commands, marks/recall,
+vanilla speech, surf/vehicle and operator placement/travel commands share the engine implementation.
+Help is filtered by installed commands and admin privileges. Experimental Bardcraft, test-spawner,
+custom-race voice commands, Lua diagnostics and HTTP administration remain outside this profile.
+Admin login fails closed when no password is configured; the operator requested a generated
+password stored in a private local file and the server's private config, never a public package.
+Static-item activation retains native mutation validation and the shared range/cell evaluator.
 
-Install core.lua, intent_policy.lua, command_registry.lua, recordstore.lua, surf_commands.lua and
-vehicle_commands.lua from the pinned engine source, plus Studio's procedural_synth modules/package.
+Install core.lua, intent_policy.lua, command_registry.lua, recordstore.lua, mark_recall.lua,
+speech_commands.lua, speech_data.lua, starwind_speech_data.lua, custom_speech_data.lua,
+surf_commands.lua and vehicle_commands.lua from the engine source, plus Studio's modules/package.
+The extra speech data tables are metadata dependencies, not additional installed client mods.
+Run `lua tests/test_vanilla_commands.lua ../openmw` from the updater repository to check actual
+shared dispatch, help filtering, placement permissions, quoted arguments, disconnect cleanup,
+minimal profiles, ordinary chat and the retained health endpoint (30 checks). The same suite
+passes on the VPS under both Lua and LuaJIT; all 21 Studio suites also pass.
+Deployed after the operator confirmed both players had saved and approved a Vanilla-only restart.
+The shared command implementation is signed engine commit `65485ac4bc` (source tag
+`Fetcher-Vanilla-Commands-20261022`); no native executable or public launcher asset changed.
+All nine installed payload hashes match staging. Health is OK, both public listings remain
+available, all four Studio storage rows match the shutdown backup, and the experimental process
+is unchanged. The private password lives at
+`%LOCALAPPDATA%\Fetcher\Operator\vanilla-admin.txt`; its directory ACL allows only the local user,
+SYSTEM and Administrators. The server config is owner-readable/writable only (0600).
+The private script/config/database/storage rollback snapshot is
+`/srv/fetcher-release-backups/20261022-vanilla-commands`; restore scripts/config only if reverting,
+not a stale player database over subsequent player progress.
 The Vanilla server manifest loads vanilla_runtime.lua, procedural_synth.lua and studio_deployment.lua.
 The last file is specifically the one-time ToddTest test placement, guarded by persistent storage;
 it does not change all players' spawn positions. Wider public-world instrument placement is separate.
