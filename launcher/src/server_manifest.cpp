@@ -176,6 +176,40 @@ Json normalizeServerManifest(const Json &value) {
     }
     return p;
 }
+Json normalizeDiscoveredManifest(const std::string &text, const std::string &digest,
+                                 const std::string &host, int port) {
+    need(std::regex_match(digest, std::regex("[0-9a-f]{64}")) && textSha256(text) == digest,
+         "Advertised server profile SHA-256 mismatch. Refresh the server list.");
+    auto raw = parseJson(text, 256 * 1024);
+    const std::set<std::string> allowed = {
+        "schemaVersion", "id", "name", "version", "mode", "description", "host", "port",
+        "packages", "umoMods", "content", "requiredFiles", "groundcover", "fallbackArchives"};
+    need(raw.is_object(), "Server profile must be a JSON object.");
+    for (auto it = raw.begin(); it != raw.end(); ++it)
+        need(allowed.count(it.key()) != 0, "Unsupported advertised profile field: " + it.key());
+    auto p = normalizeServerManifest(raw);
+    need(p.contains("version") && !p.at("version").get<std::string>().empty(),
+         "Advertised profile needs a version.");
+    // The registry's source address and listening port are authoritative. A
+    // document may not redirect Play to its own host/port (also supports LAN aliases).
+    endpoint(host, port);
+    p["host"] = host;
+    p["port"] = port;
+    const std::set<std::string> packageFields = {
+        "id", "name", "author", "version", "url", "sha256", "archiveFormat", "dataDirs",
+        "actions", "fomod", "nexus", "repository", "releaseTag", "assetName"};
+    for (const auto &d : p.at("packages")) {
+        for (auto it = d.begin(); it != d.end(); ++it)
+            need(packageFields.count(it.key()) != 0, "Unsupported advertised package field: " + it.key());
+        need(d.contains("sha256") && std::regex_match(d.at("sha256").get<std::string>(),
+                                                     std::regex("[0-9a-fA-F]{64}")),
+             "Every advertised archive must have a pinned SHA-256, including GitHub releases.");
+        if (d.contains("url"))
+            need(d.at("url").get<std::string>().rfind("https://", 0) == 0,
+                 "Advertised packages require HTTPS.");
+    }
+    return p;
+}
 Json readPackageReceipt(const fs::path &directory) {
     auto path = longPath(directory / ".fetcher-package.json");
     if (!fs::exists(path))

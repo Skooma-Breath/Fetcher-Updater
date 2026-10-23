@@ -28,7 +28,8 @@ std::string displayUrl(const std::string &url);
 std::string textSha256(const std::string &text);
 std::string protectSecret(const std::string &text);
 std::string unprotectSecret(const std::string &text);
-std::string httpGet(const std::string &url);
+std::string httpGet(const std::string &url, std::uint64_t limit = 8 * 1024 * 1024,
+                    bool allowRedirects = true);
 std::string nexusGet(const std::string &path, const std::string &key);
 void download(const std::string &url, const fs::path &path, const std::string &hash,
               const Log &log);

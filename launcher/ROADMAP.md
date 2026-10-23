@@ -79,7 +79,10 @@ independently of the general launcher rollout. The original game installation is
 
 ## Subsequent mod-manager/browser improvements
 
-- Server-advertised profile URLs, manifest identity/version display and protocol/build compatibility.
+- Automatic master-hosted server profiles are implemented: local owner JSON in dedicated-server
+  registration, bounded master storage, digest discovery, endpoint binding, automatic selection
+  and Play/Prepare revalidation. Profiles use embedded pinned lists; no external manifest website
+  or player paste/review step. Expand operator adoption and protocol/build compatibility display.
 - Rich dependency/conflict view, optional-mod presets, package removal/cache management and disk-space UI.
 - More server operators/profile formats, connection diagnostics and large-list UX checks.
 - Choose a content-specific attribution display (in-game Studio Help/Credits or server-profile

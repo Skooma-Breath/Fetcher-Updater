@@ -186,9 +186,9 @@ bool protectedClientPath(const std::string &name, const Json &policy) {
         "data files/textures/menu_mainmenu_pressed.dds"};
     return protectedPath(name, policy, clientBranding.count(lower(name)) == 0);
 }
-Backend::Backend(fs::path root, Log log)
+Backend::Backend(fs::path root, Log log, DiscoveryFetch discoveryFetch)
     : mRoot(fs::absolute(root).lexically_normal()), mManaged(mRoot / L"_fetcher_launcher"),
-      mLog(std::move(log)) {
+      mLog(std::move(log)), mDiscoveryFetch(discoveryFetch ? std::move(discoveryFetch) : httpGet) {
     noLinks(mManaged);
     recoverInstallTransactions(mRoot);
     mSettings = optional(mManaged / "settings.json", {{"schemaVersion", 1},
@@ -338,7 +338,17 @@ Json Backend::parseServers(const Json &value) {
             auto profileUrl = s.value("mod_profile_url", s.value("profile_url", ""));
             if (profileUrl.size() > 4096 || profileUrl.rfind("https://", 0) != 0)
                 profileUrl.clear();
+            auto digest = s.value("mod_profile_sha256", "");
+            auto serverId = s.value("id", "");
+            // URLs supplied by a registry entry are never used for automatic discovery.
+            // Construct the path ourselves, with a strictly validated registry ID.
+            bool advertised = s.contains("mod_profile_sha256");
+            if (advertised)
+                profileUrl.clear();
             out.push_back({{"profileUrl", profileUrl},
+                           {"profileAdvertised", advertised},
+                           {"profileDigest", digest},
+                           {"registryId", serverId},
                            {"host", host},
                            {"port", port},
                            {"name", name},
@@ -351,6 +361,80 @@ Json Backend::parseServers(const Json &value) {
                                               them into executable arguments. */
         }
     return out;
+}
+Json Backend::discoveredProfile(const std::string &host, int port) {
+    for (const auto &server : mServers) {
+        if (server.at("host") != host || server.at("port") != port ||
+            !server.value("profileAdvertised", false))
+            continue;
+        auto registryId = server.at("registryId").get<std::string>();
+        need(std::regex_match(registryId, std::regex(
+                 "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")),
+             "Invalid master server profile identity.");
+        auto source = "https://master.fetchers.org/v1/servers/" + registryId + "/profile";
+        auto p = normalizeDiscoveredManifest(mDiscoveryFetch(source, 256 * 1024, false),
+                                             server.at("profileDigest"), host, port);
+        validateProfile(p);
+        p["_ownerId"] = p.at("id");
+        p["id"] = "server-" + textSha256(endpoint(host, port)).substr(0, 40);
+        // Migrate an existing locally trusted profile for this endpoint in place,
+        // preserving its settings, local MIDI directory and optional mod choices.
+        for (const auto &old : mCatalog.at("profiles"))
+            if (old.value("host", "") == host && old.value("port", 0) == port &&
+                old.value("mode", "managed") == "managed") {
+                p["id"] = old.at("id");
+                break;
+            }
+        p["_sourceUrl"] = source;
+        p["_discovered"] = true;
+        p["_manifestDigest"] = server.at("profileDigest");
+        p["_reviewDigest"] = server.at("profileDigest");
+        for (const auto &d : p["packages"])
+            if (d.contains("url"))
+                validateDownloadUrl(d.at("url"));
+        return p;
+    }
+    return Json();
+}
+void Backend::acceptProfile(const Json &p) {
+    validateProfile(p);
+    auto key = id(p.at("id"));
+    bool exists = false;
+    for (auto &old : mCatalog["profiles"])
+        if (old.at("id") == key) {
+            if (old != p)
+                writeAtomic(mManaged / "profiles" / key / "previous-profile.json", old.dump(2));
+            old = p;
+            exists = true;
+            break;
+        }
+    need(exists || mCatalog["profiles"].size() < 256, "Too many server profiles.");
+    if (!exists)
+        mCatalog["profiles"].push_back(p);
+    writeAtomic(mRoot / "fetcher-launcher-profiles.json", mCatalog.dump(2));
+    mSettings["profile"] = key;
+    mSettings["host"] = p.at("host");
+    mSettings["port"] = p.at("port");
+    mStatus = Json();
+    save();
+}
+void Backend::syncDiscoveredProfile() {
+    auto host = mSettings.value("host", "");
+    auto port = mSettings.value("port", 25565);
+    bool required = profile().value("_discovered", false);
+    for (const auto &server : mServers)
+        required = required || (server.at("host") == host && server.at("port") == port &&
+                                server.value("profileAdvertised", false));
+    if (!required)
+        return;
+    // Revalidate on each preparation/Play, including after launcher restart.
+    mServers = parseServers(parseJson(mDiscoveryFetch("https://master.fetchers.org/v1/servers", 8 * 1024 * 1024, false)));
+    auto p = discoveredProfile(host, port);
+    need(!p.is_null(), "This server no longer advertises its mod profile. Refresh or contact its owner.");
+    auto status = mStatus;
+    acceptProfile(p);
+    // Refreshing metadata must not dismiss a known native client/tools update.
+    mStatus = std::move(status);
 }
 Json Backend::resolve(const Json &d) {
     if (d.contains("nexus"))
@@ -374,6 +458,9 @@ Json Backend::resolve(const Json &d) {
             need(digest.rfind("sha256:", 0) == 0, "Release asset has no GitHub SHA-256 digest.");
             need(std::regex_match(digest.substr(7), std::regex("[0-9a-f]{64}")),
                  "Invalid release digest.");
+            if (d.contains("sha256"))
+                need(lower(d.at("sha256")) == digest.substr(7),
+                     "GitHub archive no longer matches the server's pinned SHA-256.");
             return {{"url", a.at("browser_download_url")},
                     {"sha256", digest.substr(7)},
                     {"source", repo + "@" + tag}};
@@ -754,6 +841,8 @@ Json Backend::command(const Json &q) {
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if (op == "prepare" || op == "launch" || op == "update" || op == "repair" || op == "check")
+        syncDiscoveredProfile();
     if (op == "rollbackUpdate") {
         restoreInstallBackup(mRoot, q.at("id"));
         mStatus = {{"status", "restored"},
@@ -761,11 +850,19 @@ Json Backend::command(const Json &q) {
         return state();
     }
     if (op == "refreshServers") {
-        mServers = parseServers(parseJson(httpGet("https://master.fetchers.org/v1/servers")));
+        mServers = parseServers(parseJson(mDiscoveryFetch("https://master.fetchers.org/v1/servers", 8 * 1024 * 1024, false)));
         return state();
     }
     if (op == "selectServer") {
         endpoint(q.at("host"), q.at("port"));
+        if (mServers.empty())
+            mServers = parseServers(parseJson(mDiscoveryFetch(
+                "https://master.fetchers.org/v1/servers", 8 * 1024 * 1024, false)));
+        auto discovered = discoveredProfile(q.at("host"), q.at("port"));
+        if (!discovered.is_null()) {
+            acceptProfile(discovered);
+            return state();
+        }
         mSettings["host"] = q.at("host");
         mSettings["port"] = q.at("port");
         mSettings["profile"] = "installed";
@@ -889,26 +986,7 @@ Json Backend::command(const Json &q) {
         need(mReview.contains("profile") && q.at("token") == mReview.at("token"),
              "Review the current manifest before accepting it.");
         auto p = mReview.at("profile");
-        validateProfile(p);
-        auto key = id(p.at("id"));
-        bool exists = false;
-        for (auto &old : mCatalog["profiles"])
-            if (old.at("id") == key) {
-                if (old != p)
-                    writeAtomic(mManaged / "profiles" / key / "previous-profile.json", old.dump(2));
-                old = p;
-                exists = true;
-                break;
-            }
-        need(exists || mCatalog["profiles"].size() < 256, "Too many server profiles.");
-        if (!exists)
-            mCatalog["profiles"].push_back(p);
-        writeAtomic(mRoot / "fetcher-launcher-profiles.json", mCatalog.dump(2));
-        mSettings["profile"] = key;
-        mSettings["host"] = p.at("host");
-        mSettings["port"] = p.at("port");
-        mStatus = Json();
-        save();
+        acceptProfile(p);
         mReview = Json::object();
         writeAtomic(mManaged / "pending-profile.json", mReview.dump());
         return state();

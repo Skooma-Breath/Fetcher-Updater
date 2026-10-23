@@ -33,12 +33,12 @@ void require(bool ok, const char *message) {
 }
 bool localFixtures = false;
 std::string nexusFixture;
-void publicHost(const std::wstring &host) {
+std::wstring publicHost(const std::wstring &host) {
     auto plain = host;
     if (plain.size() > 2 && plain.front() == L'[' && plain.back() == L']')
         plain = plain.substr(1, plain.size() - 2);
     if (localFixtures && (plain == L"localhost" || plain == L"127.0.0.1"))
-        return;
+        return plain;
     static const bool initialized = [] {
         WSADATA data{};
         return WSAStartup(MAKEWORD(2, 2), &data) == 0;
@@ -51,6 +51,7 @@ void publicHost(const std::wstring &host) {
     require(GetAddrInfoW(plain.c_str(), nullptr, &hints, &addresses) == 0,
             "Download host could not be resolved.");
     std::unique_ptr<ADDRINFOW, decltype(&FreeAddrInfoW)> cleanup(addresses, FreeAddrInfoW);
+    std::wstring pinned;
     for (auto a = addresses; a; a = a->ai_next) {
         bool allowed = false;
         if (a->ai_family == AF_INET) {
@@ -70,11 +71,21 @@ void publicHost(const std::wstring &host) {
                 !(n[0] == 0x20 && n[1] == 0x02) && !(n[0] == 0x3f && n[1] == 0xff);
         }
         require(allowed, "Remote downloads cannot address private, local or reserved services.");
+        if (pinned.empty() || a->ai_family == AF_INET) {
+            wchar_t numeric[NI_MAXHOST]{};
+            require(GetNameInfoW(a->ai_addr, int(a->ai_addrlen), numeric, NI_MAXHOST,
+                                 nullptr, 0, NI_NUMERICHOST) == 0,
+                    "Cannot pin download address.");
+            pinned = numeric;
+        }
     }
+    require(!pinned.empty(), "Download host has no usable public address.");
+    return pinned;
 }
 template <class Sink>
 void request(std::string url, std::uint64_t limit, Sink sink,
-             const std::wstring &headers = L"Accept: application/json\r\n") {
+             const std::wstring &headers = L"Accept: application/json\r\n",
+             bool allowRedirects = true) {
     for (int redirect = 0; redirect <= 5; ++redirect) {
         const auto u = wide(url);
         URL_COMPONENTS c{};
@@ -89,11 +100,13 @@ void request(std::string url, std::uint64_t limit, Sink sink,
                 "Downloads require HTTPS.");
         require(c.dwUserNameLength == 0 && c.dwPasswordLength == 0,
                 "Credentials in URLs are unsupported.");
-        publicHost(host);
+        auto pinned = publicHost(host);
         const auto path =
             (c.dwUrlPathLength ? std::wstring(c.lpszUrlPath, c.dwUrlPathLength) : L"/") +
             (c.dwExtraInfoLength ? std::wstring(c.lpszExtraInfo, c.dwExtraInfoLength) : L"");
-        Internet session(WinHttpOpen(L"FetcherLauncher/0.6", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+        // Direct connections are necessary: an automatic proxy could resolve a
+        // different address after our check. Preserve the original TLS/Host name.
+        Internet session(WinHttpOpen(L"FetcherLauncher/0.6", WINHTTP_ACCESS_TYPE_NO_PROXY,
                                      WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0));
         require(WinHttpSetTimeouts(session.h, 10000, 10000, 15000, 30000) != 0,
                 "Could not set HTTP timeouts.");
@@ -102,7 +115,10 @@ void request(std::string url, std::uint64_t limit, Sink sink,
             WinHttpOpenRequest(connection.h, L"GET", path.c_str(), nullptr, WINHTTP_NO_REFERER,
                                WINHTTP_DEFAULT_ACCEPT_TYPES,
                                c.nScheme == INTERNET_SCHEME_HTTPS ? WINHTTP_FLAG_SECURE : 0));
-        DWORD disabled = WINHTTP_DISABLE_REDIRECTS;
+        require(WinHttpSetOption(req.h, WINHTTP_OPTION_RESOLUTION_HOSTNAME, pinned.data(),
+                                 DWORD((pinned.size() + 1) * sizeof(wchar_t))) != 0,
+                "Windows cannot enforce pinned download DNS (Windows 10 21H1 or newer required).");
+        DWORD disabled = WINHTTP_DISABLE_REDIRECTS | WINHTTP_DISABLE_AUTHENTICATION | WINHTTP_DISABLE_COOKIES;
         require(WinHttpSetOption(req.h, WINHTTP_OPTION_DISABLE_FEATURE, &disabled,
                                  sizeof(disabled)) != 0,
                 "Could not enforce download redirect policy.");
@@ -115,6 +131,7 @@ void request(std::string url, std::uint64_t limit, Sink sink,
                                     nullptr, &status, &size, nullptr) != 0,
                 "Missing HTTP status.");
         if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
+            require(allowRedirects, "Master profile redirects are refused.");
             require(headers.find(L"apikey:") == std::wstring::npos,
                     "Nexus API redirects are refused.");
             require(redirect < 5, "Too many download redirects.");
@@ -412,9 +429,10 @@ std::string nexusGet(const std::string &path, const std::string &key) {
             8 * 1024 * 1024, [&](const char *p, DWORD n) { text.append(p, n); }, headers);
     return text;
 }
-std::string httpGet(const std::string &url) {
+std::string httpGet(const std::string &url, std::uint64_t limit, bool allowRedirects) {
     std::string text;
-    request(url, 8 * 1024 * 1024, [&](const char *p, DWORD n) { text.append(p, n); });
+    request(url, limit, [&](const char *p, DWORD n) { text.append(p, n); },
+            L"Accept: application/json\r\n", allowRedirects);
     return text;
 }
 void download(const std::string &url, const fs::path &p, const std::string &hash, const Log &log) {

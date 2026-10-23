@@ -8,6 +8,8 @@ void applyModActions(const fs::path &stage, const Json &actions, const fs::path 
 Json normalizeFomod(const Json &definition);
 void installFomod(const fs::path &raw, const fs::path &stage, const Json &definition);
 Json normalizeServerManifest(const Json &value);
+Json normalizeDiscoveredManifest(const std::string &text, const std::string &digest,
+                                 const std::string &host, int port);
 void validateModDefinition(const Json &definition);
 void validateModPayload(const fs::path &directory);
 Json readPackageReceipt(const fs::path &directory);

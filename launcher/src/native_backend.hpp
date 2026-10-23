@@ -5,7 +5,8 @@ namespace fetcher {
 // only.
 class Backend {
   public:
-    explicit Backend(fs::path root, Log log = {});
+    using DiscoveryFetch = std::function<std::string(const std::string &, std::uint64_t, bool)>;
+    explicit Backend(fs::path root, Log log = {}, DiscoveryFetch discoveryFetch = {});
     Json command(const Json &request);
     Json state() const;
     Json check(bool repair = false, bool install = false);
@@ -19,6 +20,7 @@ class Backend {
     fs::path mRoot, mManaged;
     Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview;
     Log mLog;
+    DiscoveryFetch mDiscoveryFetch;
     void save();
     Json profile() const;
     Json resolve(const Json &definition);
@@ -29,5 +31,8 @@ class Backend {
     Json identity() const;
     void saveIdentity(const Json &request);
     void validateProfile(const Json &profile) const;
+    Json discoveredProfile(const std::string &host, int port);
+    void acceptProfile(const Json &profile);
+    void syncDiscoveredProfile();
 };
 } // namespace fetcher

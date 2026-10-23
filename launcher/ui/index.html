@@ -549,11 +549,11 @@
               </button>
             </div>
             <div class="panel">
-              <h3>Server owner's mod profile</h3>
+              <h3>Manual profile import (optional)</h3>
               <p class="muted" style="font-size: 13px; line-height: 1.6">
-                Paste a server manifest URL or local JSON path. Review the
-                endpoint, pinned files and load order before accepting it. UMO
-                lists belong inside a server manifest.
+                Published server requirements are found automatically when you
+                select a server. For an unlisted profile, paste its manifest URL
+                or local JSON path here and review it before accepting.
               </p>
               <input
                 id="profileUrl"
@@ -839,6 +839,8 @@ Fetcher native launcher ready.
           const subtitle = element("div", address);
           subtitle.className = "server-address";
           name.append(title, subtitle);
+          if (s.profileAdvertised)
+            name.append(element("div", "Automatic server mod profile"));
           if (s.profileUrl) {
             name.append(
               button("Review server mods", (event) => {

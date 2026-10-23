@@ -71,6 +71,83 @@ void sevenZip(const fs::path &path, const std::vector<std::pair<std::string, std
     check(archive_write_close(archive) == ARCHIVE_OK, "finish 7z writer");
     archive_write_free(archive);
 }
+void discoveryTests(const fs::path &root) {
+    Json raw = {{"id", "owner-name"}, {"name", "Community"}, {"version", "1"},
+                {"host", "redirect.evil.example"}, {"port", 1}, {"packages", Json::array()},
+                {"content", Json::array({"Morrowind.esm"})}};
+    auto text = raw.dump();
+    auto digest = textSha256(text);
+    auto p = normalizeDiscoveredManifest(text, digest, "198.51.100.10", 25565);
+    check(p.at("host") == "198.51.100.10" && p.at("port") == 25565,
+          "profile cannot redirect the selected server endpoint");
+    rejects([&] { normalizeDiscoveredManifest(text + " ", digest, "example.org", 25565); },
+            "profile bytes must match the registry digest");
+    for (const auto &field : {"umo", "command", "_discovered", "launcherUrl"}) {
+        auto bad = raw;
+        bad[field] = "https://evil.example/";
+        auto bytes = bad.dump();
+        rejects([&] { normalizeDiscoveredManifest(bytes, textSha256(bytes), "example.org", 25565); },
+                "advertised profiles cannot introduce external manifests or instructions");
+    }
+    auto bad = raw;
+    bad["packages"] = Json::array({{{"id", "unpinned"}, {"repository", "owner/repo"},
+                                   {"releaseTag", "latest"}, {"assetName", "mod.zip"}}});
+    auto bytes = bad.dump();
+    rejects([&] { normalizeDiscoveredManifest(bytes, textSha256(bytes), "example.org", 25565); },
+            "advertised GitHub packages require pinned hashes");
+    std::string serverId = "01234567-89ab-4cde-8fab-0123456789ab";
+    Json entry = {{"id", serverId}, {"host", "198.51.100.10"}, {"port", 25565},
+                  {"name", "Community"}, {"current_players", 0}, {"max_players", 32},
+                  {"mod_profile_sha256", digest}, {"mod_profile_url", "https://evil.example/profile"}};
+    int lists = 0, profiles = 0;
+    auto fetch = [&](const std::string &url, std::uint64_t limit, bool redirects) {
+        check(!redirects, "discovery forbids redirects");
+        if (url == "https://master.fetchers.org/v1/servers") {
+            ++lists;
+            return Json::array({entry}).dump();
+        }
+        check(url == "https://master.fetchers.org/v1/servers/" + serverId + "/profile" &&
+                  limit == 256 * 1024, "master profile URL is derived and bounded");
+        ++profiles;
+        return text;
+    };
+    auto install = root / "discovery-install";
+    writeAtomic(install / "openmw.cfg", "personal configuration");
+    Backend backend(install, {}, fetch);
+    backend.command({{"op", "refreshServers"}});
+    check(profiles == 0, "listing does not fetch profile or mod archives");
+    auto selected = backend.command({{"op", "selectServer"}, {"host", "198.51.100.10"}, {"port", 25565}});
+    auto key = selected.at("selectedProfile");
+    check(key.get<std::string>().rfind("server-", 0) == 0 && profiles == 1,
+          "selecting server automatically installs declarative profile without manual acceptance");
+    entry["mod_profile_sha256"] = std::string(64, '0');
+    rejects([&] { backend.command({{"op", "launch"}}); }, "Play revalidates and fails closed on changed digest");
+    check(lists == 2 && read(install / "openmw.cfg") == "personal configuration",
+          "failed discovery preserves personal configuration");
+    raw["version"] = "2";
+    text = raw.dump();
+    entry["mod_profile_sha256"] = textSha256(text);
+    Backend reloaded(install, {}, fetch);
+    rejects([&] { reloaded.command({{"op", "prepare"}}); }, "missing owned game data still blocks preparation");
+    auto state = reloaded.state();
+    check(state.at("selectedProfile") == key, "profile identity survives launcher and server restarts");
+    bool version2 = false;
+    for (const auto &profile : state.at("profiles"))
+        if (profile.at("id") == key)
+            version2 = profile.at("version") == "2";
+    check(version2, "new owner profile version is discovered automatically");
+    entry.erase("mod_profile_sha256");
+    rejects([&] { reloaded.command({{"op", "prepare"}}); }, "removed advertisement cannot silently downgrade to installed mode");
+    entry["mod_profile_sha256"] = textSha256(text);
+    entry["host"] = "163.192.106.225";
+    entry["port"] = 25569;
+    auto existingSettings = install / "_fetcher_launcher/profiles/fetcher-vanilla/userdata/settings.cfg";
+    writeAtomic(existingSettings, "personal settings");
+    reloaded.command({{"op", "refreshServers"}});
+    auto migrated = reloaded.command({{"op", "selectServer"}, {"host", "163.192.106.225"}, {"port", 25569}});
+    check(migrated.at("selectedProfile") == "fetcher-vanilla" && read(existingSettings) == "personal settings",
+          "automatic discovery preserves an existing endpoint's profile settings and data directory");
+}
 void archiveAndLayoutTests(const fs::path &root) {
     auto archive = root / "sample.7z";
     sevenZip(archive, {{"Data Files/notes.txt", "native LZMA2 test"}});
@@ -203,6 +280,7 @@ int main() {
             rejects([&] { safeRelative(path); }, "unsafe relative path rejected");
         check(safeRelative("Data Files/meshes/keyboard.nif").filename() == L"keyboard.nif",
               "ordinary asset path");
+        discoveryTests(root);
         archiveAndLayoutTests(root);
         writeAtomic(root / L"test.txt", "hello");
         check(textSha256("hello") == sha256(root / L"test.txt"), "memory/file SHA-256 consistency");
@@ -372,7 +450,7 @@ int main() {
         check(read(install / "openmw.exe") == "new client" &&
                   read(install / "openmw.cfg") == "personal config",
               "tool ownership failure preserves client and configuration");
-        Backend backend(install);
+        Backend backend(install, {}, [](const std::string &, std::uint64_t, bool) { return "[]"; });
         auto s = backend.command({{"op", "init"}});
         check(s["selectedProfile"] == "installed",
               "existing installations default to their existing mod setup");

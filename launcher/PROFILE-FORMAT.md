@@ -1,5 +1,41 @@
 # Server-owned mod manifests
 
+## Automatic discovery
+
+Save the JSON beside `server.cfg` and add `launcher_profile = launcher-profile.json` to its
+existing `[master]` section (`public_listing = true`). Restart after changing the file.
+The server uploads the bounded UTF-8 document in its HTTPS registration; the master stores it
+only while the server is listed and advertises its SHA-256. No separate website is needed.
+Players select the server and press Play: its requirements and isolated load order are prepared
+automatically. Nexus may still require account authorisation/browser approval for downloads.
+Players do not paste JSON/URLs or approve a separate manifest review.
+
+Selecting a server reads requirements only. Play/Prepare re-check the live advertisement and
+digest; missing or invalid advertisements fail closed. The master's observed source address and
+registered port determine the connection, overriding any host/port inside the document.
+Server-browser/direct selection needs the live master. Existing local/manual profiles remain.
+
+Embed `umoMods` or `packages`. Every archive, including a GitHub reference, needs a pinned SHA-256.
+External `umo` list URLs, unknown top-level fields and arbitrary instructions are refused.
+Existing path, declarative layout, FOMOD, archive and executable-payload checks still apply.
+No website opens automatically, no shell installers run, and writes stay in managed directories.
+The main configuration, account keys and player saves remain intact. Previous profile revisions
+are kept for inspection/rollback; Play still requires the currently advertised revision.
+
+Manifest requests use a launcher-constructed master HTTPS path and refuse redirects. Archive
+redirects must use HTTPS and pass the public-address check at every hop. Connections pin the
+checked IP while retaining TLS hostname validation; cookies and automatic Windows authentication
+are disabled. Windows 10 21H1 or newer and direct internet access are required (system HTTP proxies
+are not used). Local HTTP fixtures require an explicit test-only mode.
+
+The master caps bodies at 600 KiB, profiles at 256 KiB/depth 32, active servers at 2048, servers
+per source address at 16 and stored profile bytes at 64 MiB. Profiles are public: never include
+passwords/API keys. Registration ties a listing to its source IP; it does not certify an operator
+or prove assets safe. Hashes verify the owner-pinned bytes, and joining still entails trusting the
+server's game assets and sandboxed game Lua. Manual imports use the review route below.
+
+## Manual profile import
+
 Use Mods & load order → Review manifest with an HTTPS URL or a local JSON path. Review the
 server endpoint, version, source URLs, archive hashes and plugin order, then Accept this manifest.
 Accepting adds/selects a profile; Prepare, Play or Install updates can subsequently fetch its files.
