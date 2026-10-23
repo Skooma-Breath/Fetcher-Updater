@@ -55,6 +55,58 @@ listed publicly. Temporary test input/display overrides were removed and the tes
 
 ## Runtime boundaries
 
+### Server-hosted MIDI follow-up — 2026-10-23
+
+Vanilla now advertises the 600-song local Synth fixture library through Studio itself.
+The earlier file copy/manual MIDI pack is no longer required on testers' PCs. Studio's
+version-30 Lua package merges server songs (marked `[Server]`) with installed personal files
+and fetches only a selected Play/Import source through the game connection. The cached file
+data stays in memory, bounded at 8 MiB per client; reconnecting clears the prior server's cache.
+Listeners continue to receive compiled performances. This does not add player MIDI uploads.
+
+The native server reader resolves a per-instance `studio-midi/` root from the server working
+directory, not the shared executable's Bardcraft directory. On Vanilla it is a symlink to
+`/srv/openmw-vanilla-25569/studio-content/Data Files/midi`. All 600 source files remain intact.
+Directories, paths and file sizes are bounded, file reads must match catalogue SHA-256 revisions,
+and RIFF/RMID containers are unwrapped in memory. Catalogue pages and file chunks share one
+bounded round-robin delivery queue. Only a nearby keyboard owner can request transfers.
+Closing, changing cells and disconnecting cancel pending downloads. Personal files and exports
+retain their existing readers; a matching server path uses the marked server revision.
+
+Signed native/feature source is `559b243864dedd72cbdca605055726da385d26a4`, tag
+`Fetcher-Studio-Server-MIDI-30`. The final server-only saved-path filter is signed
+`b57961a01571b730c49244fec0725d73fdf5ccdf`, tag `Fetcher-Studio-Server-MIDI-30.1`.
+The native server was built incrementally from the retained f024 native baseline with those
+two changed native source files; their staged contents match the signed source. Its SHA-256 is
+`43fcaf98058b9bf25e4f595a0419ea40ab836cb3fafaeeb6778ebeed35d168f0`.
+Client Lua package set hash is
+`bb13a1fd4060d477a54e3f892ba17a106ffbd027f7da5fa901c781a3a4e652b5`,
+generation 13480296218728911991. Existing compatible Windows clients receive Lua v30 on reconnect.
+The published Windows client, launcher assets, combined content archive, resolved content
+fingerprint and protocol 24 are unchanged. No ARM GitHub asset was published.
+
+All 22 Studio Lua suites pass, including 776 hosted-transfer assertions, 15,816 real-player/UI
+harness assertions and the shared server's ownership/cancellation checks. A native C++ test
+covers containment, symlinks, sizes, ordering, hashes and RIFF; it also scans/re-reads all 600
+files. A private native server on port 25579 loads the actual Lua bindings and v30 package:
+600 files are catalogued and 591 pass the current SMF parser. Nine existing source files hit
+invalid-data, track-count or 60,000-event checks; they remain in the catalogue and report an
+import error. This was parser/transport validation, not an audible/interactive live-client test.
+The private smoke server was stopped afterward. Native containment/normalization did not modify
+the original files.
+
+Production deployment checked Vanilla was empty before each restart. Health is OK; both public
+listings remain available. All 11 Studio storage rows match the shutdown backup. The existing
+experimental process and shared server script/package trees remain unchanged. The production
+startup log confirms `[synth-midi] Hosted MIDI catalog: 600 songs.`
+
+Private rollback state, including the previous shared executable and Vanilla scripts/package,
+config, database and Lua storage, is at
+`/srv/fetcher-release-backups/20261023-studio-hosted-midi` (deployment.json and
+catalogue-path-followup.json). Roll back code/config as necessary without overwriting subsequent
+player progress with an old database. The separate legacy MIDI ZIP remains an optional local
+copy; it is not an automatic launcher dependency or a public GitHub asset.
+
 Vanilla retains its existing health endpoint on localhost:8082. The initial adapter reused only
 activation and surf/vehicle commands, which omitted shared commands such as /f and /placeat.
 The command-restoration follow-up now reuses core's common chat handler and connect/disconnect
@@ -89,7 +141,7 @@ The Vanilla server manifest loads vanilla_runtime.lua, procedural_synth.lua and 
 The last file is specifically the one-time ToddTest test placement, guarded by persistent storage;
 it does not change all players' spawn positions. Wider public-world instrument placement is separate.
 
-The VPS push hook built the ARM server directly; no ARM GitHub asset was published. Its shared
+The initial VPS push hook built the ARM server directly; no ARM GitHub asset was published. Its initial shared
 executable SHA-256 is `7135ee26eb3959d46a59464a82cdc89e30792b948c58e70f6f7fe93cb8d631d4`.
 The original experimental process remains running, and its operator server-scripts and client Lua
 package trees were restored and verified against their pre-build hashes. The shared defaults.bin

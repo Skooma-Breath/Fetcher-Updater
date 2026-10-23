@@ -7,6 +7,9 @@ The native launcher public test is published at signed source `862081d`, with th
 `fetcher-simulator` installation passes published native setup, real VPS world/Studio entry,
 MIDI UI playback, scaled fullscreen Mixer/Piano navigation and server project-save persistence.
 See VANILLA-VPS-ACCEPTANCE.md for exact versions, checks and rollback locations.
+Vanilla also serves its 600-song MIDI library through Studio Lua v30: catalogues merge with
+personal MIDI files and selected songs download over the game connection. Testers no longer
+need the separately copied MIDI pack. The compatible published Windows client remains unchanged.
 
 Native client/tools updater, verified package cache/install, exception rollback, public server browser,
 favorites/direct connect, imported server profiles, isolated mod configurations, plugin master ordering,
