@@ -74,6 +74,7 @@ opening a launcher. The JSON result has a companion .progress.txt file. Endpoint
 are accepted only with --install and --allow-local-fixtures and explicit 127.0.0.1 HTTP endpoints
 for both releases; the normal GUI and server profiles cannot enable them.
 
-Until the native candidate is deliberately promoted, the default production endpoint still serves
-the existing public tools/client releases. Test the candidate with isolated release fixtures; do not
-mistake running a development setup binary for publishing a new launcher.
+The native public test was promoted on 2026-10-22. The default tools endpoint now serves the native
+launcher/setup and selects the matching Studio client channel. Published HTTPS setup and a normal
+installation joining the Vanilla VPS pass; see VANILLA-VPS-ACCEPTANCE.md. Local release fixtures
+remain available for future candidate testing without changing public endpoints.

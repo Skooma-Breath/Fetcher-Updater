@@ -1,5 +1,9 @@
 # Launcher release and Studio cutover
 
+The reviewed cutover was completed on 2026-10-22. VANILLA-VPS-ACCEPTANCE.md records the deployed
+versions, public assets, actual normal-installation VPS checks and retained rollback state.
+The sections below retain the review/deployment procedure; their candidate descriptions are historical.
+
 The launcher can ship against the current public client and servers. A separate ARM server GitHub
 release is unnecessary: `git push vps` already invokes the server build/deployment hook. Keep the
 launcher release and Studio world/content activation as separately reviewable steps.

@@ -1,6 +1,12 @@
 # Native launcher migration and public rollout
 
-## Implemented candidate
+## Published public-test build
+
+The native launcher public test is published at signed source `862081d`, with the matching
+`Fetcher-Simulator-Studio` Windows client and live Fetcher Vanilla VPS profile. The normal
+`fetcher-simulator` installation passes published native setup, real VPS world/Studio entry,
+MIDI UI playback, scaled fullscreen Mixer/Piano navigation and server project-save persistence.
+See VANILLA-VPS-ACCEPTANCE.md for exact versions, checks and rollback locations.
 
 Native client/tools updater, verified package cache/install, exception rollback, public server browser,
 favorites/direct connect, imported server profiles, isolated mod configurations, plugin master ordering,
@@ -33,7 +39,7 @@ All 99 source archives pass native preparation. Native application of 19 existin
 Model attribution is retained in local records and content packages. A combined surf/truck/Studio bundle is built
 locally and passes native integration. The web interface is retained; its backend uses C++.
 
-## Remaining work before replacing the public launcher
+## Remaining broader acceptance
 
 1. Finish general server-list parity beyond the implemented reviewed manifests, pinned declarative
    UMO imports and basic native layouts, ZIP/7z/RAR extraction, Nexus API-key downloads and exact-file
@@ -47,15 +53,14 @@ locally and passes native integration. The web interface is retained; its backen
    world-join acceptance pass, including server Lua/Studio delivery. Validate missing-prerequisite Windows installations and the
    final published release sources. Native process-interruption recovery and operator rollback are implemented;
    broaden acceptance to clean machines, storage failures and the final coordinated release payload.
-3. Stage the vanilla-server content/authority and Studio Lua/native-client release together, separately
-   from the independent launcher release against the existing public client/server. No ARM server
-   GitHub asset is needed: the VPS push hook builds/deploys its own binary. See RELEASE-REVIEW.md. The
-   combined archive/credits and server manifest are published as separate candidate assets and pass
-   real HTTPS preparation. Promote the matching profile only with the coordinated server/client
-   rollout. Keep the original archive and rollback copies.
-4. Legacy upgrade acceptance passes on the development PC and PillowPC. Repeat it for the final
-   launcher payload and current public client, then release the native launcher candidate
-   to a small public test group before replacing the stable tag. Tell players to reopen after updating.
+3. The coordinated Vanilla server/client/content switch is complete. The VPS builds its own ARM
+   executable; no ARM GitHub asset was published. Keep the original content archive, Vehicles client
+   release and private rollback snapshots. Choose wider public-world keyboard placement separately
+   from the initial ToddTest acceptance keyboard.
+4. Collect small-group soak-test results for the published payload. Legacy upgrade acceptance passes
+   on the development PC and PillowPC; final public HTTPS setup/check passes on the normal development
+   installation. Repeat wider-device and failure acceptance as needed. Tell players to close and reopen
+   the old launcher after updating.
 
 ## Optional Fetcher experimental-server preset
 
@@ -78,6 +83,6 @@ independently of the general launcher rollout. The original game installation is
   content details). Local source/license/adaptation records live in docs/content-attribution;
   bundled notices remain in each content package. The general launcher has no model Credits tab.
 
-The launcher build remains local. Two additional content-test assets were published with explicit
-approval; the original release assets and public server configuration are unchanged. This roadmap
-does not authorize an automatic launcher or public-server deployment.
+The 2026-10-22 public test publishes the five launcher assets and matching Windows client, updates
+the separate Vanilla Studio manifest, and enables the combined content/Studio runtime on Vanilla.
+The original combined-release archive and older client release remain available for rollback.
