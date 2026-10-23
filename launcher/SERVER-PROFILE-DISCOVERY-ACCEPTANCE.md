@@ -38,3 +38,19 @@ Security and owner setup are documented in PROFILE-FORMAT.md. This test uses dir
 Nexus can still require its own account/download approval. The master distributes declarative
 requirements and verifies registration source addresses; it does not certify a server operator
 or make arbitrary game assets intrinsically safe.
+
+## Public and normal-installation rollout
+
+The five standard assets are published on `fetcher-tester-tools`; all five GitHub SHA-256 digests
+match the tested local payload. The actual source commit is pinned in its tools inventory and
+signed release tag. The pristine legacy-to-native upgrade passes, including rejected corrupt
+downloads/missing UI and preservation of personal files. All 32 native bootstrap process
+operations and optional-launcher quarantine acceptance pass. Package validation accepts the
+published Studio channel as well as the older Vehicles channel.
+
+The normal `fetcher-simulator` installation is updated through the native updater and successfully
+discovers/prepares Vanilla without a manifest import. Its native client, main configuration and
+479 profile files remain byte-identical. Discovery keeps the existing `fetcher-vanilla` profile
+directory, preserving local MIDI files and user settings. Registry ID changes on server restart
+do not discard a genuine previous manifest revision. The already-open staged launcher window
+must be reopened to display the updated interface. No real game client is launched by this check.

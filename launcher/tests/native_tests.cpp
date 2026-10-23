@@ -136,6 +136,12 @@ void discoveryTests(const fs::path &root) {
         if (profile.at("id") == key)
             version2 = profile.at("version") == "2";
     check(version2, "new owner profile version is discovered automatically");
+    serverId = "01234567-89ab-4cde-8fab-0123456789ac";
+    entry["id"] = serverId;
+    rejects([&] { reloaded.command({{"op", "prepare"}}); }, "registry renewal still checks owned game data");
+    check(readJson(install / "_fetcher_launcher/profiles" / key.get<std::string>() /
+                       "previous-profile.json").at("version") == "1",
+          "registry renewal preserves the previous real manifest revision");
     entry.erase("mod_profile_sha256");
     rejects([&] { reloaded.command({{"op", "prepare"}}); }, "removed advertisement cannot silently downgrade to installed mode");
     entry["mod_profile_sha256"] = textSha256(text);

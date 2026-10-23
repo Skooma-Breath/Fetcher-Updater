@@ -157,8 +157,9 @@ Public-release inputs, prior assets, inventories and live receipts are retained 
 `release-assets/vanilla-cutover-20261022` and `studio-coordinated-review-20261022-r2`.
 Do not publish these private directories or restore an older database over later player work.
 
-The public tools tag now points to signed source 862081d; its previous public target and original
+The initial cutover used signed tools source 862081d; its previous public target and original
 four assets are retained for rollback. Client/profile/server rollback must be coordinated.
+The subsequent automatic-profile release is recorded in SERVER-PROFILE-DISCOVERY-ACCEPTANCE.md.
 The VPS hook still copies generic operator scripts/packages, so preserve those trees around future
 pushes; matching defaults installation is fixed in engine source 6349b2c.
 

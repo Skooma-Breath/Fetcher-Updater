@@ -1,12 +1,14 @@
-# Fetcher community launcher — native backend candidate
+# Fetcher community launcher — native backend
 
 Windows C++17 backend with the existing WebView2/web-interface approach. The new
 launcher does not run PowerShell for its update/mod-profile actions.
 
-Implemented in this candidate:
+Implemented:
 
 - Public server browser using the game's live master service, search, favorites and direct connect.
-- Current-public vanilla and separate surf/truck/Studio preview profiles; generic operator profile URLs.
+- Public Vanilla surf/truck/Studio profile and separate existing-installation connection route.
+- Automatic master-hosted owner profiles: no player JSON/URL paste, pinned content preparation on
+  Play, endpoint/digest validation and retention of existing profile settings. See PROFILE-FORMAT.md.
 - Native WinHTTP release checks/downloads, GitHub SHA-256 validation, native ZIP/7z/RAR extraction, file receipts/cache,
   client and launcher/tools installation, update mutex and exception rollback with retained backups.
 - Per-server data paths/plugin order, TES3 master dependency checks, optional local mods and isolated configs.

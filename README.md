@@ -60,19 +60,22 @@ The Fetcher Simulator client/server releases themselves ship `Build-OpenMWServer
 
 The canonical source and guide live in the Fetcher Simulator repository under `files/server/`. The full guide covers UDP port forwarding, host firewalls, `server.cfg`, public listing, authority generation/deployment, updates, and hash-mismatch troubleshooting.
 
-## Native community launcher candidate
+## Native community launcher
 
 The launcher now has a C++17 backend for client/tools updates, verified package downloads,
 server browsing, per-server mod profiles and generated plugin load orders. Its web interface
 is retained and reorganized into Servers, Mods and Updates. It invokes no PowerShell
-for these actions. Server owners can provide a generic profile URL; required content is kept
+for these actions. Profile-aware servers upload their local owner JSON to the master during
+registration, and the launcher discovers it automatically. Players select a server and press
+Play; required content is kept
 separate from optional local mods and the user's main configuration.
 
-This is a local candidate. The current public vanilla profile remains separate from the new
-surf/truck/Studio preview. Publishing the package and changing server content are coordinated
-rollout steps. The combined candidate archive and its server manifest are now published as separate
-release assets and passed a fresh native HTTPS download/preparation test. The original mod archive,
-public launcher and public server configuration are unchanged.
+The native launcher and combined surf/truck/Studio content are public. Fetcher Vanilla is the
+first live server advertising an automatic profile. The original mod archive and legacy
+connection routes remain available. See [owner setup and security](launcher/PROFILE-FORMAT.md)
+and [live acceptance](launcher/SERVER-PROFILE-DISCOVERY-ACCEPTANCE.md). Manual profile import
+remains optional; converting an existing single-player mod installation into a curated owner
+list is separate future work.
 
 Reviewed server manifests now accept pinned declarative UMO lists, native ZIP/7z/RAR archives and contained
 copy/rename/remove layout operations and server-pinned XML FOMOD selections.

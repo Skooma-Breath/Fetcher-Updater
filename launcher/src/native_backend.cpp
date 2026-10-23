@@ -402,7 +402,10 @@ void Backend::acceptProfile(const Json &p) {
     bool exists = false;
     for (auto &old : mCatalog["profiles"])
         if (old.at("id") == key) {
-            if (old != p)
+            bool sameAdvertisedContent = old.value("_discovered", false) &&
+                                         p.value("_discovered", false) &&
+                                         old.value("_manifestDigest", "") == p.value("_manifestDigest", "");
+            if (old != p && !sameAdvertisedContent)
                 writeAtomic(mManaged / "profiles" / key / "previous-profile.json", old.dump(2));
             old = p;
             exists = true;
