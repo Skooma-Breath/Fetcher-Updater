@@ -2,12 +2,14 @@
 #include "install_transaction.hpp"
 #include "server_manifest.hpp"
 #include "umo_helper.hpp"
+#include "storage_management.hpp"
 #include <windows.h>
 
 #include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <map>
 #include <regex>
@@ -35,7 +37,9 @@ std::string stamp() {
 std::string cfgString(const fs::path &p) {
     auto s = utf8(fs::absolute(ordinaryPath(p)).generic_wstring());
     need(s.find_first_of("\"\r\n") == std::string::npos, "Invalid configuration path.");
-    return "\"" + s + "\"";
+    std::ostringstream quoted;
+    quoted << std::quoted(s, '"', '&');
+    return quoted.str();
 }
 std::vector<std::string> lines(const fs::path &p) {
     std::istringstream in(read(p));
@@ -390,6 +394,9 @@ Json Backend::state() const {
         {"favorites", mSettings.value("favorites", Json::array())},
         {"mods", mods},
         {"status", mStatus},
+        {"disk", diskSpace(mManaged)},
+        {"storage", mStorage},
+        {"cleanup", mCleanup},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
         {"nexusProvider", mSettings.value("nexusProvider", "umo")},
@@ -482,13 +489,16 @@ void Backend::acceptProfile(const Json &p) {
                                          old.value("_manifestDigest", "") == p.value("_manifestDigest", "");
             if (old != p && !sameAdvertisedContent)
                 writeAtomic(mManaged / "profiles" / key / "previous-profile.json", old.dump(2));
+            if (old != p) { mStorage = Json(); mCleanup = Json(); }
             old = p;
             exists = true;
             break;
         }
     need(exists || mCatalog["profiles"].size() < 256, "Too many server profiles.");
-    if (!exists)
+    if (!exists) {
         mCatalog["profiles"].push_back(p);
+        mStorage = Json(); mCleanup = Json();
+    }
     writeAtomic(mRoot / "fetcher-launcher-profiles.json", mCatalog.dump(2));
     mSettings["profile"] = key;
     mSettings["host"] = p.at("host");
@@ -624,6 +634,11 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::
     if (previous.value("layoutKey", "") == key &&
         verifyPackageCache(dest, previous, true, fullHash))
         return dest;
+    if (!definition.contains("fomod")) {
+        std::uint64_t copyBytes = 0;
+        for (const auto &record : source.at("files")) copyBytes += record.at("size").get<std::uint64_t>();
+        requireFreeSpace(mManaged, copyBytes);
+    }
     auto stage = longPath(mManaged / "staging" / ("layout-" + stamp()));
     noLinks(stage);
     fs::create_directories(stage);
@@ -819,7 +834,7 @@ fs::path Backend::prepare(bool fullHash) {
                     .dump(2));
     return config;
 }
-Json Backend::check(bool repair, bool install) {
+Json Backend::check(bool repair, bool install, bool toolsOnly) {
     InstallLock lock(mRoot);
     if (install)
         assertGameStopped(mRoot);
@@ -831,6 +846,7 @@ Json Backend::check(bool repair, bool install) {
     const auto toolsRef = resolve(tools);
     auto toolsState = optional(mManaged / "tools.json");
     bool toolsCurrent = toolsState.value("sha256", "") == toolsRef.at("sha256");
+    bool toolsInstalled = false;
     if (toolsCurrent && repair) {
         auto inventory = optional(mRoot / "fetcher-tester-tools.json");
         toolsCurrent = verifyFiles(mRoot, inventory.value("files", Json::array()), true);
@@ -841,9 +857,17 @@ Json Backend::check(bool repair, bool install) {
             installTools(mRoot, package(tools, false));
             writeAtomic(mManaged / "tools.json", toolsRef.dump(2));
             toolsCurrent = true;
+            toolsInstalled = true;
             if (mLog)
                 mLog("Launcher/tools installed. The GUI will restart if its executable or interface changed.\n");
         }
+    }
+    if (toolsOnly) {
+        mStatus = {{"status", "profileUnavailable"}, {"upToDate", false},
+                   {"launcherUpdated", toolsInstalled},
+                   {"message", toolsInstalled ? "Launcher/tools updated. Reopen before retrying the unavailable server profile."
+                                               : "Launcher/tools are current; the selected server profile is unavailable."}};
+        return mStatus;
     }
     auto channel = optional(mRoot / "fetcher-update-channel.json",
                             {{"clientRepository", "Fetcher-Simulator/Fetcher-Simulator"},
@@ -916,6 +940,25 @@ Json Backend::command(const Json &q) {
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if (op == "storageEstimate") {
+        syncDiscoveredProfile();
+        mStorage = estimateStorage(mRoot, profile(), [this](const Json &d) { return resolve(d); });
+        return state();
+    }
+    if (op == "scanCache") {
+        syncDiscoveredProfile();
+        mCleanup = scanUnusedCache(mRoot, [this](const Json &d) { return resolve(d); });
+        mStorage = estimateStorage(mRoot, profile(), [this](const Json &d) { return resolve(d); });
+        return state();
+    }
+    if (op == "cleanCache") {
+        syncDiscoveredProfile();
+        try {
+            auto removed = cleanUnusedCache(mRoot, q.at("token"), [this](const Json &d) { return resolve(d); });
+            mCleanup = Json{{"message", std::to_string(removed.at("removedEntries").get<std::uint64_t>()) + " unused verified cache entries removed."}, {"removed", removed}, {"canClean", false}};
+        } catch (...) { mCleanup = Json(); throw; }
+        return state();
+    }
     if (op == "theme") {
         const auto theme = q.at("id").get<std::string>();
         need(theme == "graphite" || theme == "obsidian" || theme == "space" || theme == "ember",
@@ -940,7 +983,7 @@ Json Backend::command(const Json &q) {
         }
         return state();
     }
-    if (op == "prepare" || op == "launch" || op == "update" || op == "repair" || op == "check")
+    if (op == "prepare" || op == "launch" || op == "check")
         syncDiscoveredProfile();
     if (op == "rollbackUpdate") {
         restoreInstallBackup(mRoot, q.at("id"));
@@ -1233,6 +1276,16 @@ Json Backend::command(const Json &q) {
     }
     if (op == "update" || op == "repair") {
         assertGameStopped(mRoot);
+        try {
+            syncDiscoveredProfile();
+        } catch (const std::exception &) {
+            // An unavailable/newer server document must not prevent upgrading
+            // the launcher that reads it. Never prepare stale requirements here.
+            auto status = check(op == "repair", true, true);
+            if (!status.value("launcherUpdated", false))
+                throw std::runtime_error("Server requirements are unavailable. Launcher/tools are already current; retry or select another server.");
+            return state();
+        }
         check(op == "repair", true);
         return state();
     }

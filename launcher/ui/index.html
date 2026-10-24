@@ -876,6 +876,20 @@
             </p>
           </div>
           <div class="panel">
+            <h3>Storage</h3>
+            <p id="storageFree" class="muted"></p>
+            <p id="storageEstimate" class="muted">Estimate the selected profile before preparing it.</p>
+            <div class="row">
+              <button id="estimateStorage">Estimate selected profile</button>
+              <button id="scanCache">Preview unused cache</button>
+              <button id="cleanCache" disabled>Remove listed unused cache</button>
+            </div>
+            <p id="cleanupMessage" class="muted">Preview first. Active and saved profiles and rollback references are protected.</p>
+            <ul id="cacheCandidates" class="mono" style="max-height: 180px; overflow: auto"></ul>
+            <p class="footer">Sizes are estimates of logical files; shared or compressed files may free less space.
+              Legacy/manual mod folders, saves and character data are never removed here.</p>
+          </div>
+          <div class="panel">
             <h3>Restore a previous update</h3>
             <p class="muted">
               Restore the files saved before a completed launcher or client
@@ -1092,6 +1106,13 @@ Fetcher native launcher ready.
           ? "No servers match your filter."
           : "No public servers loaded. Refresh or use a direct connection.";
       }
+      function formatBytes(value) {
+        if (typeof value !== "number" || !Number.isFinite(value)) return "unknown";
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) { value /= 1024; unit++; }
+        return `${value.toFixed(unit ? 1 : 0)} ${units[unit]}`;
+      }
       function render() {
         document
           .querySelectorAll("button,select")
@@ -1302,6 +1323,25 @@ Fetcher native launcher ready.
         )
           $("updateBackup").value = selectedBackup;
         $("restoreUpdate").disabled = busy || !$("updateBackup").value;
+        const disk = state.disk || {};
+        $("storageFree").textContent = `${formatBytes(disk.availableBytes)} free on ${disk.volume || "the install volume"}`;
+        const storage = state.storage;
+        if (storage?.profile === state.selectedProfile) {
+          const unknown = (storage.unknownDownloads || 0) + (storage.unknownExtraction || 0) + (storage.unknownLayouts || 0);
+          $("storageEstimate").textContent = storage.managed === false ? "This profile uses existing/manual folders; their sizes are not estimated here." : `Selected content cache: ${formatBytes(storage.cachedBytes)}. Reported downloads: ${formatBytes(storage.downloadBytes)}. ` +
+            `Extraction: ${formatBytes(storage.extractionBytes)}; extra layouts: ${formatBytes(storage.layoutBytes)} (estimated). ` +
+            (unknown ? `${unknown} size estimates are incomplete or unknown. Extra owned-asset space may be needed.` : "No unknown package sizes.") +
+            " Client updates, backups and temporary files need additional space.";
+        } else $("storageEstimate").textContent = "Estimate the selected profile before preparing it. Unknown sizes are shown separately.";
+        const cleanup = state.cleanup;
+        $("cacheCandidates").replaceChildren();
+        const cacheKinds = { packages: "Package", layouts: "Prepared layout", downloads: "Archive" };
+        for (const candidate of cleanup?.candidates || [])
+          $("cacheCandidates").append(element("li", `${candidate.label || "Cached files"} · ${cacheKinds[candidate.kind]} · ${formatBytes(candidate.bytes)}`));
+        $("cleanupMessage").textContent = cleanup?.message || "Preview first. Active and saved profiles and rollback references are protected.";
+        if (cleanup?.candidates?.length)
+          $("cleanupMessage").textContent += ` ${cleanup.candidates.length} unused entries, up to ${formatBytes(cleanup.bytes)}; ${cleanup.retained} retained. Entries are fully verified again before removal.`;
+        $("cleanCache").disabled = busy || !cleanup?.canClean;
         document
           .querySelectorAll("#modRows button")
           .forEach((b) => (b.disabled = busy));
@@ -1376,6 +1416,9 @@ Fetcher native launcher ready.
       $("check").onclick = () => action("check");
       $("update").onclick = () => action("update");
       $("repair").onclick = () => action("repair");
+      $("estimateStorage").onclick = () => action("storageEstimate");
+      $("scanCache").onclick = () => action("scanCache");
+      $("cleanCache").onclick = () => action("cleanCache", { token: state.cleanup.token });
       $("restoreUpdate").onclick = () =>
         action("rollbackUpdate", { id: $("updateBackup").value });
       $("wizard").onclick = () => action("wizard");
@@ -1441,6 +1484,8 @@ Fetcher native launcher ready.
             serverPage: !!$("servers"),
             modPage: !!$("mods"),
             updatesPage: !!$("updates"),
+            storageControls: !!$("estimateStorage") && !!$("scanCache") && $("cleanCache").disabled,
+            storageVolume: typeof state.disk?.availableBytes === "number" && !!$("storageFree").textContent,
             nexusControls: !!$("installUmo") && !!$("connectUmo"),
             firstRunState: typeof state.setup?.clientInstalled === "boolean",
           };

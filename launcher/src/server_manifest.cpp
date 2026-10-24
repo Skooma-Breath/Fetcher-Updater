@@ -18,6 +18,11 @@ std::string dataPath(std::string value) {
 }
 void validateModDefinition(const Json &d) {
     need(d.is_object(), "Invalid mod package.");
+    for (auto key : {"downloadBytes", "expandedBytes"})
+        if (d.contains(key))
+            need(d.at(key).is_number_unsigned() &&
+                     d.at(key).get<std::uint64_t>() <= (std::string(key) == "downloadBytes" ? 4ull : 8ull) * 1024 * 1024 * 1024,
+                 "Package size hints must be nonnegative bounded byte counts.");
     int sources = int(d.contains("url")) + int(d.contains("repository")) + int(d.contains("nexus"));
     need(sources == 1, "Each mod package requires exactly one source.");
     auto format = d.value("archiveFormat", "auto");

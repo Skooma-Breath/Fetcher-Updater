@@ -435,6 +435,25 @@ std::string httpGet(const std::string &url, std::uint64_t limit, bool allowRedir
             L"Accept: application/json\r\n", allowRedirects);
     return text;
 }
+Json diskSpace(const fs::path &path) {
+    auto existing = fs::absolute(ordinaryPath(path)).lexically_normal();
+    while (!fs::exists(existing) && existing.has_parent_path() && existing != existing.parent_path())
+        existing = existing.parent_path();
+    std::error_code error;
+    auto space = fs::space(longPath(existing), error);
+    Json result = {{"path", utf8(ordinaryPath(path).wstring())}, {"availableBytes", nullptr},
+                   {"capacityBytes", nullptr}, {"volume", utf8(existing.root_path().wstring())}};
+    if (!error) { result["availableBytes"] = space.available; result["capacityBytes"] = space.capacity; }
+    wchar_t volume[32768]{};
+    if (GetVolumePathNameW(existing.c_str(), volume, 32768)) result["volume"] = utf8(volume);
+    return result;
+}
+void requireFreeSpace(const fs::path &path, std::uint64_t bytes) {
+    auto info = diskSpace(path);
+    if (info["availableBytes"].is_number_unsigned() && info["availableBytes"].get<std::uint64_t>() < bytes)
+        throw std::runtime_error("Not enough free disk space on " + info.at("volume").get<std::string>() +
+                                ". Free space or clean unused cache, then retry. Your active configuration is unchanged.");
+}
 void download(const std::string &url, const fs::path &p, const std::string &hash, const Log &log) {
     require(std::regex_match(hash, std::regex("[0-9a-f]{64}")),
             "Missing or invalid SHA-256 digest.");
@@ -452,7 +471,10 @@ void download(const std::string &url, const fs::path &p, const std::string &hash
     {
         std::ofstream out(temp, std::ios::binary | std::ios::trunc);
         require(bool(out), "Cannot create download.");
+        std::uint64_t untilCheck = 0;
         request(url, 4ull * 1024 * 1024 * 1024, [&](const char *b, DWORD n) {
+            if (untilCheck < n) { requireFreeSpace(temp.parent_path(), n); untilCheck = 16 * 1024 * 1024; }
+            untilCheck = untilCheck > n ? untilCheck - n : 0;
             out.write(b, n);
             require(bool(out), "Download write failed.");
         });
@@ -507,6 +529,7 @@ std::vector<std::string> extractZip(const fs::path &p, const fs::path &stage) {
             fs::create_directories(stage / rel);
             continue;
         }
+        requireFreeSpace(stage, s.m_uncomp_size);
         fs::create_directories((stage / rel).parent_path());
         FILE *out = nullptr;
         require(_wfopen_s(&out, (stage / rel).c_str(), L"wb") == 0,

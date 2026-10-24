@@ -1287,6 +1287,12 @@ end
 }
 finally {
     if (Test-Path -LiteralPath $workRoot -PathType Container) {
+        $resolvedWork = [IO.Path]::GetFullPath($workRoot)
+        if ([IO.Path]::GetDirectoryName($resolvedWork) -ne [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') -or
+            [IO.Path]::GetFileName($resolvedWork) -notmatch '^fetcher-package-test-[0-9a-f]{32}$' -or
+            ((Get-Item -LiteralPath $resolvedWork).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw "Refusing to remove an unexpected package-test directory: $resolvedWork"
+        }
         Remove-Item -LiteralPath $workRoot -Recurse -Force
     }
 }

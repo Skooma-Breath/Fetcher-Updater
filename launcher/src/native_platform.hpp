@@ -39,6 +39,8 @@ std::vector<std::string> extractArchive(const fs::path &archive, const fs::path 
 std::vector<std::string> extractZip(const fs::path &archive, const fs::path &stage);
 void launch(const fs::path &exe, const std::vector<std::wstring> &args, const fs::path &cwd);
 void assertGameStopped(const fs::path &root);
+Json diskSpace(const fs::path &path);
+void requireFreeSpace(const fs::path &path, std::uint64_t bytes);
 class InstallLock {
   public:
     explicit InstallLock(const fs::path &root);

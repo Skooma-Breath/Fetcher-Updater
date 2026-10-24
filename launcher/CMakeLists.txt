@@ -50,7 +50,7 @@ string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_LICENSE_SOURCE "${UMO_
 string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_ADAPTER_SOURCE "${UMO_ADAPTER_SOURCE}")
 configure_file(src/umo_embedded.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/generated/umo_embedded.hpp" @ONLY)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS umo/adapter.py umo/LICENSE)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp src/launcher_runtime.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp src/launcher_runtime.cpp src/storage_management.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_include_directories(fetcher-native PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)
@@ -86,6 +86,7 @@ if(MSVC)
 endif()
 
 enable_testing()
+configure_file(ui/index.html "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ui/index.html" COPYONLY)
 add_executable(fetcher-launch-fixture tests/launch_fixture.cpp)
 target_link_libraries(fetcher-launch-fixture PRIVATE nlohmann_json::nlohmann_json)
 add_executable(fetcher-umo-registry-fixture tests/umo_registry_fixture.cpp)
@@ -107,6 +108,10 @@ add_test(NAME fetcher-compatibility COMMAND fetcher-compatibility-tests)
 add_executable(fetcher-game-assets-tests tests/game_assets_tests.cpp)
 target_link_libraries(fetcher-game-assets-tests PRIVATE fetcher-native)
 add_test(NAME fetcher-game-assets COMMAND fetcher-game-assets-tests)
+add_executable(fetcher-storage-tests tests/storage_tests.cpp)
+target_link_libraries(fetcher-storage-tests PRIVATE fetcher-native)
+add_dependencies(fetcher-storage-tests fetcher-launch-fixture)
+add_test(NAME fetcher-storage COMMAND fetcher-storage-tests)
 
 add_custom_command(TARGET FetcherLauncher POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory

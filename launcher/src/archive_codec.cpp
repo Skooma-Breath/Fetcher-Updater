@@ -99,6 +99,7 @@ std::vector<std::string> extractArchive(const fs::path &path, const fs::path &st
         need(expected <= 2ull * 1024 * 1024 * 1024 && expected <= 8ull * 1024 * 1024 * 1024 - total,
              "Archive expansion exceeds limit.");
         need(archive_entry_sparse_count(entry) == 0, "Sparse archive entries are unsupported.");
+        requireFreeSpace(stage, expected);
         fs::create_directories((stage / relative).parent_path());
         std::ofstream out(stage / relative, std::ios::binary | std::ios::trunc);
         need(bool(out), "Could not create extracted file.");

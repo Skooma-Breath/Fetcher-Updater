@@ -141,6 +141,12 @@ try {
 }
 finally {
     if (Test-Path -LiteralPath $stage -PathType Container) {
+        $resolvedStage = [IO.Path]::GetFullPath($stage)
+        if ([IO.Path]::GetDirectoryName($resolvedStage) -ne [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') -or
+            [IO.Path]::GetFileName($resolvedStage) -notmatch '^fetcher-tester-tools-[0-9a-f]{32}$' -or
+            ((Get-Item -LiteralPath $resolvedStage).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw "Refusing to remove an unexpected packaging directory: $resolvedStage"
+        }
         Remove-Item -LiteralPath $stage -Recurse -Force
     }
 }

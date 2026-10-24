@@ -1,3 +1,26 @@
+# Storage acceptance — 2026-10-24
+
+All six native CTest suites pass, including guarded cache cleanup and tools-only updates when
+a selected server profile is unavailable. Storage tests exercise saved/rollback references,
+config includes and aliases, stale previews, same-size modified files, extra personal files,
+symlinks, running-game refusal, size bounds and deduplicated estimates. Modified candidates
+block the deletion batch before any file is removed. Only disposable fixtures were cleaned.
+
+Native package integration passes with Unicode, spaces and ampersands in the install path;
+generated quoted OpenMW paths correctly escape ampersands. The 36-operation archive/layout
+integration passes. Real WebView2 smoke checks include Storage controls and actual volume.
+
+The normal installation's read-only preview found 21 unused candidates, 5,824,918,335 logical
+bytes, while retaining 216 referenced entries. Five checked game/config/TR/TD files retained
+their hashes; no cache was deleted. An empty-cache estimate used live profile 2026.10.24.2
+without downloading game content or Nexus authentication: 5,263,708,442 download bytes,
+12,671,456,402 extraction bytes and 5,583,347,261 estimated layout bytes, with nine incomplete
+layout estimates. Runtime checks do not guarantee all future temporary/client/backup peaks fit.
+See [STORAGE.md](STORAGE.md) for the user workflow and remaining legacy-folder migration.
+
+Earlier dated candidate reports below are historical; current experimental rollout acceptance
+is recorded in [EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md).
+
 # Native launcher candidate validation — 2026-10-21
 
 The launcher executable is a local candidate. The approved combined content candidate and server

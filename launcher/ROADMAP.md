@@ -41,15 +41,13 @@ download of every Nexus file.
 
 ## Next usability priorities
 
-1. **Disk space.** Show available space on the actual installation/cache volume, queued download
-   size and estimated extraction/derived-layout needs before preparation. Distinguish cached files,
-   unknown sizes and estimates; catch insufficient space before changing the active configuration.
-   After the new setup passes, offer explicit cleanup of obsolete TR/TD folders and unused cache
-   versions. Check current and saved configuration references first; preserve active installs and
-   retained rollback versions. Never merge a new TR release over the old extracted folder.
-   The managed TR/TD migration already selects fresh directories and excludes the old roots;
-   it does not yet delete old versions. Cleanup must distinguish launcher-owned cache entries
-   from older UMO/manual installations and leave unverified ownership alone.
+1. **Disk space and cleanup: basic workflow implemented.** Updates → Storage shows actual-volume
+   free space, cached/queued sizes, partial layout estimates and an explicit preview/removal flow
+   for verified unused managed caches. Saved/current/previous profiles and rollback references
+   protect their files; runtime writes check available space. See [STORAGE.md](STORAGE.md).
+   Remaining: fuller client/backup/temporary-peak estimates and a separate retirement workflow
+   for old UMO/manual TR/TD folders still referenced by the original configuration/local fixtures.
+   Those folders remain protected; fresh TR is never merged over the old extracted release.
 2. **Ping in both browsers.** Add client-measured latency to the launcher and the in-game server
    browser, with bounded background probes, refresh/sorting and a clear unavailable/timeout state.
    A master's HTTP response time is not a player's latency to the game server.
@@ -70,7 +68,7 @@ download of every Nexus file.
    codecs, nested/scripted installers, plugin cleaning and third-party tool bootstrap remain
    unsupported; decide which are worth supporting without executing arbitrary server commands.
 4. **Mod management UI.** Add dependency/conflict explanations, optional-mod presets, package
-   removal and cache management, after the disk-space/browser priorities above.
+   removal and richer cache management, after the browser priorities above.
 5. **Content attribution display.** Pick an appropriate content-specific location, such as Studio
    Help or server-profile content details. Model/source/license records and packaged notices
    already exist under docs/content-attribution and in the content bundles. There is no general
@@ -89,8 +87,8 @@ package supplies their unchanged installed content instead. See LEGACY-RACES.md.
 The archive audit, 37 native compatibility fixes and explicit Starwind owned-asset isolation
 path are combined with updated TR/TD sources and the full plugin/groundcover order. Real
 client/server game-join acceptance passes. Broader clean-download, long-session and device
-coverage remains. Preserve the original installation and rollback sources until guarded
-cleanup is available. See PRESET-AUTHORING.md and the acceptance report.
+coverage remains. Preserve the original installation and rollback sources; cache cleanup
+retains their references and does not retire manual installations. See PRESET-AUTHORING.md and the acceptance report.
 
 ## Deferred owner-list authoring tools
 

@@ -25,7 +25,7 @@ def main():
     exe = options.exe.resolve()
     with TemporaryDirectory(prefix="fetcher-native-integration-") as temporary:
         base = Path(temporary)
-        root = base / "inställ with spaces"
+        root = base / "inställ & spaces"
         root.mkdir()
         data = base / "owned-game"
         data.mkdir()
@@ -76,10 +76,11 @@ def main():
             command({"op": "profile", "id": "fixture"})
             command({"op": "prepare"})
             config = root / "_fetcher_launcher/profiles/fixture/openmw.cfg"
-            text = config.read_text()
+            text = config.read_text(encoding="utf8")
             assert 'replace=config' in text and text.index("content=Morrowind.esm") < text.index("content=Test.esp")
             assert all("replace=" + key in text for key in ["data", "content", "groundcover", "fallback-archive"])
             assert "data-local=" in text and (config.parent/"local-data").is_dir()
+            assert "inställ && spaces" in text, "OpenMW quoted paths escape literal ampersands"
             assert (root / "openmw.cfg").read_bytes() == original
             requests = Handler.requests
             command({"op": "prepare"})
@@ -139,7 +140,7 @@ def main():
                 print("PASS real surf/truck/Studio bundle: native download, hash, extraction, assets and plugin load order")
             assert (root / "profiles/keep.bin").read_bytes() == b"character settings"
             assert (root / "openmw.cfg").read_bytes() == original
-            print("PASS native integration: Unicode/spaced paths, profile persistence, isolated config, cache repair, bad hashes, traversal/duplicate/symlink rejection, original data preserved")
+            print("PASS native integration: Unicode/spaced/ampersand paths, profile persistence, isolated config, cache repair, bad hashes, traversal/duplicate/symlink rejection, original data preserved")
         finally:
             server.shutdown()
             server.server_close()

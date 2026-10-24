@@ -9,7 +9,7 @@ class Backend {
     explicit Backend(fs::path root, Log log = {}, DiscoveryFetch discoveryFetch = {});
     Json command(const Json &request);
     Json state() const;
-    Json check(bool repair = false, bool install = false);
+    Json check(bool repair = false, bool install = false, bool toolsOnly = false);
     static Json parseServers(const Json &value);
     static std::vector<std::string> loadOrder(const std::vector<std::string> &content,
                                               const std::vector<fs::path> &roots);
@@ -18,7 +18,7 @@ class Backend {
 
   private:
     fs::path mRoot, mManaged;
-    Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview;
+    Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview, mStorage, mCleanup;
     Log mLog;
     DiscoveryFetch mDiscoveryFetch;
     void save();

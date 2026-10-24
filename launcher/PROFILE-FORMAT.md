@@ -31,7 +31,7 @@ checked IP while retaining TLS hostname validation; cookies and automatic Window
 are disabled. Windows 10 21H1 or newer and direct internet access are required (system HTTP proxies
 are not used). Local HTTP fixtures require an explicit test-only mode.
 
-The master caps bodies at 600 KiB, profiles at 2 MiB/depth 32, active servers at 2048, servers
+The master caps registration bodies at 8 MiB, profiles at 2 MiB/depth 32, active servers at 2048, servers
 per source address at 16 and stored profile bytes at 64 MiB. Profiles are public: never include
 passwords/API keys. Registration ties a listing to its source IP; it does not certify an operator
 or prove assets safe. Hashes verify the owner-pinned bytes, and joining still entails trusting the
@@ -73,6 +73,11 @@ that package and may not escape it. dataDirs replaces the need for a custom meta
 ordinary mod archives. Older Fetcher ZIPs can still declare dataDirs in openmw-client-package.json.
 Optional top-level groundcover and fallbackArchives arrays configure those separate OpenMW lists.
 Omitting fallbackArchives keeps Morrowind.bsa, Tribunal.bsa and Bloodmoon.bsa.
+
+Optional per-package `downloadBytes` (0–4 GiB) and `expandedBytes` (0–8 GiB) are
+nonnegative integer size hints for Updates → Storage. They are advisory: hashes and actual
+archive/extraction limits remain mandatory, and missing hints are shown as unknown.
+Verified cache receipts take precedence when available. See [STORAGE.md](STORAGE.md).
 
 ## Nexus files
 

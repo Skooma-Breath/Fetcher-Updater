@@ -12,6 +12,8 @@ Implemented:
   controls/panels and shadowed headings. Floating skooma rockets remain in every theme (subject to
   the existing reduced-motion preference). The local theme choice survives launcher updates and
   restarts in `_fetcher_launcher/settings.json`; no remote themes or fonts are loaded.
+- Updates → Storage: actual-volume free space, profile estimates and guarded unused-cache
+  preview/removal. Saved configurations and manual mod folders remain protected. See [STORAGE.md](STORAGE.md).
 - Public server browser using the game's live master service, search, favorites and direct connect.
 - Public Vanilla surf/truck/Studio profile and separate existing-installation connection route.
 - Automatic master-hosted owner profiles: no player JSON/URL paste, pinned content preparation on
@@ -35,12 +37,13 @@ Implemented:
 - Explicit profile actions can restore hash-pinned assets from owned Morrowind BSAs/loose files.
   Fetcher's experimental Starwind layer is optional and is never injected into ordinary Starwind installs.
 
-**Migration boundary:** encrypted/multipart archives, unsupported codec variants, advanced FOMOD dependencies/player wizard,
-plugin-cleaning, third-party tool bootstrap and complete legacy
-compatibility recipes have not yet been ported. Real free-account Nexus refusal/manual import passes;
-Live Nexus entitlement trials and clean-machine acceptance remain. A future standalone Fetcher SSO
-route would need its own application registration; UMO is the selected helper now. Existing script entry points remain supported during
-migration. The native launcher does not claim to install/repair that entire historical mod list.
+**Migration boundary:** the curated experimental 103-package snapshot passes native preparation
+and real VPS world entry; see [EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md).
+Arbitrary legacy recipes, encrypted/multipart archives, unsupported codecs, advanced FOMOD
+dependencies/player wizards, plugin cleaning and third-party tool bootstrap remain unsupported.
+Real free-account UMO/NXM and second-device acceptance pass; broader device/download coverage
+and Premium entitlement trials remain. UMO is the selected public Nexus helper. A standalone
+Fetcher SSO route would need its own application registration. Existing script entry points remain.
 
 ## Build and validate
 

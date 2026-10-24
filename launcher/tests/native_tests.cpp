@@ -592,6 +592,36 @@ int main() {
                 "only built-in themes accepted");
         check(read(install / "_fetcher_launcher/settings.json") == savedAppearance,
               "invalid theme leaves saved preferences intact");
+        {
+            auto blocked = root / "blocked-profile-update";
+            auto hash = textSha256("cached-tools-archive");
+            auto cache = blocked / "_fetcher_launcher/packages" / hash;
+            writeAtomic(blocked / "openmw.cfg", "personal configuration");
+            writeAtomic(cache / "FetcherLauncher.exe", "updated cached launcher");
+            writeAtomic(cache / "ui/index.html", "updated cached UI");
+            Json inventory = {{"schemaVersion", 1}, {"files", Json::array()}};
+            for (auto name : {"FetcherLauncher.exe", "ui/index.html"})
+                inventory["files"].push_back({{"path", name}, {"size", fs::file_size(cache / name)}, {"sha256", sha256(cache / name)}});
+            writeAtomic(cache / "fetcher-tester-tools.json", inventory.dump());
+            Json files = inventory["files"];
+            files.push_back({{"path", "fetcher-tester-tools.json"}, {"size", fs::file_size(cache / "fetcher-tester-tools.json")}, {"sha256", sha256(cache / "fetcher-tester-tools.json")}});
+            writeAtomic(cache / ".fetcher-package.json", Json{{"sha256", hash}, {"files", files}}.dump());
+            Json profile = {{"id", "unavailable"}, {"name", "Unavailable server"}, {"mode", "managed"},
+                            {"host", "example.org"}, {"port", 25565}, {"content", Json::array()},
+                            {"packages", Json::array()}, {"_discovered", true}};
+            writeAtomic(blocked / "fetcher-launcher-profiles.json", Json{{"schemaVersion", 1}, {"profiles", Json::array({profile})}}.dump());
+            writeAtomic(blocked / "_fetcher_launcher/settings.json", Json{{"profile", "unavailable"}, {"host", "example.org"}, {"port", 25565}}.dump());
+            Backend unavailable(blocked, {}, [&](const std::string &url, std::uint64_t, bool) {
+                if (url.find("api.github.com/repos/Skooma-Breath/Fetcher-Updater/") != std::string::npos)
+                    return Json{{"assets", Json::array({{{"name", "fetcher-tester-tools.zip"}, {"digest", "sha256:" + hash}, {"browser_download_url", "https://example.org/tools.zip"}}})}}.dump();
+                throw std::runtime_error("Server profile cannot be decoded");
+            });
+            auto updated = unavailable.command({{"op", "update"}});
+            check(updated["status"]["launcherUpdated"] == true && read(blocked / "FetcherLauncher.exe") == "updated cached launcher",
+                  "unavailable server profile does not block a launcher upgrade");
+            check(read(blocked / "openmw.cfg") == "personal configuration", "self-update fallback preserves the user's configuration");
+            rejects([&] { unavailable.command({{"op", "update"}}); }, "current tooling still refuses unavailable server requirements");
+        }
         removeManaged(fs::temp_directory_path(), root);
         std::cout << "PASS native backend: " << assertions << " assertions\n";
         return 0;

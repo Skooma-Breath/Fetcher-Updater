@@ -6,10 +6,14 @@ the existing Mario character and unchanged published game executable.
 
 ## Deployed requirements
 
-- [presets/fetcher-simulation.json](presets/fetcher-simulation.json), version `2026.10.24.1`:
+- [presets/fetcher-simulation.json](presets/fetcher-simulation.json), version `2026.10.24.2`:
   103 packages, 136 configured content files and 12 groundcover plugins.
 - Active owner file: `/srv/fetcher-simulator/launcher-profile.json`.
-- Advertised SHA-256: `6e22a6ea38013d1ae871098fe22fb54cfef52a1fee203fa9a358fe7eed156e82`.
+- Advertised SHA-256: `3e6426d011b3fa93cf8d27c40c9d9e072058ccdfe9e82203a3c8a24ad23bc4cc`.
+  Revision 2 adds measured size hints only. The world-entry evidence below used revision 1
+  (`6e22a6ea38013d1ae871098fe22fb54cfef52a1fee203fa9a358fe7eed156e82`);
+  package hashes, recipes and content order are identical. The metadata restart preserved
+  all 53 characters, with both health checks passing and Vanilla's game process unchanged.
 - TR 26.08a and TD 26.08 Vanilla: actual official-mirror downloads, native hash verification,
   extraction and preparation pass. Upstream executable/JAR helpers are excluded, never run.
 - Mario/Zelda: unchanged plugins/assets and original notices in the pinned combined GitHub ZIP.
@@ -64,7 +68,7 @@ this was not a new network download trial of every Nexus archive. Broader device
 music/gameplay and worldspace exploration remain public-test work. The legacy UMO file is an older
 installation snapshot; the advertised native profile is the current experimental requirement list.
 
-Old TR/TD roots are excluded from the active generated configuration. Their folders/caches remain
-for rollback. Disk-space estimates and guarded cleanup of unreferenced launcher-owned versions
-are next priorities; manually installed files must not be deleted blindly. Private logs, database
+Old TR/TD roots are excluded from the active generated configuration. Their folders remain referenced by the original
+configuration/local setups. Updates → Storage now estimates space and previews/removes verified,
+unreferenced managed caches; manually installed TR/TD folders are retained. See [STORAGE.md](STORAGE.md). Private logs, database
 copies and licensed game assets remain outside the repository/release.
