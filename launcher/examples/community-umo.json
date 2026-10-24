@@ -1,18 +1,35 @@
 {
   "schemaVersion": 1,
   "id": "example-community",
-  "name": "Example community",
+  "name": "Example community - Hackle-Lo Pipes",
   "version": "1.0",
   "host": "play.example.org",
   "port": 25565,
-  "umo": {
-    "url": "https://example.org/pinned-umo-export.json",
-    "sha256": "REPLACE_WITH_SHA256_OF_UMO_EXPORT"
-  },
+  "umoMods": [
+    {
+      "name": "Hackle-Lo Pipes v4",
+      "author": "WanderVanaheimr - InkDrops",
+      "url": "https://www.nexusmods.com/morrowind/mods/56939",
+      "dir": "HackleLoPipes",
+      "category": "Gameplay",
+      "download_info": [
+        {
+          "file_name": "Hackle-Lo Pipes v4",
+          "extract_to": "HackleLoPipes",
+          "pinned": true,
+          "nexus_file_id": 1000064599,
+          "sha256": "a4211504a66587218c3ffd830a680ef33c0654110afbb503fb7d91b61e945970",
+          "archiveFormat": "zip",
+          "dataDirs": ["."]
+        }
+      ],
+      "plugins": ["Hackle-Lo Pipe.esp"]
+    }
+  ],
   "content": [
     "Morrowind.esm",
     "Tribunal.esm",
     "Bloodmoon.esm",
-    "Example.esp"
+    "Hackle-Lo Pipe.esp"
   ]
 }

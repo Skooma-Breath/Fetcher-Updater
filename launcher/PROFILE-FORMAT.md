@@ -1,5 +1,8 @@
 # Server-owned mod manifests
 
+For an operator walkthrough, including how to create the UMO list, see
+[Server setup and launcher mod lists](SERVER-OWNER-GUIDE.md).
+
 ## Automatic discovery
 
 Save the JSON beside `server.cfg` and add `launcher_profile = launcher-profile.json` to its
@@ -42,7 +45,7 @@ Accepting adds/selects a profile; Prepare, Play or Install updates can subsequen
 Discovery and profile selection alone never install mods. The original openmw.cfg is not rewritten.
 
 See examples/fetcher-vanilla-studio.json for the real pinned combined content candidate and
-examples/community-umo.json for a wrapper referencing an exported UMO list.
+examples/community-umo.json for an embedded, pinned UMO list suitable for automatic discovery.
 
 ```json
 {
@@ -76,7 +79,12 @@ Omitting fallbackArchives keeps Morrowind.bsa, Tribunal.bsa and Bloodmoon.bsa.
 Replace url in a package with `"nexus": {"game":"morrowind", "modId":123, "fileId":456}`.
 The SHA-256 and dataDirs requirements are the same. Pin exact files, not a latest-file search.
 
-Players can save their own Nexus API key in the launcher. Windows DPAPI protects the saved key for
+The normal public route uses the external UMO helper for the player's own Nexus sign-in and
+download approvals. UMO sign-in and the free-account Hackle-Lo NXM handoff have passed live
+acceptance. NXM handling is opt-in; the launcher does not silently replace another mod manager.
+Premium entitlement and broader-browser acceptance remain. See UMO-HELPER.md.
+
+The advanced personal-testing route lets players save their own Nexus API key. Windows DPAPI protects the saved key for
 that Windows user; it is absent from profile/state JSON and is sent only to the Nexus API. The API
 request identifies Fetcher Launcher. Eligible downloads resolve through Nexus v1 download_link;
 credentials are never forwarded to the CDN. API redirects are refused. On authentication, eligibility
@@ -85,14 +93,16 @@ or rate-limit failure, the error leaves the previous setup intact and offers man
 Manual route: choose the package, Open Nexus file, download that exact file in the browser, paste
 its local path and Import archive. SHA-256 must match. Then prepare the profile. No Nexus account
 or credentials are needed by the launcher for importing a file already downloaded by the user.
-There is no NXM protocol takeover, SSO integration or bypass of Nexus download requirements.
-Public Nexus application registration and live authenticated account trials remain rollout tasks.
+There is no bypass of Nexus download requirements. A separate Fetcher-owned SSO application is
+future work; the supported public sign-in route currently uses UMO's authorisation.
 
 ## UMO imports
 
 Wrap an exported UMO JSON array using either `umoMods: [...]` or
 `"umo": {"url":"https://example.org/list.json", "sha256":"..."}`. The latter hashes the raw
 UTF-8 file bytes before parsing. A server wrapper still supplies id, name, version, host and port.
+External-list references are accepted only by manual imports. Automatic server discovery requires
+the embedded `umoMods` form; it will not follow an external mod-list website.
 
 Each download_info entry needs pinned=true, sha256 and an exact nexus_file_id or a direct_download
 HTTPS archive URL. Nexus mod identity comes from the entry's url. data_paths and extract_to are
@@ -272,10 +282,12 @@ Optional local mods stay per profile; server-required plugins retain the server'
 
 ## Server browser and boundaries
 
-The master URL is https://master.fetchers.org/v1/servers. If an entry supplies mod_profile_url
-(or profile_url), the browser offers Review server mods. Its manifest must match the advertised
-host/port. No master-service change was deployed here; manual URL import works independently.
-Known built-in Fetcher endpoints continue to select their original profiles until explicitly changed.
+The master URL is https://master.fetchers.org/v1/servers. An advertised `mod_profile_sha256`
+selects automatic discovery using the launcher's constructed master retrieval URL; server-supplied
+manifest URLs are not followed in this route. Selection and Play/Prepare revalidate requirements
+and bind the connection to the registered endpoint. Legacy entries with only `mod_profile_url`
+(or `profile_url`) can offer Review server mods; that manual manifest must match the listed endpoint.
+Built-in profile settings are retained when the matching server adopts automatic discovery.
 
 Production requests require HTTPS and validate each redirect; local/private/reserved address
 resolution and embedded URL credentials are rejected. Bounded extraction rejects path escapes,
@@ -288,6 +300,7 @@ The optional --nexus-fixture-url is valid only in that mode. These flags never p
 and never enable local downloads in the GUI. Native-client/tools updates use their separate update
 channel; a server manifest cannot replace the executable or launcher.
 
-The public Vanilla server's content and authority configuration have not been changed. The combined
-Vanilla manifest is a download/preparation candidate; game-join testing needs matching server content
-and the required Studio native/Lua versions. Asset installation alone does not enable Studio gameplay.
+Public Vanilla now uses the combined surf/vehicle/Studio content and automatically advertised
+owner profile. The older candidate examples retain their original identities; they are not a
+promise that every example matches the live server. A new server still needs matching authority
+and compatible Studio native/Lua versions. Asset installation alone does not enable Studio gameplay.

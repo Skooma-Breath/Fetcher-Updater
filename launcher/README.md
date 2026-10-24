@@ -1,5 +1,8 @@
 # Fetcher community launcher — native backend
 
+Server operators: start with [Server setup and launcher mod lists](SERVER-OWNER-GUIDE.md)
+for the engine setup guide, UMO JSON authoring and automatic publication through the master.
+
 Windows C++17 backend with the existing WebView2/web-interface approach. The new
 launcher does not run PowerShell for its update/mod-profile actions.
 
