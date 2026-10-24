@@ -952,6 +952,7 @@ void Backend::measurePings() {
 Json Backend::legacyReplacements() {
     Json result=Json::object();
     const auto selected=profile();
+    if(selected.value("host","")!="163.192.106.225" || selected.value("port",0)!=25564)return Json();
     for(const auto& definition:selected.at("packages")) {
         auto hash=definition.value("sha256","");
         bool td=hash=="009530c0383759b842298e827bf1ffd88e29b68668bbefe794bc376713e821cf";

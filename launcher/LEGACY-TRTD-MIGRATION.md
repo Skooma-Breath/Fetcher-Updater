@@ -27,7 +27,8 @@ game defers cleanup; independent local fixtures remain untouched.
 Only TD 25.05 / TR 25.08.12 in the two fixed legacy Fetcher directories are eligible, with the
 known TD 26.08 / TR 26.08a replacements. Server manifests cannot provide deletion paths or
 migration instructions. Other profiles, manual mods, saves, account keys and characters are
-outside this migration.
+outside this migration. Automatic cleanup is scoped to the Fetcher experimental server endpoint;
+another server using the same TR packages cannot trigger it.
 
 The launcher carries 47,039 original file paths/sizes/hashes from the audited pinned archives.
 This metadata is inert JSON in the existing interface payload, preserving older updater path
