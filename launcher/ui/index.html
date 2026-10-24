@@ -15,23 +15,105 @@
           Segoe UI,
           system-ui,
           sans-serif;
-        --bg: #0c121c;
-        --panel: #141d2be8;
-        --line: #344155;
-        --muted: #a3b3c7;
-        --ink: #eef4fa;
-        --gold: #d9b66f;
-        --green: #63d6ae;
+        --bg: #242527;
+        --backdrop: none;
+        --panel: #202123ed;
+        --chrome: #191a1cec;
+        --sidebar: #191a1cbb;
+        --line: #45464a;
+        --muted: #b2b2b7;
+        --ink: #f2f1ee;
+        --gold: #eee9de;
+        --accent-hover: #ffffff;
+        --accent-ink: #191a1c;
+        --green: #a3d2b0;
+        --control: #303135;
+        --control-hover: #3e4045;
+        --field: #161719;
+        --selection: #3e4146;
+        --row-hover: #303236;
+        --heading-font: "Segoe UI", system-ui, sans-serif;
+        --heading-shadow: 0 1px 0 #858589, 0 2px 0 #111214, 0 4px 8px #0009;
+        --text-shadow: 0 1px 1px #000c;
+      }
+      :root[data-theme="obsidian"] {
+        --bg: #000000;
+        --panel: #0d0d0df2;
+        --chrome: #080808f5;
+        --sidebar: #080808c9;
+        --line: #353535;
+        --muted: #ababab;
+        --ink: #fafafa;
+        --gold: #b9f4d1;
+        --accent-hover: #d6ffe5;
+        --accent-ink: #09170e;
+        --green: #b9f4d1;
+        --control: #1c1c1c;
+        --control-hover: #2c2c2c;
+        --field: #050505;
+        --selection: #1c3527;
+        --row-hover: #1a1a1a;
+        --heading-shadow: 0 2px 0 #000, 0 0 24px #b9f4d115;
+      }
+      :root[data-theme="space"] {
+        --bg: #020308;
+        --backdrop: url(assets/potm2504a.jpg);
+        --panel: #101114e8;
+        --chrome: #090a0de6;
+        --sidebar: #090a0dc4;
+        --line: #49443d;
+        --muted: #c1bbb2;
+        --ink: #f4f0e8;
+        --gold: #e2c18a;
+        --accent-hover: #f4d9ac;
+        --accent-ink: #211b11;
+        --green: #a6d9bd;
+        --control: #302e2b;
+        --control-hover: #46413a;
+        --field: #101011;
+        --selection: #4a4031;
+        --row-hover: #302d29;
+        --heading-shadow: 0 2px 0 #261e14, 0 4px 12px #000;
+      }
+      :root[data-theme="ember"] {
+        --bg: #211b19;
+        --backdrop: radial-gradient(ellipse at 80% 0%, #7443304a, transparent 65%),
+          repeating-linear-gradient(115deg, #ffffff03 0 1px, transparent 1px 5px);
+        --panel: #29221fed;
+        --chrome: #1e1715f2;
+        --sidebar: #1e1715c4;
+        --line: #5c453b;
+        --muted: #cbb6a7;
+        --ink: #f3e9dd;
+        --gold: #e6ad83;
+        --accent-hover: #ffc79f;
+        --accent-ink: #28190f;
+        --green: #b9cc9a;
+        --control: #40312b;
+        --control-hover: #594237;
+        --field: #1b1512;
+        --selection: #5b3e30;
+        --row-hover: #3c2d26;
+        --heading-font: Georgia, "Times New Roman", serif;
+        --heading-shadow: 0 1px 0 #bc8463, 0 2px 0 #170e09, 0 4px 9px #000b;
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        background: #020308 url(assets/potm2504a.jpg) center/cover no-repeat
-          fixed;
+        background-color: var(--bg);
+        background-image: var(--backdrop);
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
         color: var(--ink);
         min-width: 820px;
+        font-size: 14px;
+        line-height: 1.45;
+        text-shadow: var(--text-shadow);
+        accent-color: var(--gold);
       }
       .float-layer {
         position: fixed;
@@ -92,15 +174,23 @@
         font: inherit;
       }
       button {
-        background: #26364b;
+        background: var(--control);
         color: var(--ink);
-        border: 1px solid #465a73;
-        border-radius: 5px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
         padding: 9px 14px;
         cursor: pointer;
+        box-shadow: inset 0 1px 0 #ffffff0b, 0 2px 3px #0003;
+        transition: background-color 120ms, border-color 120ms;
+        text-shadow: var(--text-shadow);
       }
       button:hover {
-        background: #344d69;
+        background: var(--control-hover);
+        border-color: var(--muted);
+      }
+      :focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 3px;
       }
       button:disabled {
         opacity: 0.45;
@@ -108,39 +198,46 @@
       }
       .primary {
         background: var(--gold);
-        color: #141a20;
+        color: var(--accent-ink);
         font-weight: 650;
         border-color: var(--gold);
+        text-shadow: none;
       }
       .primary:hover {
-        background: #f2ce85;
+        background: var(--accent-hover);
       }
       input,
       select {
-        background: #0d1622;
-        border: 1px solid #43556b;
-        border-radius: 4px;
+        background: var(--field);
+        border: 1px solid var(--line);
+        border-radius: 6px;
         color: var(--ink);
         padding: 9px;
         min-width: 0;
+        box-shadow: inset 0 2px 4px #0003;
       }
       input {
         flex: 1;
       }
       header {
-        height: 88px;
+        min-height: 96px;
         padding: 19px 26px;
         border-bottom: 1px solid var(--line);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #0a101adb;
+        background: var(--chrome);
+        gap: 20px;
       }
       h1 {
         font-size: 25px;
         letter-spacing: 3px;
         margin: 0;
         color: var(--gold);
+        font-family: var(--heading-font);
+        font-weight: 750;
+        text-shadow: var(--heading-shadow);
+        white-space: nowrap;
       }
       header small {
         color: var(--muted);
@@ -149,30 +246,34 @@
       }
       header .row {
         gap: 12px;
+        justify-content: flex-end;
       }
       .shell {
         display: grid;
         grid-template-columns: 172px minmax(0, 1fr);
-        min-height: calc(100vh - 88px);
+        min-height: calc(100vh - 96px);
       }
       nav {
         padding: 24px 13px;
         border-right: 1px solid var(--line);
-        background: #0a101aaf;
+        background: var(--sidebar);
         display: flex;
         flex-direction: column;
         gap: 9px;
       }
-      nav button {
+      nav > button {
         text-align: left;
         background: transparent;
         border-color: transparent;
-        padding: 12px;
+        padding: 13px 12px;
+        box-shadow: none;
+        font-weight: 600;
       }
-      nav button.active {
+      nav > button.active {
         color: var(--gold);
-        background: #243042;
-        border-color: #4a5363;
+        background: var(--control);
+        border-color: var(--line);
+        box-shadow: inset 3px 0 0 var(--gold), 0 3px 12px #0002;
       }
       .version {
         margin-top: auto;
@@ -184,7 +285,7 @@
         padding: 25px;
         max-width: 1650px;
         width: 100%;
-        margin: auto;
+        margin: 0 auto;
       }
       .row {
         display: flex;
@@ -200,12 +301,16 @@
         color: var(--muted);
       }
       h2 {
-        font-size: 22px;
+        font-size: 26px;
         margin: 0 0 8px;
+        font-family: var(--heading-font);
+        text-shadow: var(--heading-shadow);
+        letter-spacing: -0.4px;
       }
       h3 {
         font-size: 15px;
         margin: 0 0 12px;
+        letter-spacing: 0.2px;
       }
       .description {
         margin: 0 0 22px;
@@ -216,9 +321,10 @@
       .panel {
         background: var(--panel);
         border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 17px;
+        border-radius: 12px;
+        padding: 22px;
+        margin-bottom: 20px;
+        box-shadow: inset 0 1px 0 #ffffff08, 0 8px 26px #0003;
       }
       .toolbar {
         margin-bottom: 17px;
@@ -239,22 +345,22 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         padding: 12px;
-        background: #111d2d;
+        background: var(--field);
         position: sticky;
         top: 0;
       }
       td {
         padding: 13px 12px;
-        border-bottom: 1px solid #29384b;
+        border-bottom: 1px solid var(--line);
       }
       tr.selected {
-        background: #334a64;
+        background: var(--selection);
       }
       tr.selected td:first-child {
         border-left: 3px solid var(--gold);
       }
       tbody tr:hover {
-        background: #293d55;
+        background: var(--row-hover);
       }
       td button {
         padding: 5px 9px;
@@ -272,7 +378,7 @@
         color: var(--green);
       }
       .status.error {
-        color: #ffaf9e;
+        color: #ffb5a8;
       }
       .details {
         margin-top: 16px;
@@ -303,7 +409,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        border-bottom: 1px solid #2b394c;
+        border-bottom: 1px solid var(--line);
         padding: 11px 0;
       }
       .modlist input {
@@ -314,7 +420,7 @@
       }
       .badge {
         font-size: 10px;
-        border: 1px solid #4b5b70;
+        border: 1px solid var(--line);
         border-radius: 3px;
         padding: 3px 6px;
         color: var(--gold);
@@ -330,13 +436,13 @@
         min-height: 85px;
         font-size: 12px;
         line-height: 1.55;
-        color: #b4c6d9;
+        color: var(--muted);
         margin-bottom: 0;
       }
       #notice {
         padding: 13px 17px;
-        border: 1px solid #b78b50;
-        background: #342c20;
+        border: 1px solid var(--gold);
+        background: var(--control);
         line-height: 1.5;
         border-radius: 5px;
         margin-bottom: 18px;
@@ -362,6 +468,82 @@
         grid-template-columns: 1fr 1fr;
         gap: 18px;
       }
+      .appearance {
+        margin-top: 12px;
+        padding-top: 32px;
+      }
+      .appearance button {
+        width: 100%;
+        padding: 12px;
+        text-align: left;
+      }
+      .eyebrow {
+        display: block;
+        font-size: 10px;
+        font-weight: 650;
+        letter-spacing: 1.8px;
+        color: var(--muted);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+      #themeName {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink);
+        font-weight: 650;
+      }
+      #themeName::after { content: "◇"; color: var(--gold); }
+      dialog {
+        color: var(--ink);
+        background: var(--chrome);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 28px;
+        width: min(680px, calc(100vw - 48px));
+        max-height: calc(100vh - 48px);
+        box-shadow: 0 30px 100px #000b;
+        text-shadow: var(--text-shadow);
+      }
+      dialog::backdrop { background: #000a; }
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 24px;
+      }
+      .theme-card {
+        text-align: left;
+        padding: 0;
+        overflow: hidden;
+        background: var(--field);
+      }
+      .theme-card[aria-pressed="true"] {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 1px var(--gold);
+      }
+      .theme-preview {
+        display: flex;
+        align-items: center;
+        height: 90px;
+        padding: 20px;
+        font-size: 22px;
+        font-weight: 750;
+        letter-spacing: 2px;
+        text-shadow: 0 1px 0 #777, 0 2px 0 #111, 0 4px 8px #000;
+        border-bottom: 1px solid #ffffff14;
+      }
+      .preview-graphite { background: #242527; color: #f2f1ee; }
+      .preview-obsidian { background: #000; color: #b9f4d1; }
+      .preview-space { background: #020308 url(assets/potm2504a.jpg) center/cover; color: #e2c18a; }
+      .preview-ember {
+        background: radial-gradient(ellipse at top right, #70432c, #211b19);
+        color: #e6ad83;
+        font-family: Georgia, serif;
+      }
+      .theme-copy { display: block; padding: 14px 16px; }
+      .theme-copy strong { display: block; margin-bottom: 4px; font-size: 14px; }
+      .theme-copy small { display: block; font-size: 12px; }
+      .theme-help { margin: 20px 0 0; font-size: 12px; color: var(--muted); }
       @media (max-width: 1000px) {
         main {
           padding: 18px;
@@ -397,7 +579,13 @@
         <button data-page="servers" class="active">Servers</button
         ><button data-page="mods">Mods &amp; load order</button
         ><button data-page="updates">Updates</button>
-        <div class="version">NATIVE C++ BACKEND<br />Windows / WebView2</div>
+        <div class="appearance">
+          <button id="openTheme" aria-haspopup="dialog" aria-controls="themeDialog">
+            <span class="eyebrow">Appearance</span>
+            <span id="themeName">Graphite</span>
+          </button>
+        </div>
+        <div class="version">FETCHER LAUNCHER<br />Community servers</div>
       </nav>
       <main>
         <div id="notice" role="status"></div>
@@ -714,8 +902,41 @@ Fetcher native launcher ready.
         <div id="installRoot" class="footer mono"></div>
       </main>
     </div>
+    <dialog id="themeDialog" aria-labelledby="themeTitle">
+      <div class="row between">
+        <div><span class="eyebrow">Make it yours</span><h2 id="themeTitle">Choose your atmosphere</h2></div>
+        <button id="closeTheme" aria-label="Close appearance settings">Close</button>
+      </div>
+      <div class="theme-grid">
+        <button class="theme-card" data-theme-option="graphite" aria-pressed="true">
+          <span class="theme-preview preview-graphite" aria-hidden="true">F / S</span>
+          <span class="theme-copy"><strong>Graphite</strong><small>Dark grey. White type. Sculpted lettering.</small></span>
+        </button>
+        <button class="theme-card" data-theme-option="obsidian" aria-pressed="false">
+          <span class="theme-preview preview-obsidian" aria-hidden="true">F / S</span>
+          <span class="theme-copy"><strong>Obsidian</strong><small>Solid black with a quiet mint accent.</small></span>
+        </button>
+        <button class="theme-card" data-theme-option="space" aria-pressed="false">
+          <span class="theme-preview preview-space" aria-hidden="true">F / S</span>
+          <span class="theme-copy"><strong>Deep Space</strong><small>The Webb image. Starlight and warm gold.</small></span>
+        </button>
+        <button class="theme-card" data-theme-option="ember" aria-pressed="false">
+          <span class="theme-preview preview-ember" aria-hidden="true">F / S</span>
+          <span class="theme-copy"><strong>Ember</strong><small>Warm charcoal. Copper. A textured finish.</small></span>
+        </button>
+      </div>
+      <p class="theme-help">Changes save automatically. Skooma rockets included in every atmosphere.</p>
+    </dialog>
     <script type="module">
       const $ = (id) => document.getElementById(id);
+      const themes = { graphite: "Graphite", obsidian: "Obsidian", space: "Deep Space", ember: "Ember" };
+      function applyTheme(id) {
+        const selected = Object.hasOwn(themes, id) ? id : "graphite";
+        document.documentElement.dataset.theme = selected;
+        $("themeName").textContent = themes[selected];
+        document.querySelectorAll("[data-theme-option]").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b.dataset.themeOption === selected)));
+      }
       function spawnFloater(initial = false) {
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         const img = document.createElement("img");
@@ -782,7 +1003,7 @@ Fetcher native launcher ready.
           .querySelectorAll(".page")
           .forEach((p) => (p.hidden = p.id !== name));
         document
-          .querySelectorAll("nav button")
+          .querySelectorAll("nav button[data-page]")
           .forEach((b) =>
             b.classList.toggle("active", b.dataset.page === name),
           );
@@ -882,6 +1103,7 @@ Fetcher native launcher ready.
         for (const p of state?.profiles || [])
           $("profile").append(new Option(p.name, p.id));
         if (!state) return;
+        applyTheme(state.theme);
         $("restartLauncher").hidden = !state.restartRequired;
         $("profile").value = state.selectedProfile;
         const p = state.profiles.find((p) => p.id === state.selectedProfile);
@@ -1123,8 +1345,12 @@ Fetcher native launcher ready.
         }
       };
       document
-        .querySelectorAll("nav button")
+        .querySelectorAll("nav button[data-page]")
         .forEach((b) => (b.onclick = () => showPage(b.dataset.page)));
+      $("openTheme").onclick = () => $("themeDialog").showModal();
+      $("closeTheme").onclick = () => $("themeDialog").close();
+      document.querySelectorAll("[data-theme-option]").forEach((b) =>
+        b.onclick = () => action("theme", { id: b.dataset.themeOption }));
       $("refresh").onclick = () => action("refreshServers");
       $("restartLauncher").onclick = () => action("restartLauncher");
       $("setupClient").onclick = () => showPage("updates");

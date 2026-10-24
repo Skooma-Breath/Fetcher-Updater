@@ -568,6 +568,21 @@ int main() {
         backend.command({{"op", "favorite"}, {"host", "example.org"}, {"port", 25565}});
         Backend reload(install);
         check(reload.state()["favorites"].size() == 1, "favorites persist");
+        check(reload.state()["theme"] == "graphite", "existing installs default to Graphite");
+        for (const auto &theme : {"graphite", "obsidian", "space", "ember"}) {
+            reload.command({{"op", "theme"}, {"id", theme}});
+            Backend themedReload(install);
+            check(themedReload.state()["theme"] == theme &&
+                      themedReload.state()["favorites"].size() == 1 &&
+                      themedReload.state()["selectedProfile"] == "fetcher-vanilla" &&
+                      read(install / "openmw.cfg") == "personal config",
+                  "appearance survives a new launcher process without changing game setup");
+        }
+        const auto savedAppearance = read(install / "_fetcher_launcher/settings.json");
+        rejects([&] { reload.command({{"op", "theme"}, {"id", "https://example.org/theme"}}); },
+                "only built-in themes accepted");
+        check(read(install / "_fetcher_launcher/settings.json") == savedAppearance,
+              "invalid theme leaves saved preferences intact");
         removeManaged(fs::temp_directory_path(), root);
         std::cout << "PASS native backend: " << assertions << " assertions\n";
         return 0;

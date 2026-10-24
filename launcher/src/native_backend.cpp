@@ -306,6 +306,7 @@ Json Backend::state() const {
         {"host", mSettings.value("host", "")},
         {"port", mSettings.value("port", 25565)},
         {"gameData", mSettings.value("gameData", "")},
+        {"theme", mSettings.value("theme", "graphite")},
         {"identity", identity()},
         {"setup",
          {{"clientInstalled", fs::is_regular_file(mRoot / "openmw.exe")},
@@ -844,6 +845,14 @@ Json Backend::command(const Json &q) {
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if (op == "theme") {
+        const auto theme = q.at("id").get<std::string>();
+        need(theme == "graphite" || theme == "obsidian" || theme == "space" || theme == "ember",
+             "Choose a built-in launcher theme.");
+        mSettings["theme"] = theme;
+        save();
+        return state();
+    }
     if (op == "startup") {
         try {
             mServers = parseServers(parseJson(mDiscoveryFetch(

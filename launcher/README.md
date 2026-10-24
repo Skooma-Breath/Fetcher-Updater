@@ -5,6 +5,10 @@ launcher does not run PowerShell for its update/mod-profile actions.
 
 Implemented:
 
+- Appearance picker with Graphite (default), Obsidian, Deep Space and Ember themes, themed
+  controls/panels and shadowed headings. Floating skooma rockets remain in every theme (subject to
+  the existing reduced-motion preference). The local theme choice survives launcher updates and
+  restarts in `_fetcher_launcher/settings.json`; no remote themes or fonts are loaded.
 - Public server browser using the game's live master service, search, favorites and direct connect.
 - Public Vanilla surf/truck/Studio profile and separate existing-installation connection route.
 - Automatic master-hosted owner profiles: no player JSON/URL paste, pinned content preparation on
