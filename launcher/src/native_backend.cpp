@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstring>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <regex>
 #include <set>
@@ -96,6 +97,79 @@ bool verifyFiles(const fs::path &root, const Json &records, bool hash) {
             (hash && sha256(p) != r.at("sha256").get<std::string>()))
             return false;
     }
+    return true;
+}
+std::string cacheWriteTime(const WIN32_FILE_ATTRIBUTE_DATA &info) {
+    return std::to_string((std::uint64_t(info.ftLastWriteTime.dwHighDateTime) << 32) |
+                          info.ftLastWriteTime.dwLowDateTime);
+}
+std::uint64_t cacheFileSize(const WIN32_FILE_ATTRIBUTE_DATA &info) {
+    return (std::uint64_t(info.nFileSizeHigh) << 32) | info.nFileSizeLow;
+}
+bool cacheAttributes(const fs::path &path, WIN32_FILE_ATTRIBUTE_DATA &info) {
+    if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &info))
+        return false;
+    need(!(info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT),
+         "Managed cache paths cannot contain symlinks/junctions.");
+    return true;
+}
+Json cacheRecord(const fs::path &path, const std::string &name) {
+    WIN32_FILE_ATTRIBUTE_DATA before{}, after{};
+    need(cacheAttributes(path, before) && !(before.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY),
+         "Cache file disappeared during verification.");
+    auto digest = sha256(path);
+    need(cacheAttributes(path, after) && cacheWriteTime(before) == cacheWriteTime(after) &&
+             cacheFileSize(before) == cacheFileSize(after),
+         "Cache file changed during verification.");
+    return {{"path", name}, {"size", cacheFileSize(after)}, {"sha256", digest},
+            {"verifiedWriteTime", cacheWriteTime(after)}};
+}
+bool verifyPackageCache(const fs::path &root, Json &receipt, bool hashChanges = true,
+                        bool fullHash = false) {
+    auto &records = receipt["files"];
+    if (!records.is_array() || records.empty())
+        return false;
+    noLinks(root);
+    std::set<std::string> names;
+    std::set<fs::path> checkedParents;
+    bool changed = false;
+    for (auto &record : records) {
+        const auto name = record.at("path").get<std::string>();
+        if (!names.insert(lower(name)).second)
+            return false;
+        const auto relative = safeRelative(name);
+        auto path = longPath(root);
+        WIN32_FILE_ATTRIBUTE_DATA info{};
+        // Check every leaf and each distinct parent beneath the already-checked
+        // cache root, avoiding a full ancestor walk for each of 100k files.
+        for (auto it = relative.begin(); it != relative.end(); ++it) {
+            path /= *it;
+            if (std::next(it) != relative.end() && !checkedParents.insert(path).second)
+                continue;
+            if (!cacheAttributes(path, info))
+                return false;
+        }
+        if ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ||
+            cacheFileSize(info) != record.at("size").get<std::uint64_t>())
+            return false;
+        const auto stamp = cacheWriteTime(info);
+        const auto prior = record.value("verifiedWriteTime", "");
+        if (!hashChanges && !prior.empty() && prior != stamp)
+            return false;
+        if (hashChanges && (fullHash || prior != stamp)) {
+            if (sha256(path) != record.at("sha256").get<std::string>())
+                return false;
+            WIN32_FILE_ATTRIBUTE_DATA after{};
+            if (!cacheAttributes(path, after) || cacheWriteTime(after) != stamp ||
+                cacheFileSize(after) != cacheFileSize(info))
+                return false;
+            record["verifiedWriteTime"] = stamp;
+            changed = true;
+        }
+    }
+    // Old receipts receive metadata only after their complete hash check passed.
+    if (changed)
+        writeAtomic(root / ".fetcher-package.json", receipt.dump(2));
     return true;
 }
 std::vector<std::string> masters(const fs::path &p) {
@@ -479,7 +553,7 @@ fs::path Backend::package(const Json &definition, bool repair) {
     noLinks(dest);
     auto receipt = readPackageReceipt(dest);
     if (!repair && receipt.value("sha256", "") == hash &&
-        verifyFiles(dest, receipt.value("files", Json::array()), true)) {
+        verifyPackageCache(dest, receipt)) {
         auto declared = definition.value("archiveFormat", "auto");
         need(declared == "auto" || declared == receipt.value("archiveFormat", "zip"),
              "Cached archive does not match its declared format.");
@@ -523,9 +597,7 @@ fs::path Backend::package(const Json &definition, bool repair) {
         auto names = extractArchive(archive, stage, definition.value("archiveFormat", "auto"));
         Json records = Json::array();
         for (const auto &name : names)
-            records.push_back({{"path", name},
-                               {"size", fs::file_size(stage / safeRelative(name))},
-                               {"sha256", sha256(stage / safeRelative(name))}});
+            records.push_back(cacheRecord(stage / safeRelative(name), name));
         writeAtomic(stage / ".fetcher-package.json",
                     Json{{"sha256", hash}, {"archiveFormat", kind}, {"files", records}}.dump(2));
         if (fs::exists(dest))
@@ -539,7 +611,8 @@ fs::path Backend::package(const Json &definition, bool repair) {
     }
     return dest;
 }
-fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::path &gameData) {
+fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::path &gameData,
+                         bool fullHash) {
     auto actions = normalizeModActions(definition.value("actions", Json::array()));
     if (actions.empty() && !definition.contains("fomod"))
         return raw;
@@ -549,7 +622,7 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::
     noLinks(dest);
     auto previous = readPackageReceipt(dest);
     if (previous.value("layoutKey", "") == key &&
-        verifyFiles(dest, previous.value("files", Json::array()), true))
+        verifyPackageCache(dest, previous, true, fullHash))
         return dest;
     auto stage = longPath(mManaged / "staging" / ("layout-" + stamp()));
     noLinks(stage);
@@ -576,10 +649,8 @@ fs::path Backend::layout(const fs::path &raw, const Json &definition, const fs::
         for (const auto &entry : fs::recursive_directory_iterator(stage)) {
             noLinks(entry.path());
             if (entry.is_regular_file())
-                records.push_back(
-                    {{"path", utf8(entry.path().lexically_relative(stage).generic_wstring())},
-                     {"size", entry.file_size()},
-                     {"sha256", sha256(entry.path())}});
+                records.push_back(cacheRecord(
+                    entry.path(), utf8(entry.path().lexically_relative(stage).generic_wstring())));
         }
         need(!records.empty(), "Layout removed every file from the package.");
         writeAtomic(
@@ -661,7 +732,7 @@ std::vector<std::string> Backend::loadOrder(const std::vector<std::string> &cont
         visit(i);
     return order;
 }
-fs::path Backend::prepare() {
+fs::path Backend::prepare(bool fullHash) {
     auto p = profile();
     if (p.value("mode", "managed") == "installed")
         return {};
@@ -669,7 +740,7 @@ fs::path Backend::prepare() {
     std::vector<fs::path> roots = {mRoot / "resources/vfs-mw", data};
     for (const auto &d : p.at("packages")) {
         auto dir = package(d, false);
-        dir = layout(dir, d, data);
+        dir = layout(dir, d, data, fullHash);
         // Helpers may exist in an upstream archive, but only an explicitly curated
         // layout/FOMOD output without native programs can enter a game profile.
         validateModPayload(dir);
@@ -811,13 +882,13 @@ Json Backend::check(bool repair, bool install) {
             auto dir = longPath(mManaged / "packages" / r.at("sha256").get<std::string>());
             auto receipt = readPackageReceipt(dir);
             bool current = receipt.value("sha256", "") == r.at("sha256") &&
-                           verifyFiles(dir, receipt.value("files", Json::array()), repair);
+                           verifyPackageCache(dir, receipt, repair, repair);
             if (current && (d.contains("fomod") || !d.value("actions", Json::array()).empty())) {
                 auto key = modLayoutKey(d, r.at("sha256"));
                 auto dir = longPath(mManaged / "layouts" / key);
                 auto receipt = readPackageReceipt(dir);
                 current = receipt.value("layoutKey", "") == key &&
-                          verifyFiles(dir, receipt.value("files", Json::array()), repair);
+                          verifyPackageCache(dir, receipt, repair, repair);
             }
             if (!current) {
                 reasons.push_back(d.at("id"));
@@ -828,7 +899,7 @@ Json Backend::check(bool repair, bool install) {
             }
         }
     if (install && p.value("mode", "managed") != "installed")
-        prepare();
+        prepare(repair);
     bool current = clientCurrent && modsCurrent && toolsCurrent;
     mStatus = {{"schemaVersion", 1},
                {"status", current ? "current" : "updateAvailable"},

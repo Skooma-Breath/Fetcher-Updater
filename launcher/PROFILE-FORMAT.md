@@ -155,6 +155,13 @@ Failure before activation leaves the previous config/layout usable. Review displ
 including explicit replacements, before acceptance. Select a different dataDirs folder when moving
 a directory into its ancestor would otherwise be necessary.
 
+Raw/derived cache receipts record size and last-write metadata after hashing the extracted files.
+Normal preparation reuses unchanged entries and hashes changed files; older receipts receive a
+full hash check before this metadata is added. Explicit repair performs full inventory hash checks.
+This avoids re-hashing a multi-gigabyte preset on every Play. Downloaded archives still require
+their pinned SHA-256, and cache path/reparse-point checks remain enforced. These are local cache
+receipts, not an independent attestation against a user editing the cache and its metadata together.
+
 ### Hash-gated compatibility patches
 
 For a Fetcher-owned compatibility change, an action can reconstruct a file from bounded source

@@ -28,6 +28,8 @@ Implemented:
 - Existing-installation mode launches an already configured full mod setup unchanged.
 - Interrupted native client/tools updates restore their journaled files on restart. Updates exposes
   previous completed snapshots; restores refuse corrupt backups and post-update local edits.
+- Package cache verification records size/write-time metadata after hashing. Unchanged files reuse
+  that result; changed files and legacy receipts are hashed, and explicit repair checks full hashes.
 - Hash-gated compatibility deltas reconstruct verified files in isolated layouts without running
   legacy scripts. Read-only preset authoring binds exact installed cache identities and audits sources.
 - Explicit profile actions can restore hash-pinned assets from owned Morrowind BSAs/loose files.

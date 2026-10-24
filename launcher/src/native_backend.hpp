@@ -25,8 +25,9 @@ class Backend {
     Json profile() const;
     Json resolve(const Json &definition);
     fs::path package(const Json &definition, bool repair);
-    fs::path layout(const fs::path &raw, const Json &definition, const fs::path &gameData);
-    fs::path prepare();
+    fs::path layout(const fs::path &raw, const Json &definition, const fs::path &gameData,
+                    bool fullHash = false);
+    fs::path prepare(bool fullHash = false);
     fs::path gameData() const;
     Json identity() const;
     void saveIdentity(const Json &request);

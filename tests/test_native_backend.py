@@ -7,6 +7,7 @@ from zipfile import ZipFile, ZipInfo
 import argparse
 import hashlib
 import json
+import os
 import struct
 import subprocess
 
@@ -84,6 +85,21 @@ def main():
             command({"op": "prepare"})
             assert Handler.requests == requests, "Verified package cache should not download again"
             cached = root / "_fetcher_launcher/packages" / digest / "Data Files/meshes/test.nif"
+            cached.write_bytes(b"X" * len(b"test model"))
+            command({"op": "prepare"})
+            assert cached.read_bytes() == b"test model", "Same-sized changed cache was not rehashed/repaired"
+            receipt_path = cached.parents[2] / ".fetcher-package.json"
+            receipt = json.loads(receipt_path.read_text())
+            for record in receipt["files"]:
+                record.pop("verifiedWriteTime", None)
+            receipt_path.write_text(json.dumps(receipt))
+            timestamp = cached.stat()
+            cached.write_bytes(b"Y" * len(b"test model"))
+            os.utime(cached, ns=(timestamp.st_atime_ns, timestamp.st_mtime_ns))
+            command({"op": "prepare"})
+            assert cached.read_bytes() == b"test model", "Legacy receipts require a full hash before metadata upgrade"
+            assert all(record.get("verifiedWriteTime") for record in json.loads(receipt_path.read_text())["files"])
+            assert Handler.requests == requests, "Cache upgrade/repair should reuse the verified source archive"
             cached.write_bytes(b"corrupted")
             command({"op": "prepare"})
             assert cached.read_bytes() == b"test model", "Corrupt package cache was not repaired"
