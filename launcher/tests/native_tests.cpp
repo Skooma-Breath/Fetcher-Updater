@@ -605,6 +605,13 @@ int main() {
               "invalid theme leaves saved preferences intact");
         {
             auto blocked = root / "blocked-profile-update";
+            auto inert = root / "inert-migration-inventory";
+            writeAtomic(inert / "ui/index.html", "<script type=\"application/json\" id=\"fetcherLegacyInventory\">\n{}\n</script>");
+            Backend invalidInventory(inert);
+            bool refusedInventory = false;
+            try { invalidInventory.command({{"op", "previewLegacy"}}); }
+            catch (const std::exception& error) { refusedInventory = std::string(error.what()).find("inventory is modified") != std::string::npos; }
+            check(refusedInventory, "embedded legacy metadata must match the launcher's pinned inventory hash");
             auto hash = textSha256("cached-tools-archive");
             auto cache = blocked / "_fetcher_launcher/packages" / hash;
             writeAtomic(blocked / "openmw.cfg", "personal configuration");

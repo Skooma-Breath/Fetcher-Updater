@@ -71,7 +71,16 @@ this was not a new network download trial of every Nexus archive. Broader device
 music/gameplay and worldspace exploration remain public-test work. The legacy UMO file is an older
 installation snapshot; the advertised native profile is the current experimental requirement list.
 
-Old TR/TD roots are excluded from the active generated configuration. Their folders remain referenced by the original
-configuration/local setups. Updates → Storage now estimates space and previews/removes verified,
-unreferenced managed caches; manually installed TR/TD folders are retained. See [STORAGE.md](STORAGE.md). Private logs, database
+Old TR/TD roots are excluded from the active generated configuration. The operator's original
+configuration has now been migrated too, retaining its content order and settings. It passed a
+scratch-data load into Balmora with old paths absent; the 2.39 GiB of verified retired files
+were then removed. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
+The ping client, signed source `16e8f9bc3e`, subsequently joined this VPS with the same accepted
+fingerprint, restored Mario and activated the server Lua package. The test client and its owned
+crash-monitor companion were closed; both VPS health endpoints report healthy and zero players.
+The initial process enumerator counted that companion as a second game; endpoint-filtered
+validation of fresh logs confirmed the actual single session. The normal client update preserved
+330 checked personal/configuration files. The independent local synth fixture and both VPS game
+processes were not restarted for this slice.
+Private logs, database
 copies and licensed game assets remain outside the repository/release.

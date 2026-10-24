@@ -45,12 +45,14 @@ download of every Nexus file.
    free space, cached/queued sizes, partial layout estimates and an explicit preview/removal flow
    for verified unused managed caches. Saved/current/previous profiles and rollback references
    protect their files; runtime writes check available space. See [STORAGE.md](STORAGE.md).
-   Remaining: fuller client/backup/temporary-peak estimates and a separate retirement workflow
-   for old UMO/manual TR/TD folders still referenced by the original configuration/local fixtures.
-   Those folders remain protected; fresh TR is never merged over the old extracted release.
-2. **Ping in both browsers.** Add client-measured latency to the launcher and the in-game server
-   browser, with bounded background probes, refresh/sorting and a clear unavailable/timeout state.
-   A master's HTTP response time is not a player's latency to the game server.
+   Known legacy TR/TD retirement is implemented with a staged migration, verified files,
+   configuration backups and restoration before deletion. The operator's installation passed
+   cell entry with old paths absent, then removed about 2.39 GiB of files. See
+   [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md). Remaining: fuller client/backup/temporary
+   peak estimates and migration support for other manually installed versions/custom files.
+2. **Ping in both browsers: implemented.** Locally measured ICMP/TCP host RTT, sorting, bounded
+   background probes, unavailable values and in-game refresh-generation/selection handling.
+   The TCP fallback identifies its method and measures no HTTP processing. See [PING.md](PING.md).
 3. **Browser polish.** Improve protocol/build compatibility display, connection diagnostics,
    independently authored server lists and large-list presentation.
 

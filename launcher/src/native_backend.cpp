@@ -3,6 +3,8 @@
 #include "server_manifest.hpp"
 #include "umo_helper.hpp"
 #include "storage_management.hpp"
+#include "server_ping.hpp"
+#include "legacy_migration.hpp"
 #include <windows.h>
 
 #include <algorithm>
@@ -397,6 +399,8 @@ Json Backend::state() const {
         {"disk", diskSpace(mManaged)},
         {"storage", mStorage},
         {"cleanup", mCleanup},
+        {"migration", mMigration},
+        {"migrationStatus", legacyMigrationStatus(mRoot)},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
         {"nexusProvider", mSettings.value("nexusProvider", "umo")},
@@ -935,11 +939,56 @@ Json Backend::check(bool repair, bool install, bool toolsOnly) {
                {"profile", p.at("id")}};
     return mStatus;
 }
+void Backend::measurePings() {
+    std::vector<std::string> hosts;
+    for (const auto& server : mServers) hosts.push_back(server.at("host"));
+    auto pings = FetcherNet::measureServerPings(hosts);
+    for (std::size_t i = 0; i < pings.size(); ++i) {
+        mServers[i]["pingMs"] = pings[i].milliseconds < 0 ? Json() : Json(pings[i].milliseconds);
+        mServers[i]["pingMethod"] = pings[i].milliseconds<0?"unavailable":pings[i].tcp?"TCP":"ICMP";
+    }
+}
+Json Backend::legacyReplacements() {
+    Json result=Json::object();
+    const auto selected=profile();
+    for(const auto& definition:selected.at("packages")) {
+        auto hash=definition.value("sha256","");
+        bool td=hash=="009530c0383759b842298e827bf1ffd88e29b68668bbefe794bc376713e821cf";
+        bool tr=hash=="31d1f45469291cd71408fe7b795ded0e593fab226796aa35b1b86b588825c0bc";
+        if(!td && !tr)continue;
+        auto path=mManaged/"packages"/hash;
+        if(definition.contains("fomod") || !definition.value("actions",Json::array()).empty())path=mManaged/"layouts"/modLayoutKey(definition,hash);
+        auto roots=modDataRoots(path,definition);
+        if(td && roots.size()==1)result["td"]=utf8(ordinaryPath(roots[0]).wstring());
+        if(tr && roots.size()==2){result["core"]=utf8(ordinaryPath(roots[0]).wstring());result["factions"]=utf8(ordinaryPath(roots[1]).wstring());}
+    }
+    need(result.size()==3,"Select and prepare the current Fetcher experimental TR/TD profile first.");
+    return result;
+}
 Json Backend::command(const Json &q) {
     auto op = q.at("op").get<std::string>();
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
+    if(op=="previewLegacy" || op=="stageLegacy" || op=="finishLegacy" || op=="restoreLegacy") {
+        auto resource=mRoot/"ui/index.html";
+        noLinks(resource);
+        auto html=read(resource,16*1024*1024);
+        const std::string marker="<script type=\"application/json\" id=\"fetcherLegacyInventory\">\n";
+        auto begin=html.find(marker);
+        need(begin!=std::string::npos,"Legacy verification inventory is missing. Update the launcher first.");
+        begin+=marker.size();auto end=html.find("</script>",begin);
+        need(end!=std::string::npos,"Legacy verification inventory is incomplete. Update the launcher first.");
+        auto bytes=html.substr(begin,end-begin);
+        need(textSha256(bytes)=="5f64400ea8056ac72f9b1bf382183e0bc51eb036f503999565ebb60d74070329","Legacy verification inventory is modified. Repair the launcher first.");
+        auto inventory=parseJson(bytes,16*1024*1024);
+        Json replacements=Json::object();
+        if(op!="restoreLegacy") {syncDiscoveredProfile();assertGameStopped(mRoot);prepare();replacements=legacyReplacements();}
+        auto action=op=="previewLegacy"?"preview":op=="stageLegacy"?"stage":op=="finishLegacy"?"finish":"restore";
+        mMigration=legacyMigration(mRoot,inventory,replacements,action,q.value("token",""),mLog);
+        mCleanup=Json();mStorage=Json();
+        return state();
+    }
     if (op == "storageEstimate") {
         syncDiscoveredProfile();
         mStorage = estimateStorage(mRoot, profile(), [this](const Json &d) { return resolve(d); });
@@ -981,6 +1030,7 @@ Json Backend::command(const Json &q) {
             mStatus = {{"status", "checkFailed"},
                        {"message", "Update check unavailable. Retry on Updates; your saved setup is unchanged."}};
         }
+        measurePings();
         return state();
     }
     if (op == "prepare" || op == "launch" || op == "check")
@@ -993,6 +1043,7 @@ Json Backend::command(const Json &q) {
     }
     if (op == "refreshServers") {
         mServers = parseServers(parseJson(mDiscoveryFetch("https://master.fetchers.org/v1/servers", 8 * 1024 * 1024, false)));
+        measurePings();
         return state();
     }
     if (op == "selectServer") {

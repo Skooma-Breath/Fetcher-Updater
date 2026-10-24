@@ -41,11 +41,13 @@ sharing mean the actual increase in available space may be smaller.
 
 ## Older Tamriel Rebuilt / Tamriel Data folders
 
-The managed experimental configuration selects fresh TR/TD directories. Older folders under
-`Data Files/fetcher-simulator/ModdingResources` remain: the original `openmw.cfg` and local
-setups can still reference them, and these manually/UMO-installed folders have no managed
-ownership receipts. Their retirement needs a separate migration of those references.
-This cleanup does not remove manual mods, saved characters, configuration files or rollback data.
+The managed experimental configuration selects fresh TR/TD directories. Ordinary unused-cache
+cleanup retains older manual/UMO folders. The separate **Older TR / Tamriel Data installation**
+panel now migrates known legacy paths, verifies original files against the shipped inventory,
+and stages retirement for testing before deletion. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
+Unknown or modified files are protected. Saved characters, unrelated configurations and ordinary
+rollback data are retained. The operator's normal installation passed migration and game startup;
+its old and retired TR/TD folders were then removed.
 
 ## Validation and upgrades
 

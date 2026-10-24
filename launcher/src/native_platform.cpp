@@ -563,7 +563,8 @@ void assertGameStopped(const fs::path &root) {
     bool running = false;
     if (Process32FirstW(snap, &e))
         do {
-            if (_wcsicmp(e.szExeFile, L"openmw.exe") == 0) {
+            if (_wcsicmp(e.szExeFile, L"openmw.exe") == 0 || _wcsicmp(e.szExeFile, L"openmw-test.exe") == 0 ||
+                _wcsicmp(e.szExeFile, L"openmw-server.exe") == 0 || _wcsicmp(e.szExeFile, L"openmw-server-test.exe") == 0) {
                 HANDLE p = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, e.th32ProcessID);
                 if (!p) {
                     CloseHandle(snap);

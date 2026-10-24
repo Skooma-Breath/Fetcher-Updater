@@ -1,3 +1,29 @@
+# Legacy TR/TD migration and browser ping — 2026-10-24
+
+- Seven launcher CTest suites pass, including staged migration/restore/final removal, stale
+  previews, same-size timestamp-preserving edits, unknown files, external includes, links,
+  retained personal settings and the pinned embedded-inventory integrity check.
+- Native HTTP/package integration passes with Unicode, spaces and ampersands. WebView2's
+  eleven smoke checks include migration and ping controls. The verification inventory is
+  embedded as inert JSON in the existing UI payload, keeping the old tools path allowlist.
+- The operator's 47,039 legacy files were checked against audited original hashes. One main
+  configuration was migrated; content/fallback lists and personal settings remain. A real
+  scratch-data game loaded Balmora, Guild of Mages with both old paths absent. Final removal
+  deleted 2,569,307,256 payload bytes; original configuration backups remain. The broad legacy
+  load order emitted mod warnings; this acceptance verifies migration/cell entry, not every
+  historical mod's runtime behavior.
+- Windows and unprivileged Linux IPv4/IPv6 ping checks pass. Both public VPS listings returned
+  marked TCP fallback readings around 6 ms from this machine (ICMP is blocked). Engine builds
+  and all 15 MasterServerProtocol tests pass, including ping ordering/unavailable values.
+- The public client package verifies all 511 managed files. Only openmw.exe and the browser
+  layout changed, plus inventory metadata. Its native update preserved 330 checked personal
+  files; the updated client joined the experimental VPS, accepted the unchanged fingerprint,
+  restored Mario and activated server Lua. Test processes were closed. Neither VPS game process
+  nor the independent local synth server was restarted.
+
+See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md) and [PING.md](PING.md) for boundaries.
+The fresh install receives current content directly; unknown legacy versions remain protected.
+
 # Storage acceptance — 2026-10-24
 
 All six native CTest suites pass, including guarded cache cleanup and tools-only updates when

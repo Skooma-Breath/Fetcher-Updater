@@ -631,7 +631,7 @@
                 id="filter"
                 placeholder="Search servers or game modes"
                 aria-label="Filter servers"
-              /><label
+              /><label>Sort <select id="serverSort"><option value="name">Name</option><option value="ping">Ping</option><option value="players">Players</option></select></label><label
                 ><input id="favoritesOnly" type="checkbox" /> Favorites
                 only</label
               >
@@ -643,6 +643,7 @@
                     <th></th>
                     <th>Server</th>
                     <th>Players</th>
+                    <th title="Server-address round-trip: ICMP, or a TCP handshake on port 443 if echo is blocked. Game latency can differ.">Ping</th>
                     <th>Game mode</th>
                     <th>Region</th>
                     <th>Protocol</th>
@@ -890,6 +891,19 @@
               Legacy/manual mod folders, saves and character data are never removed here.</p>
           </div>
           <div class="panel">
+            <h3>Older TR / Tamriel Data installation</h3>
+            <p class="muted">Select the current Fetcher experimental server first. Migration prepares its content,
+              updates legacy data paths while keeping load orders/settings, and moves verified old folders aside.
+              Test the game, then close it and remove the retired folders to reclaim space.</p>
+            <div class="row">
+              <button id="previewLegacy">Prepare / preview migration</button>
+              <button id="stageLegacy" disabled>Migrate configurations</button>
+              <button id="finishLegacy" disabled>Remove retired TR / TD</button>
+              <button id="restoreLegacy" disabled>Restore migration</button>
+            </div>
+            <p id="migrationMessage" class="muted">Original configurations are backed up. Unknown or modified old files block migration.</p>
+          </div>
+          <div class="panel">
             <h3>Restore a previous update</h3>
             <p class="muted">
               Restore the files saved before a completed launcher or client
@@ -1044,7 +1058,11 @@ Fetcher native launcher ready.
         body.replaceChildren();
         const query = $("filter").value.toLowerCase();
         let count = 0;
-        for (const s of state?.servers || []) {
+        const servers = [...(state?.servers || [])];
+        const sort = $("serverSort").value;
+        servers.sort((a, b) => (sort === "ping" ? (a.pingMs ?? Infinity) - (b.pingMs ?? Infinity) :
+          sort === "players" ? b.currentPlayers - a.currentPlayers : 0) || a.name.localeCompare(b.name));
+        for (const s of servers) {
           const address =
             (s.host.includes(":") ? "[" + s.host + "]" : s.host) + ":" + s.port;
           const favorite = (state.favorites || []).includes(address);
@@ -1092,6 +1110,7 @@ Fetcher native launcher ready.
           row.append(name);
           for (const t of [
             s.currentPlayers + " / " + s.maxPlayers,
+            typeof s.pingMs === "number" ? `${s.pingMs} ms (${s.pingMethod || "ICMP"})` : "—",
             s.gameMode,
             s.country || "—",
             String(s.protocol),
@@ -1342,6 +1361,17 @@ Fetcher native launcher ready.
         if (cleanup?.candidates?.length)
           $("cleanupMessage").textContent += ` ${cleanup.candidates.length} unused entries, up to ${formatBytes(cleanup.bytes)}; ${cleanup.retained} retained. Entries are fully verified again before removal.`;
         $("cleanCache").disabled = busy || !cleanup?.canClean;
+        const migration = state.migration, phase = state.migrationStatus?.phase || "none";
+        $("stageLegacy").disabled = busy || !migration?.canMigrate || ["staged", "staging", "removing"].includes(phase);
+        $("finishLegacy").disabled = busy || !["staged", "removing"].includes(phase);
+        $("restoreLegacy").disabled = busy || !["staged", "staging"].includes(phase);
+        $("previewLegacy").disabled = busy || ["staged", "staging", "removing"].includes(phase);
+        $("migrationMessage").textContent = phase === "staged" ? `Migration staged. ${formatBytes(state.migrationStatus.bytes)} retained until you test, then remove the retired folders. Restore is available before removal.` :
+          phase === "staging" ? "An interrupted migration needs restoration. Close the game and choose Restore migration." :
+          phase === "removing" ? "Retired-folder removal was interrupted. Close the game and choose Remove retired TR / TD to resume; the new configuration remains active." :
+          phase === "finished" ? "Migration complete. Verified retired folders removed; configuration backups retained." :
+          migration?.canMigrate ? `${migration.configs.length} configurations, ${migration.folders.length} old folders; ${formatBytes(migration.bytes)} can be retired after testing.` :
+          migration ? "No supported old folders need migration." : "Original configurations are backed up. Unknown or modified old files block migration.";
         document
           .querySelectorAll("#modRows button")
           .forEach((b) => (b.disabled = busy));
@@ -1392,6 +1422,7 @@ Fetcher native launcher ready.
       document.querySelectorAll("[data-theme-option]").forEach((b) =>
         b.onclick = () => action("theme", { id: b.dataset.themeOption }));
       $("refresh").onclick = () => action("refreshServers");
+      $("serverSort").onchange = serverRows;
       $("restartLauncher").onclick = () => action("restartLauncher");
       $("setupClient").onclick = () => showPage("updates");
       $("setupGame").onclick = () => showPage("mods");
@@ -1419,6 +1450,10 @@ Fetcher native launcher ready.
       $("estimateStorage").onclick = () => action("storageEstimate");
       $("scanCache").onclick = () => action("scanCache");
       $("cleanCache").onclick = () => action("cleanCache", { token: state.cleanup.token });
+      $("previewLegacy").onclick = () => action("previewLegacy");
+      $("stageLegacy").onclick = () => action("stageLegacy", { token: state.migration.token });
+      $("finishLegacy").onclick = () => action("finishLegacy");
+      $("restoreLegacy").onclick = () => action("restoreLegacy");
       $("restoreUpdate").onclick = () =>
         action("rollbackUpdate", { id: $("updateBackup").value });
       $("wizard").onclick = () => action("wizard");
@@ -1486,6 +1521,8 @@ Fetcher native launcher ready.
             updatesPage: !!$("updates"),
             storageControls: !!$("estimateStorage") && !!$("scanCache") && $("cleanCache").disabled,
             storageVolume: typeof state.disk?.availableBytes === "number" && !!$("storageFree").textContent,
+            migrationControls: !!$("previewLegacy") && !!$("restoreLegacy") && !!$("finishLegacy"),
+            pingControls: !!$("serverSort") && !!document.querySelector('th[title*="round-trip"]'),
             nexusControls: !!$("installUmo") && !!$("connectUmo"),
             firstRunState: typeof state.setup?.clientInstalled === "boolean",
           };
@@ -1508,5 +1545,7 @@ Fetcher native launcher ready.
           });
       }
     </script>
+    <script type="application/json" id="fetcherLegacyInventory">
+@FETCHER_LEGACY_INVENTORY@</script>
   </body>
 </html>

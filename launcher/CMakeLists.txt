@@ -50,11 +50,11 @@ string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_LICENSE_SOURCE "${UMO_
 string(REPLACE "\n" "\n)fetcherumo\"\nR\"fetcherumo(" UMO_ADAPTER_SOURCE "${UMO_ADAPTER_SOURCE}")
 configure_file(src/umo_embedded.hpp.in "${CMAKE_CURRENT_BINARY_DIR}/generated/umo_embedded.hpp" @ONLY)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS umo/adapter.py umo/LICENSE)
-add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp src/launcher_runtime.cpp src/storage_management.cpp)
+add_library(fetcher-native STATIC src/native_platform.cpp src/native_backend.cpp src/server_manifest.cpp src/archive_codec.cpp src/mod_layout.cpp src/fomod.cpp src/install_transaction.cpp src/compatibility_patch.cpp src/game_assets.cpp src/bootstrap.cpp src/umo_helper.cpp src/launcher_runtime.cpp src/storage_management.cpp src/server_ping.cpp src/legacy_migration.cpp)
 target_include_directories(fetcher-native PUBLIC src)
 target_include_directories(fetcher-native PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_compile_definitions(fetcher-native PUBLIC UNICODE _UNICODE NOMINMAX)
-target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32 xmllite shlwapi)
+target_link_libraries(fetcher-native PUBLIC nlohmann_json::nlohmann_json miniz archive_static winhttp bcrypt shell32 crypt32 ws2_32 xmllite shlwapi iphlpapi)
 
 add_executable(FetcherSetup WIN32 src/bootstrap_main.cpp resources/FetcherLauncher.rc)
 target_link_libraries(FetcherSetup PRIVATE fetcher-native ole32 uuid)
@@ -86,7 +86,10 @@ if(MSVC)
 endif()
 
 enable_testing()
-configure_file(ui/index.html "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ui/index.html" COPYONLY)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/migrations/trtd-legacy-v1.json" FETCHER_LEGACY_INVENTORY)
+configure_file(ui/index.html "${CMAKE_CURRENT_BINARY_DIR}/generated-ui/index.html" @ONLY)
+configure_file("${CMAKE_CURRENT_BINARY_DIR}/generated-ui/index.html" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ui/index.html" COPYONLY)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS migrations/trtd-legacy-v1.json)
 add_executable(fetcher-launch-fixture tests/launch_fixture.cpp)
 target_link_libraries(fetcher-launch-fixture PRIVATE nlohmann_json::nlohmann_json)
 add_executable(fetcher-umo-registry-fixture tests/umo_registry_fixture.cpp)
@@ -112,12 +115,15 @@ add_executable(fetcher-storage-tests tests/storage_tests.cpp)
 target_link_libraries(fetcher-storage-tests PRIVATE fetcher-native)
 add_dependencies(fetcher-storage-tests fetcher-launch-fixture)
 add_test(NAME fetcher-storage COMMAND fetcher-storage-tests)
+add_executable(fetcher-migration-tests tests/migration_tests.cpp)
+target_link_libraries(fetcher-migration-tests PRIVATE fetcher-native)
+add_test(NAME fetcher-migration COMMAND fetcher-migration-tests)
 
 add_custom_command(TARGET FetcherLauncher POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E make_directory
         "$<TARGET_FILE_DIR:FetcherLauncher>/ui/assets"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/ui/index.html"
+        "${CMAKE_CURRENT_BINARY_DIR}/generated-ui/index.html"
         "$<TARGET_FILE_DIR:FetcherLauncher>/ui/index.html"
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/ui/assets/fetcher-float.gif"

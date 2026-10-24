@@ -18,7 +18,7 @@ class Backend {
 
   private:
     fs::path mRoot, mManaged;
-    Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview, mStorage, mCleanup;
+    Json mSettings, mCatalog, mServers = Json::array(), mStatus, mReview, mStorage, mCleanup, mMigration;
     Log mLog;
     DiscoveryFetch mDiscoveryFetch;
     void save();
@@ -35,5 +35,7 @@ class Backend {
     Json discoveredProfile(const std::string &host, int port);
     void acceptProfile(const Json &profile);
     void syncDiscoveredProfile();
+    void measurePings();
+    Json legacyReplacements();
 };
 } // namespace fetcher
