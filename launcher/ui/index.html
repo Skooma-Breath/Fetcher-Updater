@@ -889,19 +889,7 @@
             <ul id="cacheCandidates" class="mono" style="max-height: 180px; overflow: auto"></ul>
             <p class="footer">Sizes are estimates of logical files; shared or compressed files may free less space.
               Legacy/manual mod folders, saves and character data are never removed here.</p>
-          </div>
-          <div class="panel" id="legacyMigrationPanel" hidden>
-            <h3>Older TR / Tamriel Data installation</h3>
-            <p class="muted">Select the current Fetcher experimental server first. Migration prepares its content,
-              updates legacy data paths while keeping load orders/settings, and moves verified old folders aside.
-              Test the game, then close it and remove the retired folders to reclaim space.</p>
-            <div class="row">
-              <button id="previewLegacy">Prepare / preview migration</button>
-              <button id="stageLegacy" disabled>Migrate configurations</button>
-              <button id="finishLegacy" disabled>Remove retired TR / TD</button>
-              <button id="restoreLegacy" disabled>Restore migration</button>
-            </div>
-            <p id="migrationMessage" class="muted">Original configurations are backed up. Unknown or modified old files block migration.</p>
+            <p id="legacyCleanupMessage" class="muted" hidden></p>
           </div>
           <div class="panel">
             <h3>Restore a previous update</h3>
@@ -1361,18 +1349,8 @@ Fetcher native launcher ready.
         if (cleanup?.candidates?.length)
           $("cleanupMessage").textContent += ` ${cleanup.candidates.length} unused entries, up to ${formatBytes(cleanup.bytes)}; ${cleanup.retained} retained. Entries are fully verified again before removal.`;
         $("cleanCache").disabled = busy || !cleanup?.canClean;
-        const migration = state.migration, phase = state.migrationStatus?.phase || "none";
-        $("legacyMigrationPanel").hidden = !state.legacyMigrationAvailable && phase === "none";
-        $("stageLegacy").disabled = busy || !migration?.canMigrate || ["staged", "staging", "removing"].includes(phase);
-        $("finishLegacy").disabled = busy || !["staged", "removing"].includes(phase);
-        $("restoreLegacy").disabled = busy || !["staged", "staging"].includes(phase);
-        $("previewLegacy").disabled = busy || ["staged", "staging", "removing"].includes(phase);
-        $("migrationMessage").textContent = phase === "staged" ? `Migration staged. ${formatBytes(state.migrationStatus.bytes)} retained until you test, then remove the retired folders. Restore is available before removal.` :
-          phase === "staging" ? "An interrupted migration needs restoration. Close the game and choose Restore migration." :
-          phase === "removing" ? "Retired-folder removal was interrupted. Close the game and choose Remove retired TR / TD to resume; the new configuration remains active." :
-          phase === "finished" ? "Migration complete. Verified retired folders removed; configuration backups retained." :
-          migration?.canMigrate ? `${migration.configs.length} configurations, ${migration.folders.length} old folders; ${formatBytes(migration.bytes)} can be retired after testing.` :
-          migration ? "No supported old folders need migration." : "Original configurations are backed up. Unknown or modified old files block migration.";
+        $("legacyCleanupMessage").hidden = !state.migration?.message;
+        $("legacyCleanupMessage").textContent = state.migration?.message || "";
         document
           .querySelectorAll("#modRows button")
           .forEach((b) => (b.disabled = busy));
@@ -1451,10 +1429,6 @@ Fetcher native launcher ready.
       $("estimateStorage").onclick = () => action("storageEstimate");
       $("scanCache").onclick = () => action("scanCache");
       $("cleanCache").onclick = () => action("cleanCache", { token: state.cleanup.token });
-      $("previewLegacy").onclick = () => action("previewLegacy");
-      $("stageLegacy").onclick = () => action("stageLegacy", { token: state.migration.token });
-      $("finishLegacy").onclick = () => action("finishLegacy");
-      $("restoreLegacy").onclick = () => action("restoreLegacy");
       $("restoreUpdate").onclick = () =>
         action("rollbackUpdate", { id: $("updateBackup").value });
       $("wizard").onclick = () => action("wizard");
@@ -1522,7 +1496,7 @@ Fetcher native launcher ready.
             updatesPage: !!$("updates"),
             storageControls: !!$("estimateStorage") && !!$("scanCache") && $("cleanCache").disabled,
             storageVolume: typeof state.disk?.availableBytes === "number" && !!$("storageFree").textContent,
-            migrationControls: !!$("previewLegacy") && !!$("restoreLegacy") && !!$("finishLegacy"),
+            automaticMigrationUi: !!$("legacyCleanupMessage") && !$("stageLegacy") && !$("finishLegacy"),
             pingControls: !!$("serverSort") && !!document.querySelector('th[title*="round-trip"]'),
             nexusControls: !!$("installUmo") && !!$("connectUmo"),
             firstRunState: typeof state.setup?.clientInstalled === "boolean",

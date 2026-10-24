@@ -399,10 +399,8 @@ Json Backend::state() const {
         {"disk", diskSpace(mManaged)},
         {"storage", mStorage},
         {"cleanup", mCleanup},
-        {"migration", mMigration},
+        {"migration", mMigration.is_null() ? mSettings.value("legacyCleanup", Json()) : mMigration},
         {"migrationStatus", legacyMigrationStatus(mRoot)},
-        {"legacyMigrationAvailable", fs::exists(mRoot/"Data Files/fetcher-simulator/ModdingResources/TamrielData") ||
-                                     fs::exists(mRoot/"Data Files/fetcher-simulator/Landmasses/TamrielRebuilt")},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
         {"nexusProvider", mSettings.value("nexusProvider", "umo")},
@@ -838,6 +836,7 @@ fs::path Backend::prepare(bool fullHash) {
                      {"manifestDigest", p.value("_reviewDigest", "local")},
                      {"content", order}}
                     .dump(2));
+    automaticallyMigrateLegacyContent();
     return config;
 }
 Json Backend::check(bool repair, bool install, bool toolsOnly) {
@@ -964,23 +963,30 @@ Json Backend::legacyReplacements() {
         if(td && roots.size()==1)result["td"]=utf8(ordinaryPath(roots[0]).wstring());
         if(tr && roots.size()==2){result["core"]=utf8(ordinaryPath(roots[0]).wstring());result["factions"]=utf8(ordinaryPath(roots[1]).wstring());}
     }
-    need(result.size()==3,"Select and prepare the current Fetcher experimental TR/TD profile first.");
+    if(result.size()!=3)return Json();
     return result;
+}
+void Backend::automaticallyMigrateLegacyContent() {
+    if (!legacyMigrationPending(mRoot)) return;
+    Json replacements;
+    try { replacements=legacyReplacements(); }
+    catch (const std::exception&) { return; } // Other profiles never download experimental content for cleanup.
+    if(replacements.is_null())return;
+    try {
+        mMigration=automaticallyMigrateLegacy(mRoot,loadLegacyInventory(mRoot/"ui/index.html"),replacements,mLog);
+    } catch (const std::exception& error) {
+        mMigration={{"warning",true},{"message",std::string("The current profile is ready. Old custom or unavailable TR/TD files were kept: ")+error.what()}};
+        if(mLog)mLog(mMigration.at("message").get<std::string>()+"\n");
+    }
+    if(mMigration.value("changed",false) || mMigration.value("warning",false)) {
+        mSettings["legacyCleanup"]=mMigration;save();
+    }
 }
 Json Backend::command(const Json &q) {
     auto op = q.at("op").get<std::string>();
     InstallLock lock(mRoot);
     if (op == "init")
         return state();
-    if(op=="previewLegacy" || op=="stageLegacy" || op=="finishLegacy" || op=="restoreLegacy") {
-        auto inventory=loadLegacyInventory(mRoot/"ui/index.html");
-        Json replacements=Json::object();
-        if(op!="restoreLegacy") {syncDiscoveredProfile();assertGameStopped(mRoot);prepare();replacements=legacyReplacements();}
-        auto action=op=="previewLegacy"?"preview":op=="stageLegacy"?"stage":op=="finishLegacy"?"finish":"restore";
-        mMigration=legacyMigration(mRoot,inventory,replacements,action,q.value("token",""),mLog);
-        mCleanup=Json();mStorage=Json();
-        return state();
-    }
     if (op == "storageEstimate") {
         syncDiscoveredProfile();
         mStorage = estimateStorage(mRoot, profile(), [this](const Json &d) { return resolve(d); });
@@ -1016,7 +1022,13 @@ Json Backend::command(const Json &q) {
             if (mLog) mLog(std::string("Server list unavailable: ") + e.what() + "\n");
         }
         try {
-            check(false, false);
+            auto checked=check(false, false);
+            if(checked.value("upToDate",false) && legacyMigrationPending(mRoot) && !legacyReplacements().is_null()) {
+                try { assertGameStopped(mRoot);prepare(); }
+                catch(const std::exception& error) {
+                    if(mLog)mLog(std::string("Old content cleanup deferred until preparation is possible: ")+error.what()+"\n");
+                }
+            }
         } catch (const std::exception &e) {
             if (mLog) mLog(std::string("Startup update check unavailable: ") + e.what() + "\n");
             mStatus = {{"status", "checkFailed"},

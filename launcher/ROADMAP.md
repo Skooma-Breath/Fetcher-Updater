@@ -45,8 +45,8 @@ download of every Nexus file.
    free space, cached/queued sizes, partial layout estimates and an explicit preview/removal flow
    for verified unused managed caches. Saved/current/previous profiles and rollback references
    protect their files; runtime writes check available space. See [STORAGE.md](STORAGE.md).
-   Known legacy TR/TD retirement is implemented with a staged migration, verified files,
-   configuration backups and restoration before deletion. The operator's installation passed
+   Known legacy TR/TD retirement now runs automatically after verified replacement preparation,
+   with configuration backups and interrupted-operation recovery. There are no migration buttons. The operator's installation passed
    cell entry with old paths absent, then removed about 2.39 GiB of files. See
    [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md). Remaining: fuller client/backup/temporary
    peak estimates and migration support for other manually installed versions/custom files.

@@ -1,8 +1,8 @@
 #include "legacy_migration.hpp"
 #include "server_ping.hpp"
+#include <algorithm>
 #include <iostream>
 #include <windows.h>
-#include <algorithm>
 using namespace fetcher;
 namespace
 {
@@ -98,6 +98,8 @@ int main()
         }
         removeManaged(fs::temp_directory_path(), outside);
         writeAtomic(td / "personal.txt", "personal file");
+        rejects([&] { automaticallyMigrateLegacy(root, inventory, replacements); },
+            "automatic cleanup leaves unrecognized personal files untouched");
         rejects([&] { legacyMigration(root, inventory, replacements, "stage", preview["token"]); },
             "unknown files block migration before writes");
         check(read(root / "openmw.cfg") == original && fs::exists(td / "keep.txt"),
@@ -135,15 +137,44 @@ int main()
         legacyMigration(root, inventory, replacements, "restore");
         check(read(root / "openmw.cfg") == original && read(td / "keep.txt") == "original asset",
             "restore recovers original bytes and directories");
+        auto automatic = automaticallyMigrateLegacy(root, inventory, replacements);
+        check(automatic.at("changed").get<bool>() && automatic.at("phase") == "finished" && !fs::exists(td)
+                && !fs::exists(tr),
+            "automatic update migrates and deletes both old folders without a user step");
+        auto finishedConfig = read(root / "openmw.cfg");
+        check(!automaticallyMigrateLegacy(root, inventory, replacements).at("changed").get<bool>()
+                && read(root / "openmw.cfg") == finishedConfig,
+            "completed automatic migration is a no-op on later launches");
+        // Recreate an old install and simulate interruption immediately after staging.
+        for (const auto& definition : inventory.at("packages"))
+            writeAtomic(root / safeRelative(definition.at("oldRoot")) / "keep.txt", "original asset");
+        writeAtomic(root / "openmw.cfg", original);
         preview = legacyMigration(root, inventory, replacements, "preview");
         legacyMigration(root, inventory, replacements, "stage", preview["token"]);
-        legacyMigration(root, inventory, replacements, "finish");
+        check(automaticallyMigrateLegacy(root, inventory, replacements).at("phase") == "finished",
+            "automatic migration completes an existing staged journal");
         check(legacyMigrationStatus(root)["phase"] == "finished" && !fs::exists(td), "verified retirement finishes");
         check(read(root / "profiles/player/settings.cfg") == "user settings"
                 && fs::exists(fs::path(wide(replacements["td"])) / "Tamriel_Data.esm"),
             "characters/settings and new assets retained");
         check(
             fs::exists(root / "_fetcher_launcher/migrations/trtd-v1/configs/0.txt"), "configuration backups retained");
+        for (const auto& phase : { "staging", "removing" })
+        {
+            for (const auto& definition : inventory.at("packages"))
+                writeAtomic(root / safeRelative(definition.at("oldRoot")) / "keep.txt", "original asset");
+            writeAtomic(root / "openmw.cfg", original);
+            preview = legacyMigration(root, inventory, replacements, "preview");
+            legacyMigration(root, inventory, replacements, "stage", preview["token"]);
+            value = readJson(record);
+            value["phase"] = phase;
+            writeAtomic(record, value.dump());
+            if (std::string(phase) == "removing")
+                fs::remove(root / "_fetcher_launcher/migrations/trtd-v1/retired"
+                    / safeRelative(inventory["packages"][0]["sha256"]) / "keep.txt");
+            check(automaticallyMigrateLegacy(root, inventory, replacements).at("phase") == "finished",
+                "automatic recovery resumes interrupted staging and partial deletion");
+        }
         auto pings = FetcherNet::measureServerPings({ "127.0.0.1", "127.0.0.1", "not-a-numeric-address" });
         check(pings.size() == 3 && pings[0].milliseconds >= 0 && pings[0].milliseconds == pings[1].milliseconds
                 && pings[2].milliseconds == -1 && !pings[0].tcp,

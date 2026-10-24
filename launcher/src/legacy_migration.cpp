@@ -230,6 +230,43 @@ namespace fetcher
         auto record = readRecord(root);
         return { { "phase", record.value("phase", "none") }, { "bytes", record.value("bytes", std::uint64_t(0)) } };
     }
+    bool legacyMigrationPending(const fs::path& root)
+    {
+        const auto phase = legacyMigrationStatus(root).at("phase").get<std::string>();
+        return phase == "staging" || phase == "staged" || phase == "removing"
+            || fs::exists(root / "Data Files/fetcher-simulator/ModdingResources/TamrielData")
+            || fs::exists(root / "Data Files/fetcher-simulator/Landmasses/TamrielRebuilt");
+    }
+    Json automaticallyMigrateLegacy(
+        const fs::path& root, const Json& inventory, const Json& replacements, const Log& log)
+    {
+        InstallLock lock(root);
+        if (!legacyMigrationPending(root))
+            return { { "changed", false } };
+        assertGameStopped(root);
+        auto phase = legacyMigrationStatus(root).at("phase").get<std::string>();
+        if (log)
+            log("Updating old TR / Tamriel Data paths and verifying obsolete files.\n");
+        if (phase == "staging")
+        {
+            legacyMigration(root, inventory, replacements, "restore", "", log);
+            phase = "restored";
+        }
+        if (phase != "staged" && phase != "removing")
+        {
+            const auto preview = legacyMigration(root, inventory, replacements, "preview", "", log);
+            if (!preview.at("canMigrate").get<bool>())
+                return { { "changed", false } };
+            legacyMigration(root, inventory, replacements, "stage", preview.at("token"), log);
+        }
+        auto result = legacyMigration(root, inventory, replacements, "finish", "", log);
+        result["changed"] = true;
+        result["message"]
+            = "Old TR / Tamriel Data folders updated and removed automatically. Configuration backups retained.";
+        if (log)
+            log(result.at("message").get<std::string>() + "\n");
+        return result;
+    }
     Json legacyMigration(const fs::path& root, const Json& inventory, const Json& replacements,
         const std::string& operation, const std::string& token, const Log& log)
     {

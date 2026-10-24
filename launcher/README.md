@@ -16,8 +16,8 @@ Implemented:
   preview/removal. Saved configurations and manual mod folders remain protected. See [STORAGE.md](STORAGE.md).
 - Public server browser using the game's live master service, search, favorites and direct connect.
 - Measured ICMP/TCP host ping and sorting in both browsers; see [PING.md](PING.md).
-- Verified staged retirement of known legacy TR/TD folders, with configuration backups and a
-  restore step before deletion; see [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
+- Automatic migration and removal of verified legacy TR/TD folders after preparing current
+  replacements; no migration buttons. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
 - Public Vanilla surf/truck/Studio profile and separate existing-installation connection route.
 - Automatic master-hosted owner profiles: no player JSON/URL paste, pinned content preparation on
   Play, endpoint/digest validation and retention of existing profile settings. See PROFILE-FORMAT.md.

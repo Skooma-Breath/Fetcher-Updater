@@ -37,5 +37,6 @@ class Backend {
     void syncDiscoveredProfile();
     void measurePings();
     Json legacyReplacements();
+    void automaticallyMigrateLegacyContent();
 };
 } // namespace fetcher

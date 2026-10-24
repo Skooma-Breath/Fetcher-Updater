@@ -42,9 +42,9 @@ sharing mean the actual increase in available space may be smaller.
 ## Older Tamriel Rebuilt / Tamriel Data folders
 
 The managed experimental configuration selects fresh TR/TD directories. Ordinary unused-cache
-cleanup retains older manual/UMO folders. The separate **Older TR / Tamriel Data installation**
-panel now migrates known legacy paths, verifies original files against the shipped inventory,
-and stages retirement for testing before deletion. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
+cleanup retains arbitrary manual/UMO folders. Known legacy Fetcher TR/TD paths are now migrated
+and their verified obsolete folders removed automatically after the current experimental profile
+is prepared. No separate migration steps or buttons are required. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
 Unknown or modified files are protected. Saved characters, unrelated configurations and ordinary
 rollback data are retained. The operator's normal installation passed migration and game startup;
 its old and retired TR/TD folders were then removed.

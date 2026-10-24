@@ -1,3 +1,19 @@
+# Automatic legacy cleanup — 2026-10-24
+
+The manual migration panel has been removed. Preparing the known current experimental profile
+(through Update or Play) automatically updates legacy data paths and removes verified obsolete
+folders. Cached/current startup after an updater restart also completes pending cleanup when
+the game is closed. Vanilla/unrelated profiles do not acquire experimental content for cleanup.
+
+Regression tests cover one-operation migration/removal, repeat no-ops, unknown personal files,
+and automatic recovery of interrupted staging, staged and partially removed journals. A full
+fixture recreates the operator's 47,039 legacy files and uses ordinary preparation to test the
+backend trigger, custom-file preservation without blocking the current profile, final deletion
+and repeat behavior. The operator's already-clean installation is left unchanged.
+
+Earlier staged-flow reports below record the initial acceptance; their manual UI has been
+superseded by this automatic behavior. See [LEGACY-TRTD-MIGRATION.md](LEGACY-TRTD-MIGRATION.md).
+
 # Legacy TR/TD migration and browser ping — 2026-10-24
 
 - Seven launcher CTest suites pass, including staged migration/restore/final removal, stale
