@@ -202,7 +202,7 @@ Json normalizeDiscoveredManifest(const std::string &text, const std::string &dig
     p["port"] = port;
     const std::set<std::string> packageFields = {
         "id", "name", "author", "version", "url", "sha256", "archiveFormat", "dataDirs",
-        "actions", "fomod", "nexus", "repository", "releaseTag", "assetName"};
+        "actions", "fomod", "nexus", "repository", "releaseTag", "assetName", "downloadBytes", "expandedBytes"};
     for (const auto &d : p.at("packages")) {
         for (auto it = d.begin(); it != d.end(); ++it)
             need(packageFields.count(it.key()) != 0, "Unsupported advertised package field: " + it.key());

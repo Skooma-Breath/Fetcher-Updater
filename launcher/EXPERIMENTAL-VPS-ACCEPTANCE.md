@@ -6,20 +6,23 @@ the existing Mario character and unchanged published game executable.
 
 ## Deployed requirements
 
-- [presets/fetcher-simulation.json](presets/fetcher-simulation.json), version `2026.10.24.2`:
+- [presets/fetcher-simulation.json](presets/fetcher-simulation.json), version `2026.10.24.1`:
   103 packages, 136 configured content files and 12 groundcover plugins.
 - Active owner file: `/srv/fetcher-simulator/launcher-profile.json`.
-- Advertised SHA-256: `3e6426d011b3fa93cf8d27c40c9d9e072058ccdfe9e82203a3c8a24ad23bc4cc`.
-  Revision 2 adds measured size hints only. The world-entry evidence below used revision 1
-  (`6e22a6ea38013d1ae871098fe22fb54cfef52a1fee203fa9a358fe7eed156e82`);
-  package hashes, recipes and content order are identical. The metadata restart preserved
-  all 53 characters, with both health checks passing and Vanilla's game process unchanged.
+- Advertised SHA-256: `6e22a6ea38013d1ae871098fe22fb54cfef52a1fee203fa9a358fe7eed156e82`.
+  Advisory size fields are excluded from the live profile so earlier launchers can still read it.
+  A size-hint-only revision was reverted after finding older discovery validators reject those
+  optional fields. The corrected launcher has explicit discovery regression coverage.
+  Package hashes, recipes, content order and all 53 characters were preserved; both health
+  checks pass and Vanilla's game process is unchanged.
 - TR 26.08a and TD 26.08 Vanilla: actual official-mirror downloads, native hash verification,
   extraction and preparation pass. Upstream executable/JAR helpers are excluded, never run.
 - Mario/Zelda: unchanged plugins/assets and original notices in the pinned combined GitHub ZIP.
   See [LEGACY-RACES.md](LEGACY-RACES.md). Starwind compatibility is explicit to this profile.
-- Published launcher/tools source: signed `5f500bb78ecb951b837c44b3b139a9bc5c1124b6`.
-  All five public asset hashes match the reviewed package.
+- Initial world-entry validation used signed launcher/tools `5f500bb78ecb951b837c44b3b139a9bc5c1124b6`.
+  Subsequent Storage releases retain the same content preparation and add space/cleanup controls.
+  Published tools inventories identify their exact signed source; all five release asset hashes
+  are checked against the reviewed package.
 - VPS source includes the capacity update and signed engine fixes `bdd3ed7807` and `2fdbcfa5a7`,
   published as source tag `Fetcher-Server-Profiles-4`. No ARM GitHub asset was required.
 

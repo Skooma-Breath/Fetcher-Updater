@@ -77,7 +77,10 @@ Omitting fallbackArchives keeps Morrowind.bsa, Tribunal.bsa and Bloodmoon.bsa.
 Optional per-package `downloadBytes` (0–4 GiB) and `expandedBytes` (0–8 GiB) are
 nonnegative integer size hints for Updates → Storage. They are advisory: hashes and actual
 archive/extraction limits remain mandatory, and missing hints are shown as unknown.
-Verified cache receipts take precedence when available. See [STORAGE.md](STORAGE.md).
+Verified cache receipts take precedence when available. Earlier launcher discovery validators
+reject these optional fields, so owners should omit them until their users have upgraded to a
+version supporting advisory sizes. The live experimental profile omits them for compatibility.
+See [STORAGE.md](STORAGE.md).
 
 ## Nexus files
 

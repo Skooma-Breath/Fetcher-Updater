@@ -198,6 +198,17 @@ void discoveryTests(const fs::path &root) {
     auto bytes = bad.dump();
     rejects([&] { normalizeDiscoveredManifest(bytes, textSha256(bytes), "example.org", 25565); },
             "advertised GitHub packages require pinned hashes");
+    auto sized = raw;
+    sized["packages"] = Json::array({{{"id", "sized"}, {"url", "https://example.org/mod.zip"},
+                                     {"sha256", std::string(64, 'a')}, {"downloadBytes", 100u}, {"expandedBytes", 300u}}});
+    auto sizedText = sized.dump();
+    auto sizedProfile = normalizeDiscoveredManifest(sizedText, textSha256(sizedText), "example.org", 25565);
+    check(sizedProfile["packages"][0]["downloadBytes"] == 100 && sizedProfile["packages"][0]["expandedBytes"] == 300,
+          "automatic discovery accepts bounded advisory storage hints");
+    sized["packages"][0]["downloadBytes"] = -1;
+    sizedText = sized.dump();
+    rejects([&] { normalizeDiscoveredManifest(sizedText, textSha256(sizedText), "example.org", 25565); },
+            "automatic discovery rejects invalid storage hints");
     std::string serverId = "01234567-89ab-4cde-8fab-0123456789ab";
     Json entry = {{"id", serverId}, {"host", "198.51.100.10"}, {"port", 25565},
                   {"name", "Community"}, {"current_players", 0}, {"max_players", 32},

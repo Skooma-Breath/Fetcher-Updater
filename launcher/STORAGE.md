@@ -12,9 +12,11 @@ free-space checks. Cached receipts supply measured sizes when available. Downloa
 writes and ordinary layout copies check available space; existing transaction recovery still
 applies if a write fails.
 
-The experimental profile's measured archive hints total about 4.9 GiB of downloads and 11.8 GiB
-of extraction for a fresh cache. Its derived layouts add an estimated 5.2 GiB, with nine layouts
-whose intermediate requirements are incomplete. Existing caches reduce these requirements.
+A measured experimental profile trial totals about 4.9 GiB of downloads and 11.8 GiB of
+extraction for a fresh cache. Its derived layouts add an estimated 5.2 GiB, with nine incomplete
+intermediate estimates. The live experimental profile omits size hints for compatibility with
+older launchers; fresh installs consequently show unknown sizes, while cached receipts provide
+measured figures. Existing caches reduce the remaining requirements.
 
 ## Preview and remove unused cache
 
@@ -51,7 +53,7 @@ Native tests cover protected references, include cycles, path aliases, stale pre
 corruption detection, extra personal files, running-game refusal and symlink containment.
 The WebView2 smoke test checks the Storage controls and actual-volume display. A read-only
 preview on the normal installation found 21 candidates (about 5.4 GiB logical), retaining
-216 referenced entries; none were removed. An empty-cache estimate used the published profile
+216 referenced entries; none were removed. An empty-cache estimate used a manually imported size-hint candidate
 without downloading game content or requesting Nexus authentication.
 
 Launcher updates can now install verified tools even when the selected server profile cannot

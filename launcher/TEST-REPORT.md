@@ -12,11 +12,14 @@ integration passes. Real WebView2 smoke checks include Storage controls and actu
 
 The normal installation's read-only preview found 21 unused candidates, 5,824,918,335 logical
 bytes, while retaining 216 referenced entries. Five checked game/config/TR/TD files retained
-their hashes; no cache was deleted. An empty-cache estimate used live profile 2026.10.24.2
+their hashes; no cache was deleted. An empty-cache estimate used a manually imported size-hint candidate
 without downloading game content or Nexus authentication: 5,263,708,442 download bytes,
 12,671,456,402 extraction bytes and 5,583,347,261 estimated layout bytes, with nine incomplete
 layout estimates. Runtime checks do not guarantee all future temporary/client/backup peaks fit.
-See [STORAGE.md](STORAGE.md) for the user workflow and remaining legacy-folder migration.
+Automatic discovery now accepts bounded size hints and rejects invalid values in its own
+regression tests. The live profile retains revision 2026.10.24.1 without hints, preserving
+compatibility with earlier strict discovery validators. Fresh uncached estimates can therefore
+include unknown sizes. See [STORAGE.md](STORAGE.md) for the workflow and legacy-folder limits.
 
 Earlier dated candidate reports below are historical; current experimental rollout acceptance
 is recorded in [EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md).
