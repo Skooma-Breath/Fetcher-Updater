@@ -2,10 +2,13 @@
 
 This server-specific preset keeps 90 mods / 99 source archives. It is separate from the general
 launcher/Vanilla rollout; installing Starwind elsewhere never opts a player into this preset.
-The operator requested that Mario Race and
-The Legend of Zelda beta mod be omitted on 2026-10-22 because their original ModDB archives are
-unavailable locally. This changes only the new preset plan. The original 92-mod legacy JSON and
-installed game are unchanged.
+The original Mario Race and Zelda beta ModDB archives were excluded from that audit on
+2026-10-22. On 2026-10-23 the operator chose a combined GitHub repack of their installed files
+instead of removing the two mods. See LEGACY-RACES.md and presets/fetcher-legacy-races.json.
+The legacy UMO entries now reference that shared archive; native packages cache it once by hash.
+The new official TR 26.08a / TD 26.08 replacement definitions are in
+presets/fetcher-simulation-official-tr.json. They are candidate package fragments, not a complete
+server profile. Updating the live authority and completing full-preset acceptance remain required.
 
 Developer authoring uses Python and a local 7-Zip executable to inventory original archives;
 players do not need either tool for native profile preparation. These scripts read the UMO

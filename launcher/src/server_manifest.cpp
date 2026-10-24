@@ -180,7 +180,7 @@ Json normalizeDiscoveredManifest(const std::string &text, const std::string &dig
                                  const std::string &host, int port) {
     need(std::regex_match(digest, std::regex("[0-9a-f]{64}")) && textSha256(text) == digest,
          "Advertised server profile SHA-256 mismatch. Refresh the server list.");
-    auto raw = parseJson(text, 256 * 1024);
+    auto raw = parseJson(text, 2 * 1024 * 1024);
     const std::set<std::string> allowed = {
         "schemaVersion", "id", "name", "version", "mode", "description", "host", "port",
         "packages", "umoMods", "content", "requiredFiles", "groundcover", "fallbackArchives"};

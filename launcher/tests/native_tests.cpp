@@ -174,6 +174,15 @@ void discoveryTests(const fs::path &root) {
     auto p = normalizeDiscoveredManifest(text, digest, "198.51.100.10", 25565);
     check(p.at("host") == "198.51.100.10" && p.at("port") == 25565,
           "profile cannot redirect the selected server endpoint");
+    auto largeProfile = raw;
+    largeProfile["description"] = std::string(300 * 1024, 'x');
+    const auto largeText = largeProfile.dump();
+    check(normalizeDiscoveredManifest(largeText, textSha256(largeText), "example.org", 25565)
+              .at("description").get<std::string>().size() == 300 * 1024,
+          "bounded large profiles can carry complete compatibility recipes");
+    const auto oversizedText = std::string(2 * 1024 * 1024 + 1, ' ');
+    rejects([&] { normalizeDiscoveredManifest(oversizedText, textSha256(oversizedText), "example.org", 25565); },
+            "advertised profiles over two MiB rejected before parsing");
     rejects([&] { normalizeDiscoveredManifest(text + " ", digest, "example.org", 25565); },
             "profile bytes must match the registry digest");
     for (const auto &field : {"umo", "command", "_discovered", "launcherUrl"}) {
@@ -201,7 +210,7 @@ void discoveryTests(const fs::path &root) {
             return Json::array({entry}).dump();
         }
         check(url == "https://master.fetchers.org/v1/servers/" + serverId + "/profile" &&
-                  limit == 256 * 1024, "master profile URL is derived and bounded");
+                  limit == 2 * 1024 * 1024, "master profile URL is derived and bounded");
         ++profiles;
         return text;
     };

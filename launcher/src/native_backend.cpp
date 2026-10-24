@@ -373,7 +373,7 @@ Json Backend::discoveredProfile(const std::string &host, int port) {
                  "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")),
              "Invalid master server profile identity.");
         auto source = "https://master.fetchers.org/v1/servers/" + registryId + "/profile";
-        auto p = normalizeDiscoveredManifest(mDiscoveryFetch(source, 256 * 1024, false),
+        auto p = normalizeDiscoveredManifest(mDiscoveryFetch(source, 2 * 1024 * 1024, false),
                                              server.at("profileDigest"), host, port);
         validateProfile(p);
         p["_ownerId"] = p.at("id");

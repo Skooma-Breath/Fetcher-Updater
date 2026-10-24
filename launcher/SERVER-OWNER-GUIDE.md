@@ -1,6 +1,6 @@
 # Server setup and launcher mod lists
 
-Use the engine's [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/b99d3e7dff67803db271628bbaa0935f0fdec96d/files/server/server-setup-guide.md)
+Use the engine's [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/f1542ea63f07b3d9471342f408b318dac904026c/files/server/server-setup-guide.md)
 for the server distribution, UDP firewall/NAT, `server.cfg`, server scripts and generating
 `content-authority/` from a known-good client. This guide adds the launcher-facing mod list.
 The complete schema and installation limits are in [PROFILE-FORMAT.md](PROFILE-FORMAT.md).
@@ -8,6 +8,8 @@ The complete schema and installation limits are in [PROFILE-FORMAT.md](PROFILE-F
 You need compatible client/server builds with launcher-profile support. That support first
 shipped in engine commit `0f1aa3c5c5` / tag `Fetcher-Server-Profiles-1`. The current Fetcher
 master and launcher support it. Older server binaries cannot advertise the new field.
+Profiles over the original 256 KiB cap require the newer 2 MiB-capable launcher, server and
+master together; updating the launcher alone does not raise an older server/master's limit.
 
 ## 1. Decide exactly what players need
 
@@ -110,7 +112,7 @@ Keep the owner `id` stable and change `version` when requirements change.
 
 Automatic discovery requires an **embedded** `umoMods` array and/or `packages`. The older
 `"umo": {"url": ..., "sha256": ...}` form is for manual imports only and is refused here.
-Profiles are limited to **256 KiB of UTF-8** and depth 32. Minify large lists as above and
+Profiles are limited to **2 MiB of UTF-8** and depth 32. Minify large lists as above and
 remove unused export metadata. Never include credentials, local account files or temporary
 authorised download URLs: the profile is public.
 

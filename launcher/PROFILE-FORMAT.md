@@ -31,7 +31,7 @@ checked IP while retaining TLS hostname validation; cookies and automatic Window
 are disabled. Windows 10 21H1 or newer and direct internet access are required (system HTTP proxies
 are not used). Local HTTP fixtures require an explicit test-only mode.
 
-The master caps bodies at 600 KiB, profiles at 256 KiB/depth 32, active servers at 2048, servers
+The master caps bodies at 600 KiB, profiles at 2 MiB/depth 32, active servers at 2048, servers
 per source address at 16 and stored profile bytes at 64 MiB. Profiles are public: never include
 passwords/API keys. Registration ties a listing to its source IP; it does not certify an operator
 or prove assets safe. Hashes verify the owner-pinned bytes, and joining still entails trusting the

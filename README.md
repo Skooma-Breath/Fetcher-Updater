@@ -60,7 +60,7 @@ The Fetcher Simulator client/server releases themselves ship `Build-OpenMWServer
 
 The canonical source and guide live in the Fetcher Simulator repository under `files/server/`. The full guide covers UDP port forwarding, host firewalls, `server.cfg`, public listing, authority generation/deployment, updates, and hash-mismatch troubleshooting.
 
-Start with the [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/b99d3e7dff67803db271628bbaa0935f0fdec96d/files/server/server-setup-guide.md).
+Start with the [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/f1542ea63f07b3d9471342f408b318dac904026c/files/server/server-setup-guide.md).
 Then follow [Server setup and launcher mod lists](launcher/SERVER-OWNER-GUIDE.md) to create a
 pinned UMO JSON list, select exact Nexus files, hash the original archives, set data folders and
 load order, and advertise `launcher-profile.json` through `[master] launcher_profile`.

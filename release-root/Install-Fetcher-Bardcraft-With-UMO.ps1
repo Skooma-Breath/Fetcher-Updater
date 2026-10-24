@@ -312,6 +312,15 @@ function Install-ManualModDownloads {
         if ([string]$mod.url -notmatch "^https://www\.moddb\.com/") {
             continue
         }
+        # Source/credit pages can remain on ModDB while an explicitly pinned
+        # archive is delivered by HTTPS through UMO instead of a manual prompt.
+        $manualDownloads = @($mod.download_info | Where-Object {
+            -not ($_.PSObject.Properties.Name -contains "direct_download") -or
+            [string]::IsNullOrWhiteSpace([string]$_.direct_download)
+        })
+        if ($manualDownloads.Count -eq 0) {
+            continue
+        }
         if (Test-ManualModInstalled -Mod $mod) {
             Write-Host "$($mod.name) is already installed."
             continue

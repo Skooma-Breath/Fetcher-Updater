@@ -11,6 +11,7 @@ The source snapshot is openmw-client-mods-studio-candidate.zip, SHA-256
 | Yamaha Keyboard | Rapunzel123 | [Studio attribution](FetcherStudio/ATTRIBUTION.txt) |
 | Keyboard X-Stand | Michael Perez / pixelflygraphics | [Studio attribution](FetcherStudio/ATTRIBUTION.txt) |
 | Lightbody Lifted '85 pickup | Daniel Zhabotinsky | [Vehicle credits](FetcherVehicles/CREDITS.txt) |
+| Mario Race and Zelda beta repack | Original Nintendo/Camelot credits; ModDB uploader DaleModLoverandGamer | [Legacy race sources and credits](legacy-races.txt) |
 
 The full records preserve original model links, author links where provided, CC BY 4.0 references
 and descriptions of the adaptations. The Studio license text is retained alongside its attribution.

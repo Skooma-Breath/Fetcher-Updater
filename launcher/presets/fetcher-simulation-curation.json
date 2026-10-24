@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "description": "Local authoring curation. Nexus MD5-search responses on 2026-10-22 corroborate these exact archive/source identities; installation continues to require the stronger pinned SHA-256. This does not authorize publication.",
   "omittedMods": {
-    "MarioRace": "Operator requested omission from the new preset on 2026-10-22; original archive unavailable.",
-    "LegendOfZeldaBeta": "Operator requested omission from the new preset on 2026-10-22; original archive unavailable."
+    "MarioRace": "Original ModDB entry excluded from this cache audit; the operator chose the shared GitHub repack on 2026-10-23. Add presets/fetcher-legacy-races.json to the final profile.",
+    "LegendOfZeldaBeta": "Original ModDB entry excluded from this cache audit; the operator chose the shared GitHub repack on 2026-10-23. Add presets/fetcher-legacy-races.json to the final profile."
   },
   "compatibilitySources": {
     "bardcraft": {
@@ -19,24 +19,46 @@
   },
   "verifiedArchives": {
     "e71e467f27ec3239cbdacac94eea26d9929d38d39d8d7e0172fb74ad26bd2377": {
-      "nexus": {"game": "morrowind", "modId": 59612, "fileId": 1000067129},
+      "nexus": {
+        "game": "morrowind",
+        "modId": 59612,
+        "fileId": 1000067129
+      },
       "md5": "cd04626691832a1d42ba3667072e9da1"
     },
     "26eb55f0a46bfbac1ec73f168d432009951ed9ea3f9718ddea73b4ead148d62f": {
-      "nexus": {"game": "morrowind", "modId": 45838, "fileId": 1000010954},
+      "nexus": {
+        "game": "morrowind",
+        "modId": 45838,
+        "fileId": 1000010954
+      },
       "md5": "fe78134f6c748650bbbd3fc3e08e9149"
     },
     "89293c4140bf7e861a93e4dc6ac910ae9ef84e174a79e13c702333a268725df0": {
-      "nexus": {"game": "morrowind", "modId": 44398, "fileId": 1000010485},
+      "nexus": {
+        "game": "morrowind",
+        "modId": 44398,
+        "fileId": 1000010485
+      },
       "md5": "baaaea276aba5f766affcbd96449eaaf"
     }
   },
   "packages": {
     "umo-tamrieldata-0": {
-      "actions": [{"action": "remove", "path": "00 Data Files/Docs/TR_FilePatcher_v2.jar"}]
+      "actions": [
+        {
+          "action": "remove",
+          "path": "00 Data Files/Docs/TR_FilePatcher_v2.jar"
+        }
+      ]
     },
     "umo-ashlanderarchitect-0": {
-      "actions": [{"action": "remove", "path": "yaml/ashlander-architect/build/toyaml.py"}]
+      "actions": [
+        {
+          "action": "remove",
+          "path": "yaml/ashlander-architect/build/toyaml.py"
+        }
+      ]
     }
   }
 }

@@ -397,7 +397,7 @@ try {
             Url = "https://www.moddb.com/games/morrowind/addons/the-legend-of-zelda-beta-mod"
             FileIds = @()
             Plugins = @("The Legend of Zelda.ESP")
-            Sha256 = "aaae1c95e8e70b831c00383dc933b80c69e0766bc60983b6e071ede643252f66"
+            Sha256 = "65664591649f699eb84abbb4ca0f3650961f7ad0a7f1cfa198d887bb86e3c189"
         },
         [pscustomobject]@{
             Url = "https://www.nexusmods.com/morrowind/mods/55806"

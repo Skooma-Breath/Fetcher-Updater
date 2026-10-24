@@ -1,0 +1,22 @@
+Fetcher legacy race compatibility repack - 2026-10-23
+
+This archive contains the locally installed Mario Race 1.0 and The Legend of Zelda Beta Mod.
+It is a repack for the Fetcher experimental server, not an original Fetcher-created mod.
+The plugin and asset bytes are unchanged. Each mod keeps its own data root and original filenames.
+
+Mario Race 1.0
+Source: https://www.moddb.com/games/morrowind/addons/mario-race-1-0
+ModDB uploader: DaleModLoverandGamer
+Original local Readme Mario.txt is preserved under Mario/Data Files/.
+That readme credits Nintendo, Mario Tennis / Nintendo 64, Models Resource and lemurboy12.
+The source page additionally credits Camelot Software Planning and designers Shugo/Hiroyuki Takahashi.
+
+The Legend of Zelda Beta Mod
+Source: https://www.moddb.com/games/morrowind/addons/the-legend-of-zelda-beta-mod
+ModDB uploader: DaleModLoverandGamer
+The source page credits Nintendo, Shigeru Miyamoto, Eiji Aonuma and the other Ocarina of Time designers.
+No separate readme was present in this installed mod folder.
+
+Both source pages label their licence Proprietary. These credits do not grant new rights or
+relicense the assets. Original names and credits are retained. Link_(Fixed).esp and the other
+Nexus-hosted Zelda mods are separate and are not included in this archive.

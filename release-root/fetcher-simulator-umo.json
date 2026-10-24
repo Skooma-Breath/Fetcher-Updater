@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "Tamriel Data",
     "author": "<a href=\"https://next.nexusmods.com/profile/CrossProjectCoordination/about-me\">Cross-Project Coordination</a>",
@@ -267,7 +267,7 @@
     "url": "https://www.moddb.com/games/morrowind/addons/mario-race-1-0",
     "category": "Races",
     "dl_url": "",
-    "usage_notes": "Manual ModDB download. The installer opens the official page and detects Mario_Race_1.0.rar in your Downloads folder.",
+    "usage_notes": "Direct Fetcher repack of the original installed mod. Original source and credits are retained in the archive; no ModDB browser step is required.",
     "compat": 4,
     "dir": "MarioRace",
     "slug": "mario-race-1-0",
@@ -275,13 +275,17 @@
     "date_updated": "2026-07-08T00:00:00+00:00",
     "download_info": [
       {
-        "direct_download": null,
-        "file_name": "Mario_Race_1.0.rar",
+        "direct_download": "https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/fetcher-legacy-races-20261023/fetcher-legacy-races.zip",
+        "file_name": "fetcher-legacy-races.zip",
         "extract_to": "MarioRace",
         "nexus_file_id": null,
         "pinned": true,
         "actions": [],
-        "sha256": "b824cabf781aeee90940fd31f586f4779d04979e9acd3515b5dc1d4837da9392"
+        "sha256": "65664591649f699eb84abbb4ca0f3650961f7ad0a7f1cfa198d887bb86e3c189",
+        "archiveFormat": "zip",
+        "dataDirs": [
+          "Mario/Data Files"
+        ]
       }
     ],
     "tags": [],
@@ -289,7 +293,7 @@
       "fetcher-simulator"
     ],
     "data_paths": [
-      "MarioRace/Data Files"
+      "MarioRace/Mario/Data Files"
     ],
     "plugins": [
       "Mario.ESP"
@@ -1423,7 +1427,7 @@
     "url": "https://www.moddb.com/games/morrowind/addons/the-legend-of-zelda-beta-mod",
     "category": "Races",
     "dl_url": "",
-    "usage_notes": "Manual ModDB download. The installer opens the official page and detects The_Legend_of_Zelda_Beta_Mod.rar in the user's Downloads folder.",
+    "usage_notes": "Direct Fetcher repack of the original installed mod. Original source and credits are retained in the archive; no ModDB browser step is required.",
     "compat": 4,
     "dir": "LegendOfZeldaBeta",
     "slug": "the-legend-of-zelda-beta-mod",
@@ -1431,13 +1435,17 @@
     "date_updated": "2026-07-22T00:00:00+00:00",
     "download_info": [
       {
-        "direct_download": null,
-        "file_name": "The_Legend_of_Zelda_Beta_Mod.rar",
+        "direct_download": "https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/fetcher-legacy-races-20261023/fetcher-legacy-races.zip",
+        "file_name": "fetcher-legacy-races.zip",
         "extract_to": "LegendOfZeldaBeta",
         "nexus_file_id": null,
         "pinned": true,
         "actions": [],
-        "sha256": "aaae1c95e8e70b831c00383dc933b80c69e0766bc60983b6e071ede643252f66"
+        "sha256": "65664591649f699eb84abbb4ca0f3650961f7ad0a7f1cfa198d887bb86e3c189",
+        "archiveFormat": "zip",
+        "dataDirs": [
+          "Zelda/Data Files"
+        ]
       }
     ],
     "tags": [
@@ -1448,7 +1456,7 @@
       "fetcher-simulator"
     ],
     "data_paths": [
-      "LegendOfZeldaBeta/Data Files"
+      "LegendOfZeldaBeta/Zelda/Data Files"
     ],
     "plugins": [
       "The Legend of Zelda.ESP"
@@ -2412,7 +2420,7 @@
   {
     "name": "Set Bonus",
     "author": "StaticNation",
-    "description": "Armour set bonuses for Morrowind \u2014 wear matched sets for scaling, lore-themed effects. 130+ sets, Tamriel Rebuilt/OAAB/NOD/AATL support, no ESP. MWSE and OpenMW versions.",
+    "description": "Armour set bonuses for Morrowind — wear matched sets for scaling, lore-themed effects. 130+ sets, Tamriel Rebuilt/OAAB/NOD/AATL support, no ESP. MWSE and OpenMW versions.",
     "url": "https://www.nexusmods.com/morrowind/mods/52911",
     "category": "Gameplay",
     "dl_url": "",

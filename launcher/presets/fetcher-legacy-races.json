@@ -1,0 +1,12 @@
+{
+  "id": "fetcher-legacy-races",
+  "name": "Mario and Zelda legacy race repack",
+  "version": "2026.10.23.1",
+  "url": "https://github.com/Skooma-Breath/Fetcher-Updater/releases/download/fetcher-legacy-races-20261023/fetcher-legacy-races.zip",
+  "sha256": "65664591649f699eb84abbb4ca0f3650961f7ad0a7f1cfa198d887bb86e3c189",
+  "archiveFormat": "zip",
+  "dataDirs": [
+    "Mario/Data Files",
+    "Zelda/Data Files"
+  ]
+}

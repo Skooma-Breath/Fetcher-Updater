@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "description": "Pinned official-source replacements for the experimental server candidate. Activate only with matching server authority.",
+  "packages": [
+    {
+      "id": "official-td",
+      "name": "Tamriel Data 26.08 Vanilla",
+      "url": "https://drive.usercontent.google.com/download?id=1dzHdT9K8gZMtxpzJ-rLjYNztjOZFjW2f&export=download&confirm=t",
+      "sha256": "009530c0383759b842298e827bf1ffd88e29b68668bbefe794bc376713e821cf",
+      "archiveFormat": "7z",
+      "dataDirs": [
+        "00 Data Files"
+      ],
+      "actions": [
+        {
+          "action": "remove",
+          "path": "00 Data Files/Docs/TR_FilePatcher_v2.jar"
+        },
+        {
+          "action": "remove",
+          "path": "00 Data Files/Docs/MWLathe.exe"
+        }
+      ]
+    },
+    {
+      "id": "official-tr",
+      "name": "Tamriel Rebuilt 26.08a",
+      "url": "https://drive.usercontent.google.com/download?id=1al287t7dwNs6TxrTodzKxEY5NI8c8E-P&export=download&confirm=t",
+      "sha256": "31d1f45469291cd71408fe7b795ded0e593fab226796aa35b1b86b588825c0bc",
+      "archiveFormat": "7z",
+      "dataDirs": [
+        "00 Core/Data Files",
+        "01 Faction Integration/Data Files"
+      ]
+    }
+  ]
+}

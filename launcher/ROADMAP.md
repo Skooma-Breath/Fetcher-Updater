@@ -28,11 +28,40 @@ Owner documentation now includes a manual UMO-list authoring walkthrough, embedd
 example, archive hashing, folder/load-order selection and master publication. Start with
 [SERVER-OWNER-GUIDE.md](SERVER-OWNER-GUIDE.md) and [PROFILE-FORMAT.md](PROFILE-FORMAT.md).
 
-## Remaining for broader launcher acceptance
+## Current priority: experimental Fetcher server
 
-1. **Nexus and Windows coverage.** Validate Premium-account entitlement, more browsers/NXM
-   associations and Windows installations missing WebView2/VC prerequisites. Free-account
-   downloads, native bootstrap, legacy upgrade, and second-device acceptance already pass.
+1. Finish the full port-25564 server profile and a fresh launcher-based join using a **free**
+   Nexus account. Reconcile the complete installed layout, required compatibility layers,
+   plugin/groundcover order and matching server authority before advertising it automatically.
+   This server remains separate from Vanilla and from other owners' ordinary Starwind installs.
+2. Keep Mario Race and the Zelda beta through one small, hash-pinned GitHub ZIP, retaining
+   source credits and the unchanged plugins. The original ModDB archive entries are replaced
+   by a direct package; do not require users to find the two original RARs manually.
+3. Use the official TR/TD mirrors for the experimental candidate. The operator approved updating
+   from TR 25.08.12 / TD 25.05 to TR 26.08a / TD 26.08. Validate the new layouts, dependencies,
+   compatibility and authority together before the live cutover. Download speed still depends
+   on the mirror; the purpose is to avoid the Nexus free-download approval steps for these files.
+
+## Next usability priorities
+
+1. **Disk space.** Show available space on the actual installation/cache volume, queued download
+   size and estimated extraction/derived-layout needs before preparation. Distinguish cached files,
+   unknown sizes and estimates; catch insufficient space before changing the active configuration.
+   After the new setup passes, offer explicit cleanup of obsolete TR/TD folders and unused cache
+   versions. Check current and saved configuration references first; preserve active installs and
+   retained rollback versions. Never merge a new TR release over the old extracted folder.
+2. **Ping in both browsers.** Add client-measured latency to the launcher and the in-game server
+   browser, with bounded background probes, refresh/sorting and a clear unavailable/timeout state.
+   A master's HTTP response time is not a player's latency to the game server.
+3. **Browser polish.** Improve protocol/build compatibility display, connection diagnostics,
+   independently authored server lists and large-list presentation.
+
+## Later acceptance and broader mod-manager work
+
+1. **Nexus and Windows coverage.** Expand free-account/browser/NXM and missing-prerequisite trials.
+   Premium-account entitlement testing is deferred until a willing Premium tester is available;
+   the owner does not need to purchase Premium or wait for it to launch the experimental server.
+   Native bootstrap, legacy upgrade and second-device acceptance already pass.
 2. **Failure and soak testing.** Collect small-group public-test results on the current payload.
    Broaden device/storage-failure acceptance and long-running download/update trials.
    Interrupted-process recovery, retained backups and native restore are already implemented.
@@ -40,12 +69,9 @@ example, archive hashing, folder/load-order selection and master publication. St
    dependencies and an interactive option wizard. Encrypted/multipart archives, unsupported
    codecs, nested/scripted installers, plugin cleaning and third-party tool bootstrap remain
    unsupported; decide which are worth supporting without executing arbitrary server commands.
-4. **Server-browser and operator polish.** Test more independently authored server lists and large
-   profiles; improve protocol/build compatibility display and connection diagnostics. Automatic
-   discovery is complete; broader operator adoption and usability remain.
-5. **Mod management UI.** Add dependency/conflict explanations, optional-mod presets, package
-   removal, cache management and disk-space information.
-6. **Content attribution display.** Pick an appropriate content-specific location, such as Studio
+4. **Mod management UI.** Add dependency/conflict explanations, optional-mod presets, package
+   removal and cache management, after the disk-space/browser priorities above.
+5. **Content attribution display.** Pick an appropriate content-specific location, such as Studio
    Help or server-profile content details. Model/source/license records and packaged notices
    already exist under docs/content-attribution and in the content bundles. There is no general
    launcher model Credits tab.
@@ -53,18 +79,19 @@ example, archive hashing, folder/load-order selection and master publication. St
 The current public test does not need to wait for every advanced installer or UI improvement.
 Keep the current supported manifest subset explicit and gather acceptance evidence as it expands.
 
-## Optional Fetcher experimental-server preset
+## Experimental preset implementation notes
 
-This is separate from general launcher/Vanilla work. Starwind compatibility is an explicit
+This is now the first deployment priority. Starwind compatibility is an explicit
 server-profile layer and is never injected into another owner's ordinary Starwind setup.
-The new optional preset omits Mario Race and the Zelda beta mod at the operator's request;
-the legacy list and existing installation retain them.
+The original two ModDB archives were excluded from the source audit; the new combined direct
+package supplies their unchanged installed content instead. See LEGACY-RACES.md.
 
 All 99 original archives for the remaining 90 mods, 37 native compatibility fixes and the
 explicit Starwind owned-asset isolation path pass their respective tests. Finish remaining
 installed-layout/version differences (including the separately installed shader version),
 plugin/groundcover order, and matching full-preset client/server game-join acceptance before
-publishing that complete preset. Those component checks alone do not establish full parity.
+publishing that complete preset. The TR/TD update needs new acceptance; the old source audit
+does not validate those replacement versions. Component checks alone do not establish full parity.
 See PRESET-AUTHORING.md. Preserve the original installation and rollback sources.
 
 ## Deferred owner-list authoring tools
