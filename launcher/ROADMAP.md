@@ -21,26 +21,23 @@ an isolated world join pass on PillowPC. See VANILLA-VPS-ACCEPTANCE.md and WINDO
 Startup checks for updates without installing them. Successful changes to the launcher's own
 executable/interface restart it after a verified readiness handoff; content/client-only updates
 do not. Older builds need one manual reopen on their first upgrade. See AUTO-UPDATES.md.
-The published theme release is signed source `02c73c8`: Graphite, Obsidian, Deep Space and
-Ember, with persistent selection and floating skooma rockets.
+The four themes added in signed source `02c73c8` remain: Graphite, Obsidian, Deep Space and
+Ember, with persistent selection and floating skooma rockets. Published source `5f500bb`
+also avoids rehashing unchanged large package caches on every Play.
 
 Owner documentation now includes a manual UMO-list authoring walkthrough, embedded Nexus
 example, archive hashing, folder/load-order selection and master publication. Start with
 [SERVER-OWNER-GUIDE.md](SERVER-OWNER-GUIDE.md) and [PROFILE-FORMAT.md](PROFILE-FORMAT.md).
 
-## Current priority: experimental Fetcher server
+## Experimental Fetcher server: deployed and joined
 
-1. Finish the full port-25564 server profile and a fresh launcher-based join using a **free**
-   Nexus account. Reconcile the complete installed layout, required compatibility layers,
-   plugin/groundcover order and matching server authority before advertising it automatically.
-   This server remains separate from Vanilla and from other owners' ordinary Starwind installs.
-2. Keep Mario Race and the Zelda beta through one small, hash-pinned GitHub ZIP, retaining
-   source credits and the unchanged plugins. The original ModDB archive entries are replaced
-   by a direct package; do not require users to find the two original RARs manually.
-3. Use the official TR/TD mirrors for the experimental candidate. The operator approved updating
-   from TR 25.08.12 / TD 25.05 to TR 26.08a / TD 26.08. Validate the new layouts, dependencies,
-   compatibility and authority together before the live cutover. Download speed still depends
-   on the mirror; the purpose is to avoid the Nexus free-download approval steps for these files.
+Port 25564 now advertises its full 103-package profile automatically. The normal local install
+prepared it and joined the real VPS world with its existing character and unchanged game client.
+TR 26.08a / TD 26.08 use the official mirrors; Mario/Zelda use the credited, pinned combined ZIP.
+The explicit Starwind compatibility layer belongs only to this server profile. Vanilla's running
+game process, authority and database were preserved. See [EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md)
+for evidence and limits, including reuse of the audited archive cache rather than a new free-account
+download of every Nexus file.
 
 ## Next usability priorities
 
@@ -50,6 +47,9 @@ example, archive hashing, folder/load-order selection and master publication. St
    After the new setup passes, offer explicit cleanup of obsolete TR/TD folders and unused cache
    versions. Check current and saved configuration references first; preserve active installs and
    retained rollback versions. Never merge a new TR release over the old extracted folder.
+   The managed TR/TD migration already selects fresh directories and excludes the old roots;
+   it does not yet delete old versions. Cleanup must distinguish launcher-owned cache entries
+   from older UMO/manual installations and leave unverified ownership alone.
 2. **Ping in both browsers.** Add client-measured latency to the launcher and the in-game server
    browser, with bounded background probes, refresh/sorting and a clear unavailable/timeout state.
    A master's HTTP response time is not a player's latency to the game server.
@@ -81,18 +81,16 @@ Keep the current supported manifest subset explicit and gather acceptance eviden
 
 ## Experimental preset implementation notes
 
-This is now the first deployment priority. Starwind compatibility is an explicit
+The full profile is deployed. Starwind compatibility is an explicit
 server-profile layer and is never injected into another owner's ordinary Starwind setup.
 The original two ModDB archives were excluded from the source audit; the new combined direct
 package supplies their unchanged installed content instead. See LEGACY-RACES.md.
 
-All 99 original archives for the remaining 90 mods, 37 native compatibility fixes and the
-explicit Starwind owned-asset isolation path pass their respective tests. Finish remaining
-installed-layout/version differences (including the separately installed shader version),
-plugin/groundcover order, and matching full-preset client/server game-join acceptance before
-publishing that complete preset. The TR/TD update needs new acceptance; the old source audit
-does not validate those replacement versions. Component checks alone do not establish full parity.
-See PRESET-AUTHORING.md. Preserve the original installation and rollback sources.
+The archive audit, 37 native compatibility fixes and explicit Starwind owned-asset isolation
+path are combined with updated TR/TD sources and the full plugin/groundcover order. Real
+client/server game-join acceptance passes. Broader clean-download, long-session and device
+coverage remains. Preserve the original installation and rollback sources until guarded
+cleanup is available. See PRESET-AUTHORING.md and the acceptance report.
 
 ## Deferred owner-list authoring tools
 

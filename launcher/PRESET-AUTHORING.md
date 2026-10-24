@@ -8,7 +8,9 @@ instead of removing the two mods. See LEGACY-RACES.md and presets/fetcher-legacy
 The legacy UMO entries now reference that shared archive; native packages cache it once by hash.
 The new official TR 26.08a / TD 26.08 replacement definitions are in
 presets/fetcher-simulation-official-tr.json. They are candidate package fragments, not a complete
-server profile. Updating the live authority and completing full-preset acceptance remain required.
+server profile. The deployed full profile is now in presets/fetcher-simulation.json; see
+[EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md) for its coordinated cutover and
+real launcher/world-join evidence.
 
 Developer authoring uses Python and a local 7-Zip executable to inventory original archives;
 players do not need either tool for native profile preparation. These scripts read the UMO

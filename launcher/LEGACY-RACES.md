@@ -53,7 +53,7 @@ Validation on 2026-10-23:
 This small bundle removes the two manual ModDB steps. It does not itself complete the full
 experimental profile, update server authority, or advertise that profile through the master.
 
-## Official TR/TD replacement candidate
+## Official TR/TD replacement
 
 [presets/fetcher-simulation-official-tr.json](presets/fetcher-simulation-official-tr.json) records
 the direct Google Drive downloads linked from the official TR and Tamriel Data pages, checked
@@ -63,8 +63,9 @@ on 2026-10-23. The operator approved updating the candidate to TR **26.08a** and
 TR's data roots are now `00 Core/Data Files` and `01 Faction Integration/Data Files`.
 TD uses `00 Data Files`; its optional normal maps are not selected. The two bundled desktop
 tools are explicitly removed from the derived layout; the launcher does not run them.
-These files are package fragments for the full experimental profile. The current live authority
-still needs a coordinated, tested cutover before clients switch to these versions.
+These files are package fragments. The full [experimental profile](presets/fetcher-simulation.json)
+and matching live authority completed their coordinated cutover on 2026-10-24; see
+[EXPERIMENTAL-VPS-ACCEPTANCE.md](EXPERIMENTAL-VPS-ACCEPTANCE.md).
 
 The real native WinHTTP download/hash/extraction/preparation test passes for both official
 archives without Nexus: TR is 68,228,280 bytes and TD is 885,319,384 bytes. The test uses a fresh

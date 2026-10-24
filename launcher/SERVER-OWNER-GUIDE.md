@@ -1,6 +1,6 @@
 # Server setup and launcher mod lists
 
-Use the engine's [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/f1542ea63f07b3d9471342f408b318dac904026c/files/server/server-setup-guide.md)
+Use the engine's [dedicated-server setup guide](https://github.com/Fetcher-Simulator/Fetcher-Simulator/blob/2fdbcfa5a76b7323e3b65f42d4de65939669f8d5/files/server/server-setup-guide.md)
 for the server distribution, UDP firewall/NAT, `server.cfg`, server scripts and generating
 `content-authority/` from a known-good client. This guide adds the launcher-facing mod list.
 The complete schema and installation limits are in [PROFILE-FORMAT.md](PROFILE-FORMAT.md).
@@ -10,6 +10,14 @@ shipped in engine commit `0f1aa3c5c5` / tag `Fetcher-Server-Profiles-1`. The cur
 master and launcher support it. Older server binaries cannot advertise the new field.
 Profiles over the original 256 KiB cap require the newer 2 MiB-capable launcher, server and
 master together; updating the launcher alone does not raise an older server/master's limit.
+Current Tamriel Data also needs the headless localization/default-settings fixes in
+`Fetcher-Server-Profiles-4`.
+
+When generating authority from a prepared launcher profile, include the matching client's
+`fetcher-canonical-fallbacks.cfg` before preparation. Do not construct a reference fixture from
+only its mod directories: missing fallbacks can change Lua-created game settings and reject
+an otherwise byte-identical client. The deployed example is
+[presets/fetcher-simulation.json](presets/fetcher-simulation.json), specific to the Fetcher server.
 
 ## 1. Decide exactly what players need
 
