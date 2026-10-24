@@ -8,6 +8,9 @@ does not delete manual mod folders.
 Select the experimental Fetcher server, close this installation's clients/local servers and open
 **Updates → Older TR / Tamriel Data installation**:
 
+This panel appears only when supported old folders or a migration record are present.
+Unrelated and fresh installations do not show this Fetcher-specific migration panel.
+
 1. **Prepare / preview migration** prepares the current profile, checks replacement masters and
    lists supported old folders/configurations. It does not remove old files.
 2. **Migrate configurations** verifies the old file contents, backs up affected configurations,
@@ -28,8 +31,9 @@ the deleted game content. Original cached archives are outside this cleanup.
 
 The launcher ships an inventory of 47,039 original file paths/sizes/hashes derived from the
 audited, pinned TD/TR archives. It is embedded as inert JSON in the existing interface bundle,
-preserving older launchers' update allowlists, and has a compiled-in SHA-256. It contains
-metadata, not game assets. Unknown/modified files, links, stale previews and edited configurations
+preserving older launchers' update allowlists, and has a compiled-in SHA-256. Canonical LF line
+endings keep verification stable across Windows and source checkouts. It contains metadata,
+not game assets. Unknown/modified files, links, stale previews and edited configurations
 block the operation. Only the two fixed legacy Fetcher folders and current known replacement
 versions are supported; server JSON cannot authorize deletion paths or define migrations.
 

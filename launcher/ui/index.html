@@ -890,7 +890,7 @@
             <p class="footer">Sizes are estimates of logical files; shared or compressed files may free less space.
               Legacy/manual mod folders, saves and character data are never removed here.</p>
           </div>
-          <div class="panel">
+          <div class="panel" id="legacyMigrationPanel" hidden>
             <h3>Older TR / Tamriel Data installation</h3>
             <p class="muted">Select the current Fetcher experimental server first. Migration prepares its content,
               updates legacy data paths while keeping load orders/settings, and moves verified old folders aside.
@@ -1362,6 +1362,7 @@ Fetcher native launcher ready.
           $("cleanupMessage").textContent += ` ${cleanup.candidates.length} unused entries, up to ${formatBytes(cleanup.bytes)}; ${cleanup.retained} retained. Entries are fully verified again before removal.`;
         $("cleanCache").disabled = busy || !cleanup?.canClean;
         const migration = state.migration, phase = state.migrationStatus?.phase || "none";
+        $("legacyMigrationPanel").hidden = !state.legacyMigrationAvailable && phase === "none";
         $("stageLegacy").disabled = busy || !migration?.canMigrate || ["staged", "staging", "removing"].includes(phase);
         $("finishLegacy").disabled = busy || !["staged", "removing"].includes(phase);
         $("restoreLegacy").disabled = busy || !["staged", "staging"].includes(phase);

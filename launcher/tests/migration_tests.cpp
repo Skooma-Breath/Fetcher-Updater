@@ -2,6 +2,7 @@
 #include "server_ping.hpp"
 #include <iostream>
 #include <windows.h>
+#include <algorithm>
 using namespace fetcher;
 namespace
 {
@@ -33,6 +34,17 @@ int main()
     try
     {
         fs::create_directories(root);
+        wchar_t executable[32768]{};
+        GetModuleFileNameW(nullptr, executable, 32768);
+        auto shipped = fs::path(executable).parent_path() / "ui/index.html";
+        auto shippedInventory = loadLegacyInventory(shipped);
+        check(shippedInventory.at("packages").size() == 2,
+            "actual generated Windows interface carries valid pinned inventory");
+        auto lf = read(shipped);
+        lf.erase(std::remove(lf.begin(), lf.end(), '\r'), lf.end());
+        writeAtomic(root / "lf-interface.html", lf);
+        check(loadLegacyInventory(root / "lf-interface.html") == shippedInventory,
+            "LF and CRLF interface payloads verify identically");
         check(fs::weakly_canonical(root.parent_path()) == fs::weakly_canonical(fs::temp_directory_path()),
             "fixture confined to temp directory");
         Json inventory = { { "packages", Json::array() } };

@@ -401,6 +401,8 @@ Json Backend::state() const {
         {"cleanup", mCleanup},
         {"migration", mMigration},
         {"migrationStatus", legacyMigrationStatus(mRoot)},
+        {"legacyMigrationAvailable", fs::exists(mRoot/"Data Files/fetcher-simulator/ModdingResources/TamrielData") ||
+                                     fs::exists(mRoot/"Data Files/fetcher-simulator/Landmasses/TamrielRebuilt")},
         {"profileReview", mReview},
         {"nexusKeySaved", fs::is_regular_file(mManaged / "nexus-key.bin")},
         {"nexusProvider", mSettings.value("nexusProvider", "umo")},
@@ -971,17 +973,7 @@ Json Backend::command(const Json &q) {
     if (op == "init")
         return state();
     if(op=="previewLegacy" || op=="stageLegacy" || op=="finishLegacy" || op=="restoreLegacy") {
-        auto resource=mRoot/"ui/index.html";
-        noLinks(resource);
-        auto html=read(resource,16*1024*1024);
-        const std::string marker="<script type=\"application/json\" id=\"fetcherLegacyInventory\">\n";
-        auto begin=html.find(marker);
-        need(begin!=std::string::npos,"Legacy verification inventory is missing. Update the launcher first.");
-        begin+=marker.size();auto end=html.find("</script>",begin);
-        need(end!=std::string::npos,"Legacy verification inventory is incomplete. Update the launcher first.");
-        auto bytes=html.substr(begin,end-begin);
-        need(textSha256(bytes)=="5f64400ea8056ac72f9b1bf382183e0bc51eb036f503999565ebb60d74070329","Legacy verification inventory is modified. Repair the launcher first.");
-        auto inventory=parseJson(bytes,16*1024*1024);
+        auto inventory=loadLegacyInventory(mRoot/"ui/index.html");
         Json replacements=Json::object();
         if(op!="restoreLegacy") {syncDiscoveredProfile();assertGameStopped(mRoot);prepare();replacements=legacyReplacements();}
         auto action=op=="previewLegacy"?"preview":op=="stageLegacy"?"stage":op=="finishLegacy"?"finish":"restore";

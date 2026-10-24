@@ -2,6 +2,7 @@
 #include "native_platform.hpp"
 namespace fetcher
 {
+    Json loadLegacyInventory(const fs::path& interfaceFile);
     // Inventory and replacement roots come from trusted launcher code, never a
     // server action.
     Json legacyMigration(const fs::path& root, const Json& inventory, const Json& replacements,

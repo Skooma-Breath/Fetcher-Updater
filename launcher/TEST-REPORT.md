@@ -2,7 +2,8 @@
 
 - Seven launcher CTest suites pass, including staged migration/restore/final removal, stale
   previews, same-size timestamp-preserving edits, unknown files, external includes, links,
-  retained personal settings and the pinned embedded-inventory integrity check.
+  retained personal settings, pinned embedded-inventory integrity and real generated-interface
+  LF/CRLF verification parity.
 - Native HTTP/package integration passes with Unicode, spaces and ampersands. WebView2's
   eleven smoke checks include migration and ping controls. The verification inventory is
   embedded as inert JSON in the existing UI payload, keeping the old tools path allowlist.

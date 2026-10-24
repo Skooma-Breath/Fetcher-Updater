@@ -204,6 +204,27 @@ namespace fetcher
             return fs::exists(path) ? readJson(path) : Json::object();
         }
     }
+    Json loadLegacyInventory(const fs::path& interfaceFile)
+    {
+        noLinks(interfaceFile);
+        auto html = read(interfaceFile, 16 * 1024 * 1024);
+        const std::string marker = "<script type=\"application/json\" id=\"fetcherLegacyInventory\">";
+        auto begin = html.find(marker);
+        need(begin != std::string::npos, "Legacy verification inventory is missing. Update the launcher first.");
+        begin += marker.size();
+        if (begin < html.size() && html[begin] == '\r')
+            ++begin;
+        need(begin < html.size() && html[begin] == '\n', "Legacy verification inventory has an invalid header.");
+        ++begin;
+        auto end = html.find("</script>", begin);
+        need(end != std::string::npos, "Legacy verification inventory is incomplete. Update the launcher first.");
+        auto bytes = html.substr(begin, end - begin);
+        // configure_file and Windows checkouts may use CRLF. Pin canonical LF bytes.
+        bytes.erase(std::remove(bytes.begin(), bytes.end(), '\r'), bytes.end());
+        need(textSha256(bytes) == "09eac1458c4360b0f7c965c72bab9fdb177b7f91053b6cc7fcbc4a0271df1b09",
+            "Legacy verification inventory is modified. Repair the launcher first.");
+        return parseJson(bytes, 16 * 1024 * 1024);
+    }
     Json legacyMigrationStatus(const fs::path& root)
     {
         auto record = readRecord(root);
