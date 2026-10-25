@@ -6,7 +6,7 @@ local function check(value, message)
     checks = checks + 1
     assert(value, message)
 end
-local messages, broadcasts, relayed, placed, runtime, physics = {}, {}, {}, {}, {}, {}
+local messages, broadcasts, relayed, placed, runtime, physics, sent = {}, {}, {}, {}, {}, {}, {}
 local uptime = 65
 local player = {guid=1, name='Operator', cell='ToddTest', position={x=10,y=20,z=30,rz=0}}
 function player:sendMessage(message) messages[#messages+1] = message end
@@ -38,6 +38,7 @@ package.loaded.mp = {
     getWorldTime=function() return 8.5 end,
     broadcast=function(text) broadcasts[#broadcasts+1]=text end,
     relayChat=function(guid,text) relayed[#relayed+1]={guid,text} end,
+    send=function(guid,event,data) sent[#sent+1]={guid=guid,event=event,data=data} end,
     log=function() end,
     setCellPhysics=function(cell, settings) physics[cell]=settings end,
     setGlobalPhysics=function() return true end,
@@ -63,6 +64,9 @@ chat('/time'); check(output():find('08:30',1,true), '/time works')
 chat('/uptime'); check(output():find('01m 05s',1,true), '/uptime works')
 chat('/help')
 check(output():find('/f',1,true) and output():find('/marks',1,true), 'help includes common commands')
+check(output():find('/appearance',1,true), 'help includes appearance editor command')
+chat('/appearance')
+check(#sent==1 and sent[1].guid==1 and sent[1].event=='AppearanceEditor_Message' and sent[1].data.op=='toggle', 'appearance command reaches only its authenticated client')
 check(not output():find('/placeat',1,true), 'non-admin help hides admin commands')
 check(not output():find('/bc',1,true) and not output():find('/spawner',1,true), 'help excludes unsupported modules')
 chat('/placeat "daedric mace" 2 64 0')
