@@ -98,8 +98,14 @@ Json bootstrapInstall(const fs::path &directory, const Log &log, const std::stri
                 need(channel.at("clientAssetName") == "fetcher-simulator.zip",
                      "Unsupported client archive name in the setup channel.");
             } else {
-                inventoryContains(stage, "fetcher-client-files.json", {"openmw.exe"});
+                inventoryContains(stage, "fetcher-client-files.json",
+                                  {"openmw.exe", "openmw-wizard.exe", "openmw-iniimporter.exe",
+                                   "qt6core.dll", "qt6gui.dll", "qt6widgets.dll", "qt6svg.dll",
+                                   "platforms/qwindows.dll", "imageformats/qsvg.dll",
+                                   "iconengines/qsvgicon.dll", "qt.conf"});
                 executable(stage / "openmw.exe");
+                executable(stage / "openmw-wizard.exe");
+                executable(stage / "openmw-iniimporter.exe");
                 need(fs::is_directory(stage / "resources" / "vfs-mw"),
                      "Client setup package is missing resources/vfs-mw.");
             }

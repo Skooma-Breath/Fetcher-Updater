@@ -1380,6 +1380,13 @@ Json Backend::command(const Json &q) {
         return state();
     }
     if (op == "wizard") {
+        for (const auto *name : {"openmw-wizard.exe", "openmw-iniimporter.exe",
+                                 "platforms/qwindows.dll", "qt.conf"}) {
+            if (!fs::is_regular_file(mRoot / name))
+                throw std::runtime_error(
+                    "Setup wizard files are missing. Close the game and use Updates > Install "
+                    "updates. You can also select Morrowind Data Files under Mods > Save folder.");
+        }
         launch(mRoot / L"openmw-wizard.exe", {}, mRoot);
         return state();
     }

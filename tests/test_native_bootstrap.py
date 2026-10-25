@@ -81,6 +81,11 @@ def main():
             'clientRepository': 'Fetcher-Simulator/Fetcher-Simulator', 'clientReleaseTag': 'Fetcher-Simulator',
             'clientAssetName': 'fetcher-simulator.zip'}).encode()
         engine_files = {'openmw.exe': fixture.read_bytes(), 'resources/vfs-mw/fixture.txt': b'test-only client resources'}
+        engine_files.update({name: fixture.read_bytes() for name in ['openmw-wizard.exe', 'openmw-iniimporter.exe']})
+        engine_files.update({name: b'test-only Qt dependency' for name in [
+            'Qt6Core.dll', 'Qt6Gui.dll', 'Qt6Widgets.dll', 'Qt6Svg.dll', 'platforms/qwindows.dll',
+            'imageformats/qsvg.dll', 'iconengines/qsvgicon.dll']})
+        engine_files['qt.conf'] = b'[Paths]\nPlugins=.\nTranslations=resources/translations\n'
         tools_bytes = package(tool_files, 'fetcher-tester-tools.json')
         client_bytes = package(engine_files, 'fetcher-client-files.json')
         archive_bytes = {'tools': tools_bytes, 'client': client_bytes}
@@ -168,6 +173,15 @@ def main():
             assert not any(path == '/mod.zip' for path in requested)
             state = command({'op': 'init'})
             assert state['setup'] == {'clientInstalled': True, 'gameDataReady': False, 'profilePrepared': False}
+            capture = root / 'launch-capture.json'
+            command({'op': 'wizard'})
+            assert wait_fixture(capture, root)['arguments'] == []
+            capture.unlink()
+            wizard = root / 'openmw-wizard.exe'
+            wizard_bytes = wizard.read_bytes()
+            wizard.unlink()
+            assert 'Updates > Install updates' in command({'op': 'wizard'}, success=False)['error']
+            wizard.write_bytes(wizard_bytes)
             command({'op': 'gameData', 'path': str(game)})
             profile = {'schemaVersion': 1, 'id': 'bootstrap-profile', 'name': 'Bootstrap profile fixture',
                 'version': '1', 'host': '127.0.0.1', 'port': 25570,
@@ -257,17 +271,21 @@ def main():
                 assert_files(original | markers)
                 assert not (root / '_fetcher_launcher/staging/escaped.txt').exists()
             archive_bytes['tools'] = served_bytes['tools'] = tools_bytes
-            for mode in ['protected', 'protected-setup', 'wrong-platform']:
+            for mode in ['protected', 'protected-setup', 'wrong-platform', 'wizard-platform',
+                         'openmw-wizard.exe', 'openmw-iniimporter.exe', 'platforms/qwindows.dll', 'qt.conf']:
                 changed = dict(engine_files)
                 if mode == 'protected':
                     changed['settings.cfg'] = b'overwrite personal settings'
                 elif mode == 'protected-setup':
                     changed['FetcherSetup.exe'] = b'overwrite setup executable'
-                else:
-                    image = bytearray(changed['openmw.exe'])
+                elif mode in ['wrong-platform', 'wizard-platform']:
+                    name = 'openmw-wizard.exe' if mode == 'wizard-platform' else 'openmw.exe'
+                    image = bytearray(changed[name])
                     pe = struct.unpack_from('<I', image, 60)[0]
                     image[pe + 4:pe + 6] = bytes([0x4c, 1])
-                    changed['openmw.exe'] = image
+                    changed[name] = image
+                else:
+                    changed.pop(mode)
                 archive_bytes['client'] = served_bytes['client'] = package(changed, 'fetcher-client-files.json')
                 install(success=False)
                 assert_files(original | markers)
@@ -281,7 +299,8 @@ def main():
             assert all((game / name).read_bytes() == value for name, value in owned.items())
             print(f'PASS native bootstrap: {operations} process operations; fresh install, real launcher handoff, '
                   'owned game/profile readiness, cache repair, running-client guard, bad downloads/inventories, '
-                  'protected settings, x64 validation and interrupted-install recovery. Test client only; no game join.')
+                  'protected settings, wizard handoff/missing runtime, x64 validation and interrupted-install recovery. '
+                  'Recording executables only; no real Qt wizard or game join.')
         finally:
             server.shutdown()
             server.server_close()

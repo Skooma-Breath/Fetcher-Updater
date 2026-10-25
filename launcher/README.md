@@ -6,6 +6,18 @@ for the engine setup guide, UMO JSON authoring and automatic publication through
 Windows C++17 backend with the existing WebView2/web-interface approach. The new
 launcher does not run PowerShell for its update/mod-profile actions.
 
+For first installation, select your owned Morrowind `Data Files` under Mods and press
+**Save folder**, or use **Setup wizard** to import an existing Morrowind installation.
+The Windows client package must include `openmw-wizard.exe`, `openmw-iniimporter.exe`
+and the local Qt Windows/SVG plugins with `qt.conf`. CI and native Setup reject packages
+missing those files. If an older install says the wizard is missing, close the game and
+use **Updates → Install updates**.
+
+The native bootstrap regression uses recording executables to test handoff and package
+rejection. Release acceptance must also start the real Qt wizard through the installed
+launcher's `wizard` action, confirm its `OpenMW Wizard ready` log and local Windows
+plugin, and run the packaged INI importer from an isolated fresh install.
+
 Implemented:
 
 - Appearance picker with Graphite (default), Obsidian, Deep Space and Ember themes, themed
