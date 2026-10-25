@@ -10,12 +10,12 @@ package v6. The published Experimental client and normal local installation are 
 - [Experimental client workflow](https://github.com/Fetcher-Simulator/Fetcher-Simulator/actions/runs/40228906603).
   This existing workflow automatically publishes `fetcher-simulator.zip` on
   `Fetcher-Simulator-Experimental` when successful.
-- The VPS push/build hook is compiling the same source into
+- The VPS push/build hook compiled the same source into
   `/srv/fetcher-release-staging/20261025-appearance-editor/dist`.
-  The temporary hook directs this build away from both live roots; the deployment
-  script restores the tracked normal hook after successful staging.
-- Existing public builds use OpenMW Lua API 141; the editor needs matching API 142
-  client/server builds. Do not announce tester updates until server cutover passes.
+  A temporary hook directed the build away from both live roots; the deployment
+  script restored the tracked normal hook after successful staging.
+- Prior public builds used OpenMW Lua API 141; both live servers and the new client
+  now use API 142. The editor is ready for tester updates.
 
 ## Staged state
 
