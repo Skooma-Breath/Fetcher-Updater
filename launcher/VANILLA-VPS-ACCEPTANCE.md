@@ -166,3 +166,37 @@ pushes; matching defaults installation is fixed in engine source 6349b2c.
 Launch the normal FetcherLauncher.exe, choose Fetcher Vanilla and Play. The prepared operator
 identity selects Studio Test. Players upgrading through the old launcher should wait for success,
 close that window and reopen it to enter the native interface.
+
+## Surf defaults and Kitsune spawn — 2026-10-25
+
+Vanilla's private `server-scripts/config.lua` now contains `SPAWN_CELL`,
+`DEFAULT_SPAWN` and `DEFAULT_PLAYER_MARKS` copied from the experimental server's
+configuration. Only those settings were transferred; Vanilla retains its minimal
+module allowlist, Studio settings, health endpoint and existing admin credentials.
+The shared `mark_recall.lua` was already identical on both servers.
+
+New characters spawn in `surf_kitsune_mw` at the existing Kitsune start mark
+(-0.8005232810974121, -2016.4405517578125, 192.99996948242188), with its saved rotation.
+New characters receive `kitsune`, `utopia` and `mesa` marks. Returning characters
+retain their saved locations and can use `/recall kitsune`, `/recall utopia` or
+`/recall mesa`; `/marks` lists them alongside personal marks.
+
+The native server seeds defaults only for new characters. An offline transaction
+therefore added the eight missing default entries across the three existing Vanilla
+characters. Existing names are matched without case sensitivity and are never
+overwritten. All three original marks remain unchanged. A backup-copy trial verified
+that repeating the backfill adds nothing and leaves every other table unchanged.
+After restarting only Vanilla with zero connected players, all 19 protected account/
+character tables, including character Lua storage and saved locations, match the
+shutdown backup; SQLite integrity is OK. Both health endpoints and public listings
+are healthy, and Vanilla's advertised owner-profile digest still matches its file.
+The experimental process was preserved.
+
+Validation covers parsing the installed Lua settings, exact source/staged value
+matching, installed surf-plugin presence, database preservation and the native restart.
+An interactive new-character join was not performed. Native startup logs may remain
+buffered while idle, so a missing live log line is not treated as a settings failure.
+Private rollback inputs and receipts are under
+`/srv/fetcher-release-backups/20261025-vanilla-surf-defaults`; local operator scripts
+and receipts are in ignored `release-assets/vanilla-surf-defaults-20261025`.
+No launcher, client or content release was needed for this configuration change.
