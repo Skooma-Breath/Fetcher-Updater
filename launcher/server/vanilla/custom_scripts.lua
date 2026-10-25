@@ -17,5 +17,6 @@ return {
     markRecallCommands = require("mark_recall"),
     speechCommands = require("speech_commands"),
     surfCommands = require("surf_commands"),
+    surfTimer = require("surf_timer"),
     vehicleCommands = require("vehicle_commands"),
 }

@@ -7,6 +7,7 @@ local function check(value, message)
     assert(value, message)
 end
 local messages, broadcasts, relayed, placed, runtime, physics = {}, {}, {}, {}, {}, {}
+local uptime = 65
 local player = {guid=1, name='Operator', cell='ToddTest', position={x=10,y=20,z=30,rz=0}}
 function player:sendMessage(message) messages[#messages+1] = message end
 function player:setNickname(name) self.nickname = name end
@@ -33,7 +34,7 @@ package.loaded.mp = {
     getPlayer=function(guid) return players[guid] end,
     getPlayers=function() return {player} end,
     getPlayerCount=function() return 1 end,
-    getUptime=function() return 65 end,
+    getUptime=function() return uptime end,
     getWorldTime=function() return 8.5 end,
     broadcast=function(text) broadcasts[#broadcasts+1]=text end,
     relayChat=function(guid,text) relayed[#relayed+1]={guid,text} end,
@@ -85,6 +86,26 @@ chat('/placeat iron_dagger'); check(#placed == 1 and runtime['1'] == nil, 'disco
 local health = adapter.interface.handleAdminUiHttp({action='health'})
 check(health.status == 200 and health.body:find('"ok":true',1,true), 'existing health endpoint preserved')
 check(adapter.interface.handleAdminUiHttp({action='other'}).status == 404, 'other HTTP actions remain disabled')
+-- Exercise the real timer through the Vanilla adapter and shared core, using
+-- the same event shape sent by the installed surf-map triggers.
+check(type(adapter.eventHandlers.SurfTimerTrigger) == 'function', 'Vanilla forwards surf timer events')
+player.cell='surf_kitsune_mw'
+messages={}; local broadcastsBefore=#broadcasts
+adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='start'})
+check(#messages==0 and #broadcasts==broadcastsBefore, 'surf start is silent')
+uptime=130.25
+adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='finish'})
+check(output():find('Surf finished in 1:05.250s.',1,true), 'finish reports elapsed server time to player')
+check(#broadcasts==broadcastsBefore+1 and broadcasts[#broadcasts]:find('Operator finished surf_kitsune_mw in 1:05.250s',1,true), 'finish broadcasts player, map and time')
+messages={}; adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='finish'})
+check(output():find('no active timer',1,true) and #broadcasts==broadcastsBefore+1, 'duplicate finish cannot award another run')
+messages={}; adapter.eventHandlers.SurfTimerTrigger({pid=1,map='surf_mesa_mw',trigger='start'})
+adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='finish'})
+check(output():find('no active timer',1,true), 'trigger from another cell cannot start a run')
+adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='start'})
+adapter.eventHandlers.OnPlayerDisconnect({guid=1,name=player.name})
+messages={}; adapter.eventHandlers.SurfTimerTrigger({pid=1,map=player.cell,trigger='finish'})
+check(output():find('no active timer',1,true), 'disconnect clears an active run')
 -- No implicit default admin password on minimal server configurations.
 for _, password in ipairs({false, ''}) do
     package.loaded.config.ADMIN_PASSWORD = password or nil

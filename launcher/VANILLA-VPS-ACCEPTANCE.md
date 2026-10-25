@@ -120,7 +120,7 @@ Static-item activation retains native mutation validation and the shared range/c
 
 Install core.lua, intent_policy.lua, command_registry.lua, recordstore.lua, mark_recall.lua,
 speech_commands.lua, speech_data.lua, starwind_speech_data.lua, custom_speech_data.lua,
-surf_commands.lua and vehicle_commands.lua from the engine source, plus Studio's modules/package.
+surf_commands.lua, surf_timer.lua and vehicle_commands.lua from the engine source, plus Studio's modules/package.
 The extra speech data tables are metadata dependencies, not additional installed client mods.
 Run `lua tests/test_vanilla_commands.lua ../openmw` from the updater repository to check actual
 shared dispatch, help filtering, placement permissions, quoted arguments, disconnect cleanup,
@@ -200,3 +200,18 @@ Private rollback inputs and receipts are under
 `/srv/fetcher-release-backups/20261025-vanilla-surf-defaults`; local operator scripts
 and receipts are in ignored `release-assets/vanilla-surf-defaults-20261025`.
 No launcher, client or content release was needed for this configuration change.
+
+## Surf finish timer wiring — 2026-10-25
+
+The Vanilla adapter explicitly loads the shared `surf_timer.lua` module through
+`custom_scripts.lua` and forwards `SurfTimerTrigger` to core's handler. The installed
+surf maps already send start/finish events; no client or content change is required.
+Starts are silent. A valid finish sends the performer their elapsed server time and
+broadcasts the player's name, map and time. Shared disconnect handling clears the run.
+
+Deploy the shared timer dependency with both adapter files. Wiring only the module or
+only the event is insufficient. `tests/test_vanilla_commands.lua` now exercises the real
+adapter/core/timer path: silent start, elapsed finish and broadcast, duplicate finish,
+wrong-cell start rejection and disconnect cleanup, alongside existing command and
+health coverage (37 checks). Private deployment inputs and rollback files are under
+`/srv/fetcher-release-backups/20261025-vanilla-surf-timer`.

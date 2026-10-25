@@ -30,6 +30,7 @@ return {
         OnPlayerConnect = core.eventHandlers.OnPlayerConnect,
         OnPlayerDisconnect = core.eventHandlers.OnPlayerDisconnect,
         OnPlayerSendMessage = core.eventHandlers.OnPlayerSendMessage,
+        SurfTimerTrigger = core.eventHandlers.SurfTimerTrigger,
         Activate = core.eventHandlers.Activate,
         OnDoorState = core.eventHandlers.OnDoorState,
     },
