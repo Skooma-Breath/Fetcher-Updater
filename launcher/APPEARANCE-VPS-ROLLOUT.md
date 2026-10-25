@@ -1,7 +1,7 @@
 # Appearance editor rollout — 2026-10-25
 
-Status: builds running; public server cutover pending. Neither public game process
-has been restarted for this rollout. The operator will report back when builds finish.
+Status: completed. Both public servers run the matching API-142 build and appearance
+package v6. The published Experimental client and normal local installation are updated.
 
 ## Build inputs
 
@@ -44,7 +44,7 @@ Validation so far: 255 appearance checks, 39 Vanilla command/timer checks, and L
 syntax checks for both staged script trees. The live editor previously passed local
 preview/save/reconnect, mixed-part persistence and actual renderer-facing checks.
 
-## Finish after builds
+## Deployment procedure
 
 1. Confirm both builds succeeded. A successful staged VPS deployment must contain
    its new executable/defaults and have restored the normal bare-repository hook.
@@ -69,3 +69,58 @@ preview/save/reconnect, mixed-part persistence and actual renderer-facing checks
 The launcher already resolves the Experimental asset digest and client inventory;
 the appearance feature does not require another launcher binary/tools release.
 No ARM server GitHub asset is required.
+
+## Completed validation
+
+The workflow succeeded and published `fetcher-simulator.zip`, SHA-256
+`c3f4951ae0845d86923a42490ce25bcd816268045b20fd7a4d71f5cd1ebb4b82`.
+All 677 managed files, setup wizard/importer and embedded launcher/tools verified.
+The package is delivered by the servers, rather than requiring a separate client mod.
+
+The VPS compiled successfully. Its staging guard initially stopped because the deployed
+master image is `openmw-master-server:profile2m-20261023`, rather than the script's
+`:local` default. Rerunning staging with `OPENMW_MASTER_IMAGE` set to that existing
+image validated that protocols 1–24 were already admitted. The master container and
+configuration were unchanged. Future scripted deployments on this host must retain
+that image override. The normal tracked post-receive hook is restored and verified.
+
+The published client passed private tests of both real content profiles using fresh
+test databases and an SSH datagram bridge. `/appearance`, mixed head/hair preview,
+cancel, native save, reopening, camera restoration and unchanged base stats passed.
+These tests made no appearance saves on either public database.
+
+Cutover used zero-player shutdowns and fresh consistent database/Lua-storage backups
+under the private snapshot's `cutover` directory. Existing supervisors restarted the
+servers as their original users. Experimental game PID: `1939576`; Vanilla: `1939593`.
+Health endpoints 8081/8082 report healthy, and ports 25564/25569 remain available.
+All 26 protected player-data tables on each server were identical immediately after
+activation: 53 experimental and 3 Vanilla characters retained. Both DB integrity
+checks pass. Server configuration, default spawn/marks, authority/content, Studio v30,
+all ten experimental packages and the Vanilla Studio package are preserved. Unrelated
+server script counts retained byte-for-byte: 39 experimental and 22 Vanilla.
+
+Installed server SHA-256:
+`9e9cedfbb73b02caf704fc4e6816268c633ac11536cf44ffc22b6e0c53f7c235`.
+Matching defaults SHA-256:
+`fb6a74897ab2672ab1383991338a0982b4796e08645fcc360fe8e208e92268b4`.
+
+The normal installation updated through the existing native launcher. All 125 checked
+personal settings/save/key files were unchanged and all 677 managed files verified.
+It then joined both public servers through automatic server/profile discovery, accepted
+the handshake, activated server Lua and restored its existing characters. The test
+clients were closed and the original selected profile restored. Final health checks
+show both servers healthy and empty; the private test port/servers are stopped.
+
+Existing Inventory Extender/Inventory Camera localization-context errors remain in
+the heavily modded profile. They are also present in the retained 2026-10-23 normal
+join log, and the stock settings Lua is byte-identical between old/new client releases.
+Their existing package sources were deliberately preserved; this rollout does not
+claim to fix unrelated mod errors. Vanilla and appearance editor checks pass.
+
+Evidence is retained in the ignored stage: published-client-verification.json,
+normal-update-verification.json, live-join-report.json and both private client results.
+The VPS stage retains cutover-report.json and final-audit.json. No temporary QA Lua
+package or test character was installed in either public runtime/database.
+
+Testers: close the game, run **Updates → Install updates** in Fetcher Launcher,
+then join either server and type **`/appearance`**. F6 keeps its normal chat binding.
