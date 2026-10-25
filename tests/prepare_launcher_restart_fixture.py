@@ -39,7 +39,7 @@ def main():
         managed.mkdir()
         for kind, repo, tag, asset in [
             ("tools", "Skooma-Breath/Fetcher-Updater", "fetcher-tester-tools", "fetcher-tester-tools.zip"),
-            ("client", "Fetcher-Simulator/Fetcher-Simulator", "Fetcher-Simulator-Studio", "fetcher-simulator.zip")]:
+            ("client", "Fetcher-Simulator/Fetcher-Simulator", "Fetcher-Simulator-Experimental", "fetcher-simulator.zip")]:
             request = Request(f"https://api.github.com/repos/{repo}/releases/tags/{tag}",
                               headers={"User-Agent": "Fetcher-handoff-test"})
             release = json.load(urlopen(request, timeout=30))
@@ -47,7 +47,7 @@ def main():
             (managed / (kind + ".json")).write_text(json.dumps({"sha256": pinned}))
         (root / "fetcher-update-channel.json").write_text(json.dumps({
             "clientRepository": "Fetcher-Simulator/Fetcher-Simulator",
-            "clientReleaseTag": "Fetcher-Simulator-Studio", "clientAssetName": "fetcher-simulator.zip"}))
+            "clientReleaseTag": "Fetcher-Simulator-Experimental", "clientAssetName": "fetcher-simulator.zip"}))
         (root / "fetcher-client-files.json").write_text(json.dumps({"files": [{
             "path": "openmw.exe", "size": (root / "openmw.exe").stat().st_size,
             "sha256": digest((root / "openmw.exe").read_bytes())}]}))

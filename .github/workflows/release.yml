@@ -51,7 +51,7 @@ jobs:
             -Tag "fetcher-tester-tools" `
             -TargetCommit "${{ github.sha }}" `
             -Title "Fetcher Simulator Updater and Tester Tools" `
-            -Notes "For a new installation, download FetcherSetup.exe. The native launcher provides a server browser and mod profiles. Existing installations can use their normal updater, then close and reopen Fetcher Launcher. Setup-Fetcher-Updater.bat remains available as the legacy bootstrap. Studio server/content rollout is separate." `
+            -Notes "New testers can download the complete client ZIP from Fetcher-Simulator/Fetcher-Simulator, tag Fetcher-Simulator-Experimental; it includes FetcherLauncher.exe. FetcherSetup.exe is an alternative downloader. Existing installations use Updates > Install updates, which migrates older Vehicles/Studio client channels automatically. Setup-Fetcher-Updater.bat remains a legacy bootstrap." `
             -Assets @(
               "${{ github.workspace }}\release-assets\fetcher-tester-tools.zip"
               "${{ github.workspace }}\release-assets\FetcherSetup.exe"

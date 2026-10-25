@@ -1,65 +1,34 @@
-Fetcher Simulator test channel
-==============================
+Fetcher Simulator Experimental
+===============================
 
-The normal Fetcher Simulator release remains separate from the multiplayer
-vehicle test. Tester installations receive these updater tools through the
-fetcher-tester-tools prerelease and are routed to the dedicated
-Fetcher-Simulator-Vehicles client release.
-
-Existing clean install
-----------------------
-
-Download and double-click the single Setup-Fetcher-Updater.bat asset from:
-
-   https://github.com/Skooma-Breath/Fetcher-Updater/releases/tag/fetcher-tester-tools
-
-The bootstrap asks for the folder containing openmw.exe, verifies and installs
-the tester tools ZIP, selects the Fetcher-Simulator-Vehicles
-release, and starts the updater. Do not manually copy the individual BAT/PS1
-files. After this one-time bootstrap, use Update-Fetcher-Simulator.bat for every
-client, tool, mod, and Bardcraft patch update.
-
-Required game files
--------------------
-
-1. Morrowind with Tribunal and Bloodmoon.
-
-The updater guides each player through Nexus-hosted downloads using their own
-Nexus account. Nexus-hosted archives are never reuploaded by Fetcher Simulator.
-
-First-time setup
+New installation
 ----------------
 
-1. Run openmw-wizard.exe from this folder.
-2. Point the wizard at your Morrowind installation and finish its setup.
-3. Run Setup-Fetcher-Updater.bat if this began as a clean client.
-4. Follow the updater/UMO prompts for the required test-server mods.
+Download the complete client ZIP (includes FetcherLauncher.exe):
 
-The Bardcraft installer stops before downloading mods if Morrowind.esm is not
-registered in this portable install's openmw.cfg.
+   https://github.com/Fetcher-Simulator/Fetcher-Simulator/releases/download/Fetcher-Simulator-Experimental/fetcher-simulator.zip
+
+1. Extract it to a folder such as C:\Games\FetcherSimulator.
+2. Open FetcherLauncher.exe.
+3. Under Mods, select your owned Morrowind Data Files folder and click Save folder.
+4. Select Fetcher Vanilla or Fetcher Simulator in the server browser.
+5. Enter your server account name and click Play. Required mods and load order are prepared automatically.
+6. Follow any UMO/Nexus sign-in prompts. Free accounts may need Slow download approval.
+
+Morrowind with Tribunal and Bloodmoon is required. The Setup wizard is optional.
+FetcherSetup.exe is an alternative downloader for the same client and tools.
 
 Updating an existing install
 ----------------------------
 
-Close OpenMW and double-click:
+Close the game and choose Updates > Install updates in FetcherLauncher.exe.
+Launcher/tools updates switch older Vehicles/Studio installations to the
+Fetcher-Simulator-Experimental client release before checking the client.
+Settings, accounts and character files are preserved.
 
-   Update-Fetcher-Simulator.bat
-
-For the initial migration from the older updater order, run the same BAT a
-second time after the first successful update. Future channel changes and client
-updates complete in one run because tester tools refresh before client routing.
-
-The updater checks the Fetcher-Simulator-Vehicles Git commit and GitHub release digest.
-Client archives remain owned by Fetcher-Simulator/Fetcher-Simulator. Updater and
-tester-tools releases are owned by Skooma-Breath/Fetcher-Updater. Bardcraft and
-Starwind-specific compatibility patches remain owned by their respective
-repositories. Hash-gated compatibility deltas for other UMO-installed mods,
-including Fashionwind Expanded and Devilish Touch of Madness, are owned by
-Fetcher-Updater.
-It downloads the full client only when the packaged client changed. It checks
-the tester tools and Bardcraft multiplayer patch separately, so script-only
-fixes do not require another full client download. Updater-owned mod deltas are
-included with the tester tools and applied only to verified upstream files.
+Update-Fetcher-Simulator.bat remains available as a legacy fallback.
+Client releases belong to Fetcher-Simulator/Fetcher-Simulator; launcher/tools
+releases belong to Skooma-Breath/Fetcher-Updater.
 
 Client files are staged, hash-verified, and installed with rollback. The updater
 does not overwrite openmw.cfg, settings.cfg, userdata, saves, screenshots, logs,

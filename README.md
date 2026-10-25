@@ -40,7 +40,7 @@ Publishing is intentionally performed only by the GitHub Actions workflow or by 
 The installed updater keeps each release source independent:
 
 - `ClientRepository` defaults to `Fetcher-Simulator/Fetcher-Simulator`.
-- Tester installations receive `fetcher-update-channel.json`, which currently routes them to the `Fetcher-Simulator-Vehicles` release and `fetcher-simulator.zip` asset. Explicit client repository/tag/asset arguments override the channel file.
+- Tester installations receive `fetcher-update-channel.json`, which routes them to the `Fetcher-Simulator-Experimental` release and `fetcher-simulator.zip` asset. Launcher/tools updates replace older Vehicles/Studio channel files before checking the client. Explicit client repository/tag/asset arguments override the channel file.
 - The normal public `Fetcher-Simulator` release remains available for users who are not participating in the multiplayer vehicle test.
 - Tester tools refresh before client resolution, so a newly installed channel file can redirect the same updater invocation. Installations running the older updater order require one additional updater run for this initial migration.
 - The Fetcher map/client-mod bundle is independently published here as the `openmw-client-mods-mp-clients` prerelease and installed by the tester-tools bootstrap.

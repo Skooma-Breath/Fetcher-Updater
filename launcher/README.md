@@ -6,6 +6,12 @@ for the engine setup guide, UMO JSON authoring and automatic publication through
 Windows C++17 backend with the existing WebView2/web-interface approach. The new
 launcher does not run PowerShell for its update/mod-profile actions.
 
+The complete [Fetcher Simulator Experimental client ZIP](https://github.com/Fetcher-Simulator/Fetcher-Simulator/releases/download/Fetcher-Simulator-Experimental/fetcher-simulator.zip)
+includes the launcher and optional Setup wizard. Extract it and open `FetcherLauncher.exe`.
+`FetcherSetup.exe` is an alternative downloader for the same client and tools. Launcher/tools
+updates move older Vehicles/Studio installations to the `Fetcher-Simulator-Experimental`
+client channel before checking for a game update.
+
 For first installation, select your owned Morrowind `Data Files` under Mods and press
 **Save folder**, or use **Setup wizard** to import an existing Morrowind installation.
 The Windows client package must include `openmw-wizard.exe`, `openmw-iniimporter.exe`

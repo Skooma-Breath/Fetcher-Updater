@@ -166,6 +166,7 @@ try {
     }
     $channelConfiguration = Get-Content -LiteralPath (Join-Path $workRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
     $publishedChannels = @{
+        experimental = "Fetcher-Simulator-Experimental"
         vehicles = "Fetcher-Simulator-Vehicles"
         studio = "Fetcher-Simulator-Studio"
     }

@@ -34,7 +34,8 @@ function New-ToolsPackage {
     param(
         [Parameter(Mandatory)][string] $Path,
         [Parameter(Mandatory)][string] $Probe,
-        [string] $ClientReleaseTag = ""
+        [string] $ClientReleaseTag = "",
+        [string] $ClientChannel = "vehicles"
     )
 
     $stage = "$Path.stage"
@@ -53,7 +54,7 @@ function New-ToolsPackage {
             $channelPath = Join-Path $stage "fetcher-update-channel.json"
             [ordered]@{
                 schemaVersion = 1
-                channel = "vehicles"
+                channel = $ClientChannel
                 clientRepository = "Fetcher-Simulator/Fetcher-Simulator"
                 clientReleaseTag = $ClientReleaseTag
                 clientAssetName = "fetcher-simulator.zip"
@@ -701,6 +702,38 @@ Write-Host "Fake UMO invocation $count"
     $installedChannel = Get-Content -LiteralPath (Join-Path $channelRoot "fetcher-update-channel.json") -Raw | ConvertFrom-Json
     Assert-True -Condition ([string]$installedChannel.clientReleaseTag -eq "Fetcher-Simulator-Vehicles") `
         -Message "Vehicle channel configuration was not preserved through the client refresh."
+
+    # Studio installs must discover the new channel from tools before requesting
+    # a client. No Studio release route is available in this fixture.
+    $experimentalTools = Join-Path $workRoot "tools-experimental.zip"
+    New-ToolsPackage -Path $experimentalTools -Probe "experimental" `
+        -ClientChannel "experimental" -ClientReleaseTag "Fetcher-Simulator-Experimental"
+    Add-ReleaseRoute -Routes $routes -Repository "Skooma-Breath/Fetcher-Updater" `
+        -Tag "fetcher-tester-tools" -AssetName "fetcher-tester-tools.zip" -AssetPath $experimentalTools
+    Add-ReleaseRoute -Routes $routes -Repository "Fetcher-Simulator/Fetcher-Simulator" `
+        -Tag "Fetcher-Simulator-Experimental" -AssetName "fetcher-simulator.zip" `
+        -AssetPath $vehicleClientArchive -TargetCommit $vehicleClientCommit
+    Set-TestRoutes -Path $routesPath -Routes $routes
+    Set-Content -LiteralPath $logPath -Value "" -Encoding UTF8
+    $experimentalRoot = Join-Path $workRoot "experimental-channel-client"
+    New-ClientRoot -Path $experimentalRoot
+    Copy-Item -LiteralPath (Join-Path $releaseRoot "Install-Fetcher-Tester-Tools.ps1") -Destination $experimentalRoot
+    [ordered]@{
+        schemaVersion = 1; channel = "studio"; clientRepository = "Fetcher-Simulator/Fetcher-Simulator"
+        clientReleaseTag = "Fetcher-Simulator-Studio"; clientAssetName = "fetcher-simulator.zip"
+    } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $experimentalRoot "fetcher-update-channel.json") -Encoding UTF8
+    $experimentalOutput = & $migrationUpdater -InstallRoot $experimentalRoot `
+        -GitHubApiBaseUrl $server.Prefix -GitHubDownloadBaseUrl $server.Prefix `
+        -SkipClientModBundle -SkipUmoMods -SkipModPatches 6>&1 | Out-String
+    $experimentalRequests = Get-Content -LiteralPath $logPath -Raw
+    Assert-True -Condition ($experimentalOutput.Contains("Fetcher client channel: experimental")) `
+        -Message "Updater did not migrate Studio to Experimental."
+    Assert-True -Condition ($experimentalRequests.Contains("/repos/Fetcher-Simulator/Fetcher-Simulator/releases/tags/Fetcher-Simulator-Experimental")) `
+        -Message "Updater did not fetch the renamed Experimental release."
+    Assert-True -Condition (-not $experimentalRequests.Contains("/releases/tags/Fetcher-Simulator-Studio")) `
+        -Message "Updater still queried Studio after the channel migration."
+    Assert-True -Condition ((Get-Content -LiteralPath (Join-Path $experimentalRoot "client-probe.txt") -Raw).Trim() -eq "refreshed") `
+        -Message "Experimental channel migration did not install its client."
 
     # Create realistic Bardcraft and Starwind fixtures and digest-backed releases.
     $bardV1 = New-PatchArchive -Kind Bardcraft -Path (Join-Path $workRoot "bard-v1.zip") -Variant "initial"
